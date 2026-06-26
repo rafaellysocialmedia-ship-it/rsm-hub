@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Clientes", url: "/dashboard", icon: Briefcase },
+  { title: "Clientes", url: "/clients", icon: Briefcase },
   { title: "Equipe", url: "/dashboard", icon: Users },
   { title: "Calendário", url: "/dashboard", icon: Calendar },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3 },
@@ -33,7 +33,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const { hasRole } = useAuth();
-  const isActive = (path: string) => currentPath === path;
+  const isActive = (path: string) =>
+    path === "/dashboard" ? currentPath === path : currentPath.startsWith(path);
 
   return (
     <Sidebar collapsible="icon">
