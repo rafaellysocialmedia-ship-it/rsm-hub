@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          cnpj: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          legal_name: string | null
+          logo_url: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          plan: string | null
+          responsible: string | null
+          segment: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["client_status"]
+          updated_at: string
+          user_id: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          cnpj?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          legal_name?: string | null
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          plan?: string | null
+          responsible?: string | null
+          segment?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          cnpj?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          plan?: string | null
+          responsible?: string | null
+          segment?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          updated_at?: string
+          user_id?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -86,6 +149,7 @@ export type Database = {
     }
     Enums: {
       app_role: "administrator" | "team" | "client"
+      client_status: "active" | "inactive" | "paused" | "prospect"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -214,6 +278,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["administrator", "team", "client"],
+      client_status: ["active", "inactive", "paused", "prospect"],
     },
   },
 } as const
