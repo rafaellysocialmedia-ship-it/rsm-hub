@@ -41,6 +41,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const { hasRole } = useAuth();
+  const isStaff = hasRole("administrator") || hasRole("team");
+  const mainItems = isStaff ? staffItems : clientItems;
   const isActive = (path: string) =>
     path === "/dashboard" ? currentPath === path : currentPath.startsWith(path);
 
