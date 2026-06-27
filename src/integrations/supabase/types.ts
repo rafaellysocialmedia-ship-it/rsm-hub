@@ -215,6 +215,54 @@ export type Database = {
         }
         Relationships: []
       }
+      post_approvals: {
+        Row: {
+          client_id: string
+          created_at: string
+          decided_by: string | null
+          decision: Database["public"]["Enums"]["approval_decision"]
+          feedback: string | null
+          id: string
+          post_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          decided_by?: string | null
+          decision?: Database["public"]["Enums"]["approval_decision"]
+          feedback?: string | null
+          id?: string
+          post_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          decided_by?: string | null
+          decision?: Database["public"]["Enums"]["approval_decision"]
+          feedback?: string | null
+          id?: string
+          post_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_approvals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_approvals_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_comments: {
         Row: {
           author_id: string
@@ -713,6 +761,11 @@ export type Database = {
     }
     Enums: {
       app_role: "administrator" | "team" | "client"
+      approval_decision:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "changes_requested"
       client_status: "active" | "inactive" | "paused" | "prospect"
       file_category:
         | "logos"
@@ -861,6 +914,12 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["administrator", "team", "client"],
+      approval_decision: [
+        "pending",
+        "approved",
+        "rejected",
+        "changes_requested",
+      ],
       client_status: ["active", "inactive", "paused", "prospect"],
       file_category: [
         "logos",
