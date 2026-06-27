@@ -18,8 +18,8 @@ import { useAuth } from "@/hooks/use-auth";
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Clientes", url: "/clients", icon: Briefcase },
+  { title: "Calendário", url: "/posts", icon: Calendar },
   { title: "Equipe", url: "/dashboard", icon: Users },
-  { title: "Calendário", url: "/dashboard", icon: Calendar },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3 },
 ];
 
