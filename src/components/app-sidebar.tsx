@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield, FolderOpen } from "lucide-react";
 
 import {
   Sidebar,
@@ -19,6 +19,7 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Clientes", url: "/clients", icon: Briefcase },
   { title: "Calendário", url: "/posts", icon: Calendar },
+  { title: "Biblioteca", url: "/library", icon: FolderOpen },
   { title: "Equipe", url: "/dashboard", icon: Users },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3 },
 ];
