@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield, FolderOpen, KeyRound, KanbanSquare } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield, FolderOpen, KeyRound, KanbanSquare, CheckCircle2 } from "lucide-react";
 
 import {
   Sidebar,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 
-const mainItems = [
+const staffItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Clientes", url: "/clients", icon: Briefcase },
   { title: "Calendário", url: "/posts", icon: Calendar },
@@ -24,6 +24,11 @@ const mainItems = [
   { title: "Vault", url: "/vault", icon: KeyRound },
   { title: "Equipe", url: "/dashboard", icon: Users },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3 },
+];
+
+const clientItems = [
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
 ];
 
 const adminItems = [
