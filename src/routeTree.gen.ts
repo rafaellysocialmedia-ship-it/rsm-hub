@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedVaultIndexRouteImport } from './routes/_authenticated/vault.index'
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedVaultIndexRoute = AuthenticatedVaultIndexRouteImport.update({
+  id: '/vault/',
+  path: '/vault/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
+  '/vault/': typeof AuthenticatedVaultIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
+  '/vault': typeof AuthenticatedVaultIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
+  '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/library/'
     | '/posts/'
+    | '/vault/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/library'
     | '/posts'
+    | '/vault'
   id:
     | '__root__'
     | '/'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clients/'
     | '/_authenticated/library/'
     | '/_authenticated/posts/'
+    | '/_authenticated/vault/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -177,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vault/': {
+      id: '/_authenticated/vault/'
+      path: '/vault'
+      fullPath: '/vault/'
+      preLoaderRoute: typeof AuthenticatedVaultIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/posts/': {
       id: '/_authenticated/posts/'
       path: '/posts'
@@ -214,6 +233,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
+  AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -222,6 +242,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
+  AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
