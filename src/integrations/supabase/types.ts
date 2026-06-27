@@ -392,6 +392,94 @@ export type Database = {
         }
         Relationships: []
       }
+      vault_credential_history: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          credential_id: string
+          field: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          credential_id: string
+          field?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          credential_id?: string
+          field?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_credential_history_credential_id_fkey"
+            columns: ["credential_id"]
+            isOneToOne: false
+            referencedRelation: "vault_credentials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vault_credentials: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          password_encrypted: string
+          platform: string
+          updated_at: string
+          url: string | null
+          username: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          password_encrypted: string
+          platform: string
+          updated_at?: string
+          url?: string | null
+          username: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          password_encrypted?: string
+          platform?: string
+          updated_at?: string
+          url?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_credentials_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -406,6 +494,31 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      vault_create_credential: {
+        Args: {
+          _client_id?: string
+          _notes?: string
+          _password: string
+          _platform: string
+          _url?: string
+          _username: string
+        }
+        Returns: string
+      }
+      vault_encryption_key: { Args: never; Returns: string }
+      vault_reveal_password: { Args: { _id: string }; Returns: string }
+      vault_update_credential: {
+        Args: {
+          _client_id: string
+          _id: string
+          _notes: string
+          _password: string
+          _platform: string
+          _url: string
+          _username: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "administrator" | "team" | "client"
