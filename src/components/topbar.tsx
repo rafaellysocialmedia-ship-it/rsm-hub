@@ -54,6 +54,7 @@ export function Topbar() {
             {roleLabel[primaryRole]}
           </Badge>
         )}
+        <NotificationsMenu />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
