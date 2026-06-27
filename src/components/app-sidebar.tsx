@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield, FolderOpen, KeyRound } from "lucide-react";
+import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield, FolderOpen, KeyRound, KanbanSquare } from "lucide-react";
 
 import {
   Sidebar,
@@ -20,6 +20,7 @@ const mainItems = [
   { title: "Clientes", url: "/clients", icon: Briefcase },
   { title: "Calendário", url: "/posts", icon: Calendar },
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
+  { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
   { title: "Vault", url: "/vault", icon: KeyRound },
   { title: "Equipe", url: "/dashboard", icon: Users },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3 },

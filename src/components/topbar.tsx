@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationsMenu } from "@/components/notifications-menu";
 import { useAuth } from "@/hooks/use-auth";
 
 const roleLabel: Record<string, string> = {
@@ -53,6 +54,7 @@ export function Topbar() {
             {roleLabel[primaryRole]}
           </Badge>
         )}
+        <NotificationsMenu />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

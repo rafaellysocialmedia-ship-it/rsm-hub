@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedVaultIndexRouteImport } from './routes/_authenticated/vault.index'
+import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
@@ -47,6 +48,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedVaultIndexRoute = AuthenticatedVaultIndexRouteImport.update({
   id: '/vault/',
   path: '/vault/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
+  '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
+  '/tasks': typeof AuthenticatedTasksIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
+  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
 }
 export interface FileRouteTypes {
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/clients/'
     | '/library/'
     | '/posts/'
+    | '/tasks/'
     | '/vault/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/clients'
     | '/library'
     | '/posts'
+    | '/tasks'
     | '/vault'
   id:
     | '__root__'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clients/'
     | '/_authenticated/library/'
     | '/_authenticated/posts/'
+    | '/_authenticated/tasks/'
     | '/_authenticated/vault/'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVaultIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tasks/': {
+      id: '/_authenticated/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/posts/': {
       id: '/_authenticated/posts/'
       path: '/posts'
@@ -233,6 +252,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
+  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
 }
 
@@ -242,6 +262,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
+  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
 }
 
