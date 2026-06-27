@@ -77,6 +77,156 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string | null
+          post_id: string
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          post_id: string
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          post_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_files_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          caption: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          cta: string | null
+          format: string | null
+          hashtags: string | null
+          headline: string | null
+          id: string
+          objective: string | null
+          pillar: string | null
+          position: number
+          recurrence: Json | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          social_network: string | null
+          status: Database["public"]["Enums"]["post_status"]
+          theme: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          cta?: string | null
+          format?: string | null
+          hashtags?: string | null
+          headline?: string | null
+          id?: string
+          objective?: string | null
+          pillar?: string | null
+          position?: number
+          recurrence?: Json | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          social_network?: string | null
+          status?: Database["public"]["Enums"]["post_status"]
+          theme?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          cta?: string | null
+          format?: string | null
+          hashtags?: string | null
+          headline?: string | null
+          id?: string
+          objective?: string | null
+          pillar?: string | null
+          position?: number
+          recurrence?: Json | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          social_network?: string | null
+          status?: Database["public"]["Enums"]["post_status"]
+          theme?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -150,6 +300,13 @@ export type Database = {
     Enums: {
       app_role: "administrator" | "team" | "client"
       client_status: "active" | "inactive" | "paused" | "prospect"
+      post_status:
+        | "idea"
+        | "production"
+        | "review"
+        | "approved"
+        | "scheduled"
+        | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -279,6 +436,14 @@ export const Constants = {
     Enums: {
       app_role: ["administrator", "team", "client"],
       client_status: ["active", "inactive", "paused", "prospect"],
+      post_status: [
+        "idea",
+        "production",
+        "review",
+        "approved",
+        "scheduled",
+        "published",
+      ],
     },
   },
 } as const
