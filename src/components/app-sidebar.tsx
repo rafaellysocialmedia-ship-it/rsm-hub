@@ -20,6 +20,7 @@ const mainItems = [
   { title: "Clientes", url: "/clients", icon: Briefcase },
   { title: "Calendário", url: "/posts", icon: Calendar },
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
+  { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
   { title: "Vault", url: "/vault", icon: KeyRound },
   { title: "Equipe", url: "/dashboard", icon: Users },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3 },
