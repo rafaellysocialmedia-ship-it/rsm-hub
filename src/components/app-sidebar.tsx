@@ -1,5 +1,20 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, Briefcase, Calendar, BarChart3, Settings, Sparkles, Shield, FolderOpen, KeyRound, KanbanSquare, CheckCircle2 } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Briefcase,
+  Calendar,
+  BarChart3,
+  Settings,
+  Sparkles,
+  Shield,
+  FolderOpen,
+  KeyRound,
+  KanbanSquare,
+  CheckCircle2,
+  CircleDollarSign,
+  Bot,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -13,27 +28,45 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 
-const staffItems = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  soon?: boolean;
+};
+
+const staffMain: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Clientes", url: "/clients", icon: Briefcase },
   { title: "Calendário", url: "/posts", icon: Calendar },
-  { title: "Biblioteca", url: "/library", icon: FolderOpen },
   { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
-  { title: "Vault", url: "/vault", icon: KeyRound },
-  { title: "Equipe", url: "/dashboard", icon: Users },
-  { title: "Relatórios", url: "/dashboard", icon: BarChart3 },
+  { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
 ];
 
-const clientItems = [
+const staffWorkspace: NavItem[] = [
+  { title: "Biblioteca", url: "/library", icon: FolderOpen },
+  { title: "Vault", url: "/vault", icon: KeyRound },
+];
+
+const staffSoon: NavItem[] = [
+  { title: "Analytics", url: "/dashboard", icon: BarChart3, soon: true },
+  { title: "Relatórios", url: "/dashboard", icon: BarChart3, soon: true },
+  { title: "Financeiro", url: "/dashboard", icon: CircleDollarSign, soon: true },
+  { title: "Equipe", url: "/dashboard", icon: Users, soon: true },
+  { title: "IA", url: "/dashboard", icon: Bot, soon: true },
+];
+
+const clientItems: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
 ];
 
-const adminItems = [
-  { title: "Permissões", url: "/dashboard", icon: Shield },
-  { title: "Configurações", url: "/dashboard", icon: Settings },
+const adminItems: NavItem[] = [
+  { title: "Permissões", url: "/dashboard", icon: Shield, soon: true },
+  { title: "Configurações", url: "/dashboard", icon: Settings, soon: true },
 ];
 
 export function AppSidebar() {
@@ -42,9 +75,32 @@ export function AppSidebar() {
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
   const { hasRole } = useAuth();
   const isStaff = hasRole("administrator") || hasRole("team");
-  const mainItems = isStaff ? staffItems : clientItems;
+
   const isActive = (path: string) =>
     path === "/dashboard" ? currentPath === path : currentPath.startsWith(path);
+
+  const renderItem = (item: NavItem) => (
+    <SidebarMenuItem key={item.title}>
+      <SidebarMenuButton
+        asChild
+        isActive={!item.soon && isActive(item.url)}
+        tooltip={item.soon ? `${item.title} (em breve)` : item.title}
+      >
+        <Link to={item.url} className="flex items-center gap-2">
+          <item.icon className="h-4 w-4" />
+          <span className="flex-1 truncate">{item.title}</span>
+          {item.soon && !collapsed && (
+            <Badge
+              variant="outline"
+              className="ml-auto h-4 border-dashed px-1 text-[9px] font-normal text-muted-foreground"
+            >
+              em breve
+            </Badge>
+          )}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -67,36 +123,34 @@ export function AppSidebar() {
           <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {(isStaff ? staffMain : clientItems).map(renderItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isStaff && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>{staffWorkspace.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isStaff && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Próximos módulos</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>{staffSoon.map(renderItem)}</SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {hasRole("administrator") && (
           <SidebarGroup>
             <SidebarGroupLabel>Administração</SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                      <Link to={item.url} className="flex items-center gap-2">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
+              <SidebarMenu>{adminItems.map(renderItem)}</SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
