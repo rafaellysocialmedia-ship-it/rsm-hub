@@ -73,7 +73,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
-  const { hasRole } = useAuth();
+  const { hasRole, loading } = useAuth();
   const isStaff = hasRole("administrator") || hasRole("team");
 
   const isActive = (path: string) =>
@@ -102,6 +102,15 @@ export function AppSidebar() {
     </SidebarMenuItem>
   );
 
+  const renderLoadingItem = () => (
+    <SidebarMenuItem>
+      <SidebarMenuButton tooltip="Carregando permissões" disabled>
+        <div className="h-4 w-4 shrink-0 animate-pulse rounded-sm bg-sidebar-foreground/20" />
+        {!collapsed && <span className="h-3 w-32 animate-pulse rounded bg-sidebar-foreground/15" />}
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
@@ -123,12 +132,12 @@ export function AppSidebar() {
           <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {(isStaff ? staffMain : clientItems).map(renderItem)}
+              {loading ? renderLoadingItem() : (isStaff ? staffMain : clientItems).map(renderItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isStaff && (
+        {!loading && isStaff && (
           <SidebarGroup>
             <SidebarGroupLabel>Workspace</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -137,7 +146,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isStaff && (
+        {!loading && isStaff && (
           <SidebarGroup>
             <SidebarGroupLabel>Próximos módulos</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -146,7 +155,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {hasRole("administrator") && (
+        {!loading && hasRole("administrator") && (
           <SidebarGroup>
             <SidebarGroupLabel>Administração</SidebarGroupLabel>
             <SidebarGroupContent>

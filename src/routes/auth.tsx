@@ -23,12 +23,15 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, hasRole } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
-  }, [user, loading, navigate]);
+    if (!loading && user) {
+      const isStaff = hasRole("administrator") || hasRole("team");
+      navigate({ to: isStaff ? "/dashboard" : "/portal" });
+    }
+  }, [user, loading, hasRole, navigate]);
 
   return (
     <div className="relative grid min-h-screen lg:grid-cols-2">
@@ -114,7 +117,6 @@ function GoogleButton() {
 }
 
 function SignInForm({ onForgot }: { onForgot: () => void }) {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -126,7 +128,6 @@ function SignInForm({ onForgot }: { onForgot: () => void }) {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Bem-vindo de volta!");
-    navigate({ to: "/dashboard" });
   };
 
   return (

@@ -34,43 +34,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+    let active = true;
+
+    const hydrateSession = async (sess: Session | null) => {
+      if (!active) return;
       setSession(sess);
       setUser(sess?.user ?? null);
-      if (sess?.user) {
-        setTimeout(() => loadUserData(sess.user.id), 0);
-      } else {
+
+      if (!sess?.user) {
         setProfile(null);
         setRoles([]);
+        setLoading(false);
+        return;
       }
+
+      setLoading(true);
+      await loadUserData(sess.user.id);
+      if (active) setLoading(false);
+    };
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+      setTimeout(() => void hydrateSession(sess), 0);
     });
 
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
-      if (data.session?.user) {
-        loadUserData(data.session.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
+      void hydrateSession(data.session);
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   async function loadUserData(userId: string) {
-    const [{ data: prof }, { data: rs }] = await Promise.all([
+    const [{ data: prof, error: profileError }, { data: rs, error: rolesError }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
+
+    if (profileError) console.error("Erro ao carregar perfil", profileError);
+    if (rolesError) console.error("Erro ao carregar permissões", rolesError);
+
     setProfile(prof as Profile | null);
-    setRoles((rs ?? []).map((r) => r.role as AppRole));
+    setRoles(rolesError ? [] : (rs ?? []).map((r) => r.role as AppRole));
   }
 
   const signOut = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
     setProfile(null);
     setRoles([]);
+    setSession(null);
+    setUser(null);
+    setLoading(false);
   };
 
   const hasRole = (role: AppRole) => roles.includes(role);
