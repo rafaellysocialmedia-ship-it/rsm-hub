@@ -38,6 +38,7 @@ import {
 import { ClientLogo } from "@/components/clients/client-logo";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
+import { PortalSettingsCard } from "@/components/clients/portal-settings-card";
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId")({
   head: () => ({ meta: [{ title: "Cliente · Social Media Hub" }] }),
