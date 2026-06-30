@@ -48,7 +48,8 @@ export function PortalSettingsCard({ clientId }: { clientId: string }) {
     mutationFn: async (patch: Record<string, boolean>) => {
       const { error } = await supabase
         .from("client_portal_settings")
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq("client_id", clientId);
       if (error) throw error;
     },
