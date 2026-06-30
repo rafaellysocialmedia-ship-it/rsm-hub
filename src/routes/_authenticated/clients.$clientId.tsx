@@ -221,6 +221,8 @@ function ClientDetailPage() {
             </p>
           </CardContent>
         </Card>
+
+        {canManage && <PortalSettingsCard clientId={client.id} />}
       </div>
 
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} client={client} />
