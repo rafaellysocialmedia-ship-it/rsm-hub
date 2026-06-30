@@ -48,7 +48,7 @@ const staffMain: NavItem[] = [
 
 const staffWorkspace: NavItem[] = [
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
-  { title: "Vault", url: "/vault", icon: KeyRound },
+  { title: "Acessos", url: "/vault", icon: KeyRound },
 ];
 
 const staffSoon: NavItem[] = [
