@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_portal_settings: {
+        Row: {
+          can_approve: boolean
+          can_comment: boolean
+          can_request_changes: boolean
+          can_view_captions: boolean
+          can_view_comments: boolean
+          can_view_history: boolean
+          can_view_media: boolean
+          can_view_posts: boolean
+          client_id: string
+          updated_at: string
+          updated_by: string | null
+          visible_statuses: string[]
+        }
+        Insert: {
+          can_approve?: boolean
+          can_comment?: boolean
+          can_request_changes?: boolean
+          can_view_captions?: boolean
+          can_view_comments?: boolean
+          can_view_history?: boolean
+          can_view_media?: boolean
+          can_view_posts?: boolean
+          client_id: string
+          updated_at?: string
+          updated_by?: string | null
+          visible_statuses?: string[]
+        }
+        Update: {
+          can_approve?: boolean
+          can_comment?: boolean
+          can_request_changes?: boolean
+          can_view_captions?: boolean
+          can_view_comments?: boolean
+          can_view_history?: boolean
+          can_view_media?: boolean
+          can_view_posts?: boolean
+          client_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          visible_statuses?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_settings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           cnpj: string | null
@@ -215,6 +268,54 @@ export type Database = {
         }
         Relationships: []
       }
+      post_activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          client_id: string | null
+          created_at: string
+          detail: string | null
+          id: string
+          metadata: Json | null
+          post_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          metadata?: Json | null
+          post_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          metadata?: Json | null
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_activity_log_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_activity_log_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_approvals: {
         Row: {
           client_id: string
@@ -329,6 +430,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "post_files_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_versions: {
+        Row: {
+          change_note: string | null
+          changed_by: string | null
+          created_at: string
+          id: string
+          post_id: string
+          snapshot: Json
+          version_number: number
+        }
+        Insert: {
+          change_note?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          post_id: string
+          snapshot: Json
+          version_number: number
+        }
+        Update: {
+          change_note?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string
+          snapshot?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_versions_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
