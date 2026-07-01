@@ -21,6 +21,7 @@ import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
+import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -85,12 +86,19 @@ const AuthenticatedClientsClientIdRoute =
     path: '/clients/$clientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminPermissionsRoute =
+  AuthenticatedAdminPermissionsRouteImport.update({
+    id: '/admin/permissions',
+    path: '/admin/permissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
@@ -104,6 +112,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
@@ -119,6 +128,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/dashboard'
+    | '/admin/permissions'
     | '/clients/$clientId'
     | '/clients/'
     | '/library/'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/dashboard'
+    | '/admin/permissions'
     | '/clients/$clientId'
     | '/clients'
     | '/library'
@@ -161,6 +173,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/dashboard'
+    | '/_authenticated/admin/permissions'
     | '/_authenticated/clients/$clientId'
     | '/_authenticated/clients/'
     | '/_authenticated/library/'
@@ -263,11 +276,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsClientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/permissions': {
+      id: '/_authenticated/admin/permissions'
+      path: '/admin/permissions'
+      fullPath: '/admin/permissions'
+      preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
@@ -279,6 +300,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
@@ -300,13 +322,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
