@@ -54,7 +54,7 @@ const staffWorkspace: NavItem[] = [
 const staffSoon: NavItem[] = [
   { title: "Analytics", url: "/dashboard", icon: BarChart3, soon: true },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3, soon: true },
-  { title: "Financeiro", url: "/dashboard", icon: CircleDollarSign, soon: true },
+  { title: "Financeiro", url: "/finance", icon: CircleDollarSign },
   { title: "Equipe", url: "/dashboard", icon: Users, soon: true },
   { title: "IA", url: "/dashboard", icon: Bot, soon: true },
 ];

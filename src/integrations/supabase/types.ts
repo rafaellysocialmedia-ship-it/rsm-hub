@@ -238,6 +238,71 @@ export type Database = {
           },
         ]
       }
+      finance_transactions: {
+        Row: {
+          amount: number
+          category: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string
+          due_date: string | null
+          id: string
+          issue_date: string
+          notes: string | null
+          paid_date: string | null
+          payment_method: string | null
+          status: Database["public"]["Enums"]["finance_status"]
+          type: Database["public"]["Enums"]["finance_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["finance_status"]
+          type?: Database["public"]["Enums"]["finance_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          issue_date?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          status?: Database["public"]["Enums"]["finance_status"]
+          type?: Database["public"]["Enums"]["finance_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -916,6 +981,8 @@ export type Database = {
         | "briefing"
         | "contrato"
         | "relatorios"
+      finance_status: "pending" | "paid" | "overdue" | "cancelled"
+      finance_type: "income" | "expense"
       post_status:
         | "idea"
         | "production"
@@ -1071,6 +1138,8 @@ export const Constants = {
         "contrato",
         "relatorios",
       ],
+      finance_status: ["pending", "paid", "overdue", "cancelled"],
+      finance_type: ["income", "expense"],
       post_status: [
         "idea",
         "production",
