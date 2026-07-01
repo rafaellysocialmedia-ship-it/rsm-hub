@@ -65,7 +65,7 @@ const clientItems: NavItem[] = [
 ];
 
 const adminItems: NavItem[] = [
-  { title: "Permissões", url: "/dashboard", icon: Shield, soon: true },
+  { title: "Permissões", url: "/admin/permissions", icon: Shield },
   { title: "Configurações", url: "/dashboard", icon: Settings, soon: true },
 ];
 
