@@ -29,7 +29,7 @@ export function TableView({
               <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer">
                 <TableCell className="pl-4 font-medium">{p.title}</TableCell>
                 <TableCell>{p.client_id ? clientMap.get(p.client_id) : "—"}</TableCell>
-                <TableCell>{p.social_network ?? "—"}</TableCell>
+                <TableCell>{postNetworks(p).join(", ") || "—"}</TableCell>
                 <TableCell>{p.format ?? "—"}</TableCell>
                 <TableCell>{p.scheduled_date ? format(new Date(p.scheduled_date + "T00:00:00"), "dd MMM yy", { locale: ptBR }) : "—"}</TableCell>
                 <TableCell>{p.scheduled_time?.slice(0, 5) ?? "—"}</TableCell>
