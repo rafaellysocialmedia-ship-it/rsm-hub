@@ -625,10 +625,10 @@ function ClientDashboard({ name }: { name: string }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MiniStat icon={Send} label="Publicações totais" value={total} tint="bg-primary/10 text-primary" />
-        <MiniStat icon={CalendarCheck} label="Agendadas" value={scheduled} tint="bg-sky-500/10 text-sky-500" />
-        <MiniStat icon={CheckCircle2} label="Publicadas" value={published} tint="bg-emerald-500/10 text-emerald-500" />
-        <MiniStat icon={Clock} label="Aguardando você" value={pendingApproval} tint="bg-amber-500/10 text-amber-500" />
+        <CMiniStat icon={Send} label="Publicações totais" value={total} tint="bg-primary/10 text-primary" />
+        <CMiniStat icon={CalendarCheck} label="Agendadas" value={scheduled} tint="bg-sky-500/10 text-sky-500" />
+        <CMiniStat icon={CheckCircle2} label="Publicadas" value={published} tint="bg-emerald-500/10 text-emerald-500" />
+        <CMiniStat icon={Clock} label="Aguardando você" value={pendingApproval} tint="bg-amber-500/10 text-amber-500" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
