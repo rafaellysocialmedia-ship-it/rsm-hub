@@ -309,14 +309,31 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Rede social">
-                <Select value={form.social_network ?? "none"} onValueChange={(v) => update("social_network", v === "none" ? null : v)}>
-                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">—</SelectItem>
-                    {SOCIAL_NETWORKS.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
-                  </SelectContent>
-                </Select>
+              <Field label="Redes sociais">
+                <div className="flex flex-wrap gap-1.5">
+                  {SOCIAL_NETWORKS.map((n) => {
+                    const list = ((form as { social_networks?: string[] }).social_networks ?? []);
+                    const active = list.includes(n);
+                    return (
+                      <button
+                        type="button"
+                        key={n}
+                        onClick={() => {
+                          const next = active ? list.filter((x) => x !== n) : [...list, n];
+                          setForm((f) => ({ ...f, social_networks: next } as Partial<Post>));
+                        }}
+                        className={cn(
+                          "rounded-full border px-2.5 py-1 text-xs transition-colors",
+                          active
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted",
+                        )}
+                      >
+                        {n}
+                      </button>
+                    );
+                  })}
+                </div>
               </Field>
               <Field label="Data">
                 <Input type="date" value={form.scheduled_date ?? ""} onChange={(e) => update("scheduled_date", e.target.value || null)} />
