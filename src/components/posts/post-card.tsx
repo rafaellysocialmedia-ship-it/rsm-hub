@@ -3,7 +3,7 @@ import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, Hash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { statusMeta, type Post } from "@/lib/posts";
+import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 
 type Props = {
   post: Post;
