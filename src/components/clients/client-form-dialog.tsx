@@ -285,6 +285,28 @@ export function ClientFormDialog({
             </Field>
           </div>
 
+          <Field label="Vincular login do cliente">
+            <Select
+              value={form.watch("user_id") || "none"}
+              onValueChange={(v) => form.setValue("user_id", v === "none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma conta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Nenhum —</SelectItem>
+                {clientUsers.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.name || u.email || u.id.slice(0, 8)} {u.email ? `· ${u.email}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Ao vincular, este cliente poderá acessar o portal e aprovar publicações com o login selecionado.
+            </p>
+          </Field>
+
           <Field label="Observações">
             <Textarea rows={4} {...form.register("notes")} />
           </Field>
