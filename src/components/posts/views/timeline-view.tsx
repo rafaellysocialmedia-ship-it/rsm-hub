@@ -57,7 +57,7 @@ export function TimelineView({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{p.title}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {[p.client_id ? clientMap.get(p.client_id) : null, p.social_network, p.format].filter(Boolean).join(" · ") || "—"}
+                      {[p.client_id ? clientMap.get(p.client_id) : null, postNetworks(p).join("/") || null, p.format].filter(Boolean).join(" · ") || "—"}
                     </p>
                   </div>
                   <Badge variant="outline" className={cn("text-[10px]", meta.tone)}>{meta.label}</Badge>
