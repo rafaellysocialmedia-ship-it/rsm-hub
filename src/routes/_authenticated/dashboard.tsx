@@ -87,11 +87,6 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     queryFn: fetchClients,
   });
 
-  const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: fetchClients,
-  });
-
   // Realtime: invalidate on any change
   useEffect(() => {
     const channel = supabase
