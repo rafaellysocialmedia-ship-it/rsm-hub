@@ -523,3 +523,175 @@ function EmptyMini({ label }: { label: string }) {
     </div>
   );
 }
+
+// ============================================================
+// Client-scoped dashboard: only shows data related to this client
+// ============================================================
+function ClientDashboard({ name }: { name: string }) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  const { data: client } = useQuery({
+    queryKey: ["dash-client", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: posts = [] } = useQuery({
+    queryKey: ["dash-client-posts", client?.id],
+    enabled: !!client?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("client_id", client!.id)
+        .order("scheduled_date", { ascending: true, nullsFirst: false });
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; status: string; scheduled_date: string | null; scheduled_time: string | null; title: string; social_network: string | null }>;
+    },
+  });
+
+  const { data: approvals = [] } = useQuery({
+    queryKey: ["dash-client-approvals", client?.id],
+    enabled: !!client?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("post_approvals")
+        .select("*")
+        .eq("client_id", client!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  useEffect(() => {
+    if (!client?.id) return;
+    const channel = supabase
+      .channel(`dash-client-${client.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts", filter: `client_id=eq.${client.id}` },
+        () => qc.invalidateQueries({ queryKey: ["dash-client-posts", client.id] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "post_approvals", filter: `client_id=eq.${client.id}` },
+        () => qc.invalidateQueries({ queryKey: ["dash-client-approvals", client.id] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [client?.id, qc]);
+
+  const now = new Date();
+  const total = posts.length;
+  const scheduled = posts.filter((p) => p.status === "scheduled").length;
+  const published = posts.filter((p) => p.status === "published").length;
+  const inReview = posts.filter((p) => p.status === "review").length;
+  const pendingApproval = approvals.filter((a) => (a as { decision: string }).decision === "pending").length;
+
+  const upcoming = posts
+    .filter((p) => p.scheduled_date && new Date(p.scheduled_date + "T00:00:00") >= new Date(now.toDateString()))
+    .slice(0, 6);
+
+  if (!client) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+          <Sparkles className="h-6 w-6 text-primary" />
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Olá{ name ? `, ${name}` : ""}!</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Sua conta ainda não foi vinculada a um cliente. Peça ao administrador para vincular seu login para você acompanhar suas publicações e aprovações.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-6 py-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Bem-vindo(a)</p>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Olá{ name ? `, ${name}` : ""} · {client.name}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Acompanhe suas publicações e aprovações em tempo real.</p>
+        </div>
+        <Button asChild size="sm" variant="outline" className="gap-1.5">
+          <Link to="/portal"><ArrowUpRight className="h-4 w-4" /> Área do cliente</Link>
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <MiniStat icon={Send} label="Publicações totais" value={total} tint="bg-primary/10 text-primary" />
+        <MiniStat icon={CalendarCheck} label="Agendadas" value={scheduled} tint="bg-sky-500/10 text-sky-500" />
+        <MiniStat icon={CheckCircle2} label="Publicadas" value={published} tint="bg-emerald-500/10 text-emerald-500" />
+        <MiniStat icon={Clock} label="Aguardando você" value={pendingApproval} tint="bg-amber-500/10 text-amber-500" />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="shadow-soft lg:col-span-2">
+          <CardHeader className="flex-row items-center justify-between">
+            <CardTitle className="text-base">Próximas publicações</CardTitle>
+            <Badge variant="secondary" className="text-[10px]">{upcoming.length}</Badge>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {upcoming.length === 0 && (
+              <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma publicação futura ainda.</p>
+            )}
+            {upcoming.map((p) => (
+              <div key={p.id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{p.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {p.scheduled_date ? format(new Date(p.scheduled_date + "T00:00:00"), "dd MMM", { locale: ptBR }) : "—"}
+                    {p.scheduled_time ? ` · ${p.scheduled_time.slice(0,5)}` : ""}
+                    {p.social_network ? ` · ${p.social_network}` : ""}
+                  </p>
+                </div>
+                <Badge variant="outline" className="text-[10px]">{p.status}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-soft">
+          <CardHeader><CardTitle className="text-base">Resumo</CardTitle></CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <Row label="Em revisão" value={inReview} />
+            <Row label="Agendadas" value={scheduled} />
+            <Row label="Publicadas" value={published} />
+            <Row label="Aprovações pendentes" value={pendingApproval} highlight />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ icon: Icon, label, value, tint }: { icon: typeof Send; label: string; value: number; tint: string }) {
+  return (
+    <Card className="shadow-soft">
+      <CardContent className="flex items-center gap-3 p-4">
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", tint)}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className="text-xl font-semibold tracking-tight">{value}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Row({ label, value, highlight }: { label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn("font-semibold", highlight && value > 0 && "text-amber-500")}>{value}</span>
+    </div>
+  );
+}
