@@ -44,6 +44,7 @@ const schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive", "paused", "prospect"]),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
+  user_id: z.string().optional().or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -61,6 +62,7 @@ const empty: FormValues = {
   start_date: "",
   status: "active",
   notes: "",
+  user_id: "",
 };
 
 export function ClientFormDialog({
