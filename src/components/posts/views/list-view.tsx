@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
-import { statusMeta, type Post } from "@/lib/posts";
+import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 import { cn } from "@/lib/utils";
 
 export function ListView({
@@ -24,7 +24,7 @@ export function ListView({
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{p.title}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {[p.client_id ? clientMap.get(p.client_id) : null, p.social_network, p.format].filter(Boolean).join(" · ") || "—"}
+                {[p.client_id ? clientMap.get(p.client_id) : null, postNetworks(p).join("/") || null, p.format].filter(Boolean).join(" · ") || "—"}
               </p>
             </div>
             {p.scheduled_date && (

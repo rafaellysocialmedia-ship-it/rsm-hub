@@ -558,6 +558,7 @@ export type Database = {
           scheduled_date: string | null
           scheduled_time: string | null
           social_network: string | null
+          social_networks: string[]
           status: Database["public"]["Enums"]["post_status"]
           theme: string | null
           title: string
@@ -580,6 +581,7 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           social_network?: string | null
+          social_networks?: string[]
           status?: Database["public"]["Enums"]["post_status"]
           theme?: string | null
           title: string
@@ -602,6 +604,7 @@ export type Database = {
           scheduled_date?: string | null
           scheduled_time?: string | null
           social_network?: string | null
+          social_networks?: string[]
           status?: Database["public"]["Enums"]["post_status"]
           theme?: string | null
           title?: string

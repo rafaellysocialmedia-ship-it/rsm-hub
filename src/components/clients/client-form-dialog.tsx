@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -44,6 +44,7 @@ const schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive", "paused", "prospect"]),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
+  user_id: z.string().optional().or(z.literal("")),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -61,6 +62,7 @@ const empty: FormValues = {
   start_date: "",
   status: "active",
   notes: "",
+  user_id: "",
 };
 
 export function ClientFormDialog({
@@ -100,12 +102,34 @@ export function ClientFormDialog({
               start_date: client.start_date ?? "",
               status: client.status,
               notes: client.notes ?? "",
+              user_id: client.user_id ?? "",
             }
           : empty,
       );
       setLogoPath(client?.logo_url ?? null);
     }
   }, [open, client, form]);
+
+  // Fetch client-role users to link login
+  const { data: clientUsers = [] } = useQuery({
+    queryKey: ["client-role-users"],
+    enabled: open,
+    queryFn: async () => {
+      const { data: roles, error } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "client");
+      if (error) throw error;
+      const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
+      if (ids.length === 0) return [] as { id: string; name: string | null; email: string | null }[];
+      const { data: profs, error: e2 } = await supabase
+        .from("profiles")
+        .select("id, name, email")
+        .in("id", ids);
+      if (e2) throw e2;
+      return profs ?? [];
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
@@ -121,6 +145,7 @@ export function ClientFormDialog({
         plan: values.plan || null,
         start_date: values.start_date || null,
         notes: values.notes || null,
+        user_id: values.user_id ? values.user_id : null,
         logo_url: logoPath,
       };
       if (client) {
@@ -259,6 +284,28 @@ export function ClientFormDialog({
               </Select>
             </Field>
           </div>
+
+          <Field label="Vincular login do cliente">
+            <Select
+              value={form.watch("user_id") || "none"}
+              onValueChange={(v) => form.setValue("user_id", v === "none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione uma conta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Nenhum —</SelectItem>
+                {clientUsers.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.name || u.email || u.id.slice(0, 8)} {u.email ? `· ${u.email}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Ao vincular, este cliente poderá acessar o portal e aprovar publicações com o login selecionado.
+            </p>
+          </Field>
 
           <Field label="Observações">
             <Textarea rows={4} {...form.register("notes")} />

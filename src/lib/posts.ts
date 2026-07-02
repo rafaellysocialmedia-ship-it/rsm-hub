@@ -58,3 +58,9 @@ export type RecurrenceRule = {
   frequency: "none" | "daily" | "weekly" | "biweekly" | "monthly";
   count?: number;
 };
+
+export function postNetworks(post: Pick<Post, "social_network"> & { social_networks?: string[] | null }): string[] {
+  const list = (post.social_networks ?? []).filter(Boolean);
+  if (list.length > 0) return list;
+  return post.social_network ? [post.social_network] : [];
+}

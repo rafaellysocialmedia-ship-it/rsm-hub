@@ -83,7 +83,11 @@ function PostsPage() {
     return posts.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (clientFilter !== "all" && p.client_id !== clientFilter) return false;
-      if (networkFilter !== "all" && p.social_network !== networkFilter) return false;
+      if (networkFilter !== "all") {
+        const nets = ((p as { social_networks?: string[] | null }).social_networks ?? []);
+        const all = nets.length ? nets : (p.social_network ? [p.social_network] : []);
+        if (!all.includes(networkFilter)) return false;
+      }
       if (q) {
         const hay = [p.title, p.headline, p.caption, p.theme, p.pillar, p.hashtags, p.cta]
           .filter(Boolean).join(" ").toLowerCase();
