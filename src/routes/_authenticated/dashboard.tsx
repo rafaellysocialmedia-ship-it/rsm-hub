@@ -671,7 +671,7 @@ function ClientDashboard({ name }: { name: string }) {
   );
 }
 
-function MiniStat({ icon: Icon, label, value, tint }: { icon: typeof Send; label: string; value: number; tint: string }) {
+function CMiniStat({ icon: Icon, label, value, tint }: { icon: typeof Send; label: string; value: number; tint: string }) {
   return (
     <Card className="shadow-soft">
       <CardContent className="flex items-center gap-3 p-4">
