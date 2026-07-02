@@ -69,9 +69,23 @@ async function fetchClients(): Promise<Client[]> {
 }
 
 function DashboardPage() {
-  const { profile, user } = useAuth();
+  const { profile, user, hasRole } = useAuth();
   const qc = useQueryClient();
   const name = profile?.name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "";
+  const isStaff = hasRole("administrator") || hasRole("team");
+
+  if (!isStaff) {
+    return <ClientDashboard name={name} />;
+  }
+
+  return <StaffDashboard qc={qc} name={name} />;
+}
+
+function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; name: string }) {
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ["clients"],
+    queryFn: fetchClients,
+  });
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients"],
