@@ -43,6 +43,7 @@ const EMPTY: Partial<Post> = {
   title: "",
   client_id: null,
   social_network: null,
+  social_networks: [],
   scheduled_date: null,
   scheduled_time: null,
   objective: null,
@@ -54,7 +55,7 @@ const EMPTY: Partial<Post> = {
   cta: null,
   hashtags: null,
   status: "idea",
-};
+} as Partial<Post>;
 
 export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: Props) {
   const qc = useQueryClient();
