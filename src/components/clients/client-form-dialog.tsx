@@ -102,12 +102,34 @@ export function ClientFormDialog({
               start_date: client.start_date ?? "",
               status: client.status,
               notes: client.notes ?? "",
+              user_id: client.user_id ?? "",
             }
           : empty,
       );
       setLogoPath(client?.logo_url ?? null);
     }
   }, [open, client, form]);
+
+  // Fetch client-role users to link login
+  const { data: clientUsers = [] } = useQuery({
+    queryKey: ["client-role-users"],
+    enabled: open,
+    queryFn: async () => {
+      const { data: roles, error } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "client");
+      if (error) throw error;
+      const ids = Array.from(new Set((roles ?? []).map((r) => r.user_id)));
+      if (ids.length === 0) return [] as { id: string; name: string | null; email: string | null }[];
+      const { data: profs, error: e2 } = await supabase
+        .from("profiles")
+        .select("id, name, email")
+        .in("id", ids);
+      if (e2) throw e2;
+      return profs ?? [];
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
