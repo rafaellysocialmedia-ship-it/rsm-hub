@@ -109,10 +109,12 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!form.title || form.title.trim().length === 0) throw new Error("Título obrigatório");
+      const networks = ((form as { social_networks?: string[] }).social_networks ?? []).filter(Boolean);
       const payload = {
         title: form.title!,
         client_id: form.client_id || null,
-        social_network: form.social_network || null,
+        social_network: networks[0] ?? null,
+        social_networks: networks,
         scheduled_date: form.scheduled_date || null,
         scheduled_time: form.scheduled_time || null,
         objective: form.objective || null,
