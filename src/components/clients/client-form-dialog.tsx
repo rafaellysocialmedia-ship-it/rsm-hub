@@ -145,6 +145,7 @@ export function ClientFormDialog({
         plan: values.plan || null,
         start_date: values.start_date || null,
         notes: values.notes || null,
+        user_id: values.user_id ? values.user_id : null,
         logo_url: logoPath,
       };
       if (client) {
