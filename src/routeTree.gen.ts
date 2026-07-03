@@ -21,6 +21,7 @@ import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
+import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
 
@@ -86,6 +87,12 @@ const AuthenticatedClientsIndexRoute =
     path: '/clients/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPortalCalendarRoute =
+  AuthenticatedPortalCalendarRouteImport.update({
+    id: '/portal/calendar',
+    path: '/portal/calendar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientsClientIdRoute =
   AuthenticatedClientsClientIdRouteImport.update({
     id: '/clients/$clientId',
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/finance': typeof AuthenticatedFinanceRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
+  '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
   '/finance': typeof AuthenticatedFinanceRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
+  '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
@@ -139,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
+  '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/admin/permissions'
     | '/clients/$clientId'
+    | '/portal/calendar'
     | '/clients/'
     | '/library/'
     | '/portal/'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/finance'
     | '/admin/permissions'
     | '/clients/$clientId'
+    | '/portal/calendar'
     | '/clients'
     | '/library'
     | '/portal'
@@ -187,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance'
     | '/_authenticated/admin/permissions'
     | '/_authenticated/clients/$clientId'
+    | '/_authenticated/portal/calendar'
     | '/_authenticated/clients/'
     | '/_authenticated/library/'
     | '/_authenticated/portal/'
@@ -288,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/portal/calendar': {
+      id: '/_authenticated/portal/calendar'
+      path: '/portal/calendar'
+      fullPath: '/portal/calendar'
+      preLoaderRoute: typeof AuthenticatedPortalCalendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clients/$clientId': {
       id: '/_authenticated/clients/$clientId'
       path: '/clients/$clientId'
@@ -310,6 +330,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
+  AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
@@ -323,6 +344,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
+  AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
@@ -343,13 +365,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
