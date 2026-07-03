@@ -61,6 +61,7 @@ const staffSoon: NavItem[] = [
 
 const clientItems: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Calendário", url: "/portal/calendar", icon: Calendar },
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
 ];
 
