@@ -114,6 +114,8 @@ export function FinanceDialog({
         paid_date: transaction.paid_date,
         payment_method: transaction.payment_method ?? "",
         notes: transaction.notes ?? "",
+        recurrence_frequency: "none",
+        recurrence_count: 1,
       });
     } else {
       form.reset({
@@ -128,6 +130,8 @@ export function FinanceDialog({
         paid_date: null,
         payment_method: "",
         notes: "",
+        recurrence_frequency: "none",
+        recurrence_count: 1,
       });
     }
   }, [open, transaction, form]);
