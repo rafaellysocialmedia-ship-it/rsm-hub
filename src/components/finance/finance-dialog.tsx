@@ -45,9 +45,25 @@ const schema = z.object({
   paid_date: z.string().optional().nullable(),
   payment_method: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  recurrence_frequency: z.enum(["none", "weekly", "biweekly", "monthly"]),
+  recurrence_count: z.coerce.number().min(1).max(60),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+function addInterval(iso: string, freq: "weekly" | "biweekly" | "monthly", steps: number): string {
+  const d = new Date(iso + "T00:00:00");
+  if (freq === "weekly") d.setDate(d.getDate() + 7 * steps);
+  else if (freq === "biweekly") d.setDate(d.getDate() + 14 * steps);
+  else {
+    const day = d.getDate();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + steps);
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(day, last));
+  }
+  return d.toISOString().slice(0, 10);
+}
 
 type ClientLite = { id: string; name: string };
 
@@ -78,6 +94,8 @@ export function FinanceDialog({
       paid_date: null,
       payment_method: "",
       notes: "",
+      recurrence_frequency: "none",
+      recurrence_count: 1,
     },
   });
 
@@ -96,6 +114,8 @@ export function FinanceDialog({
         paid_date: transaction.paid_date,
         payment_method: transaction.payment_method ?? "",
         notes: transaction.notes ?? "",
+        recurrence_frequency: "none",
+        recurrence_count: 1,
       });
     } else {
       form.reset({
@@ -110,6 +130,8 @@ export function FinanceDialog({
         paid_date: null,
         payment_method: "",
         notes: "",
+        recurrence_frequency: "none",
+        recurrence_count: 1,
       });
     }
   }, [open, transaction, form]);
@@ -141,9 +163,25 @@ export function FinanceDialog({
           .eq("id", transaction.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("finance_transactions")
-          .insert({ ...payload, created_by: sessionUserId ?? undefined });
+        const freq = v.recurrence_frequency;
+        const n = freq === "none" ? 1 : Math.max(1, v.recurrence_count);
+        const rows = Array.from({ length: n }).map((_, i) => {
+          const issue = i === 0 || freq === "none" ? v.issue_date : addInterval(v.issue_date, freq, i);
+          const due = v.due_date
+            ? (i === 0 || freq === "none" ? v.due_date : addInterval(v.due_date, freq, i))
+            : null;
+          const suffix = n > 1 ? ` (${i + 1}/${n})` : "";
+          return {
+            ...payload,
+            description: payload.description + suffix,
+            issue_date: issue,
+            due_date: due,
+            paid_date: i === 0 ? payload.paid_date : null,
+            status: (i === 0 ? payload.status : "pending") as FinanceStatus,
+            created_by: sessionUserId ?? undefined,
+          };
+        });
+        const { error } = await supabase.from("finance_transactions").insert(rows);
         if (error) throw error;
       }
     },
@@ -327,6 +365,50 @@ export function FinanceDialog({
                 </FormItem>
               )}
             />
+
+            {!transaction && (
+              <div className="col-span-2 grid grid-cols-2 gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-3">
+                <FormField
+                  control={form.control}
+                  name="recurrence_frequency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recorrência</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Sem recorrência</SelectItem>
+                          <SelectItem value="weekly">Semanal</SelectItem>
+                          <SelectItem value="biweekly">Quinzenal</SelectItem>
+                          <SelectItem value="monthly">Mensal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="recurrence_count"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nº de parcelas</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={60}
+                          {...field}
+                          disabled={form.watch("recurrence_frequency") === "none"}
+                        />
+                      </FormControl>
+                      <p className="text-[11px] text-muted-foreground">
+                        Cria N lançamentos com datas incrementadas automaticamente.
+                      </p>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <DialogFooter className="col-span-2">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
