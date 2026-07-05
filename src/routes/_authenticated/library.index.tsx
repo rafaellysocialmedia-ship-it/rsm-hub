@@ -271,13 +271,15 @@ function LibraryPage() {
                 {FILE_CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="h-9 w-36"><SelectValue placeholder="Cliente" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos clientes</SelectItem>
-                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            {canManage && (
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="h-9 w-36"><SelectValue placeholder="Cliente" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos clientes</SelectItem>
+                  {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
             {allTags.length > 0 && (
               <Select value={tagFilter} onValueChange={setTagFilter}>
                 <SelectTrigger className="h-9 w-32"><SelectValue placeholder="Tag" /></SelectTrigger>
