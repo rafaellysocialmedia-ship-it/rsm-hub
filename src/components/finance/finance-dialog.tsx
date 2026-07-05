@@ -410,6 +410,7 @@ export function FinanceDialog({
               </div>
             )}
 
+            <DialogFooter className="col-span-2">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
