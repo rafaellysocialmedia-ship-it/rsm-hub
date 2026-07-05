@@ -45,9 +45,25 @@ const schema = z.object({
   paid_date: z.string().optional().nullable(),
   payment_method: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  recurrence_frequency: z.enum(["none", "weekly", "biweekly", "monthly"]).default("none"),
+  recurrence_count: z.coerce.number().min(1).max(60).default(1),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+function addInterval(iso: string, freq: "weekly" | "biweekly" | "monthly", steps: number): string {
+  const d = new Date(iso + "T00:00:00");
+  if (freq === "weekly") d.setDate(d.getDate() + 7 * steps);
+  else if (freq === "biweekly") d.setDate(d.getDate() + 14 * steps);
+  else {
+    const day = d.getDate();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + steps);
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(day, last));
+  }
+  return d.toISOString().slice(0, 10);
+}
 
 type ClientLite = { id: string; name: string };
 
