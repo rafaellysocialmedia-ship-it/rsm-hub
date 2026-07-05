@@ -45,8 +45,8 @@ const schema = z.object({
   paid_date: z.string().optional().nullable(),
   payment_method: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  recurrence_frequency: z.enum(["none", "weekly", "biweekly", "monthly"]).default("none"),
-  recurrence_count: z.coerce.number().min(1).max(60).default(1),
+  recurrence_frequency: z.enum(["none", "weekly", "biweekly", "monthly"]),
+  recurrence_count: z.coerce.number().min(1).max(60),
 });
 
 type FormValues = z.infer<typeof schema>;
