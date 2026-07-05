@@ -63,6 +63,7 @@ const clientItems: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Calendário", url: "/portal/calendar", icon: Calendar },
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
+  { title: "Biblioteca", url: "/library", icon: FolderOpen },
 ];
 
 const adminItems: NavItem[] = [
