@@ -23,6 +23,7 @@ import { ListView } from "@/components/posts/views/list-view";
 import { TableView } from "@/components/posts/views/table-view";
 import { TimelineView } from "@/components/posts/views/timeline-view";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
+import { exportCalendarXlsx } from "@/lib/export-calendar";
 
 export const Route = createFileRoute("/_authenticated/posts/")({
   head: () => ({
