@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  CalendarDays, KanbanSquare, List as ListIcon, GanttChart, Table2, Plus, Search, Filter, X,
+  CalendarDays, KanbanSquare, List as ListIcon, GanttChart, Table2, Plus, Search, Filter, X, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,6 +23,7 @@ import { ListView } from "@/components/posts/views/list-view";
 import { TableView } from "@/components/posts/views/table-view";
 import { TimelineView } from "@/components/posts/views/timeline-view";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
+import { exportCalendarXlsx } from "@/lib/export-calendar";
 
 export const Route = createFileRoute("/_authenticated/posts/")({
   head: () => ({
@@ -151,9 +152,23 @@ function PostsPage() {
             Planeje, produza e publique em todas as redes — atualizado em tempo real.
           </p>
         </div>
-        <Button onClick={() => openNew()} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Nova publicação
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const clientName = clientFilter !== "all" ? clientMap.get(clientFilter) ?? "cliente" : "todos-clientes";
+              const stamp = new Date().toISOString().slice(0, 10);
+              exportCalendarXlsx(filtered, clientMap, `calendario-${clientName}-${stamp}`);
+              toast.success(`${filtered.length} publicações exportadas`);
+            }}
+            className="gap-1.5"
+          >
+            <Download className="h-4 w-4" /> Exportar Excel
+          </Button>
+          <Button onClick={() => openNew()} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Nova publicação
+          </Button>
+        </div>
       </div>
 
       {/* Toolbar */}
