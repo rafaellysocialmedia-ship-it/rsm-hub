@@ -152,9 +152,23 @@ function PostsPage() {
             Planeje, produza e publique em todas as redes — atualizado em tempo real.
           </p>
         </div>
-        <Button onClick={() => openNew()} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Nova publicação
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              const clientName = clientFilter !== "all" ? clientMap.get(clientFilter) ?? "cliente" : "todos-clientes";
+              const stamp = new Date().toISOString().slice(0, 10);
+              exportCalendarXlsx(filtered, clientMap, `calendario-${clientName}-${stamp}`);
+              toast.success(`${filtered.length} publicações exportadas`);
+            }}
+            className="gap-1.5"
+          >
+            <Download className="h-4 w-4" /> Exportar Excel
+          </Button>
+          <Button onClick={() => openNew()} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Nova publicação
+          </Button>
+        </div>
       </div>
 
       {/* Toolbar */}
