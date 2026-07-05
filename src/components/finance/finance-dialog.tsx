@@ -163,9 +163,25 @@ export function FinanceDialog({
           .eq("id", transaction.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from("finance_transactions")
-          .insert({ ...payload, created_by: sessionUserId ?? undefined });
+        const freq = v.recurrence_frequency;
+        const n = freq === "none" ? 1 : Math.max(1, v.recurrence_count);
+        const rows = Array.from({ length: n }).map((_, i) => {
+          const issue = i === 0 || freq === "none" ? v.issue_date : addInterval(v.issue_date, freq, i);
+          const due = v.due_date
+            ? (i === 0 || freq === "none" ? v.due_date : addInterval(v.due_date, freq, i))
+            : null;
+          const suffix = n > 1 ? ` (${i + 1}/${n})` : "";
+          return {
+            ...payload,
+            description: payload.description + suffix,
+            issue_date: issue,
+            due_date: due,
+            paid_date: i === 0 ? payload.paid_date : null,
+            status: (i === 0 ? payload.status : "pending") as FinanceStatus,
+            created_by: sessionUserId ?? undefined,
+          };
+        });
+        const { error } = await supabase.from("finance_transactions").insert(rows);
         if (error) throw error;
       }
     },
