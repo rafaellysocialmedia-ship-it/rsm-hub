@@ -251,10 +251,30 @@ function PostsPage() {
         </div>
       </div>
 
-      {/* Result count */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Filter className="h-3 w-3" />
-        {isLoading ? "Carregando..." : `${filtered.length} publicação${filtered.length === 1 ? "" : "ões"}`}
+      {/* Result count + bulk actions */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Filter className="h-3 w-3" />
+          {isLoading ? "Carregando..." : `${filtered.length} publicação${filtered.length === 1 ? "" : "ões"}`}
+        </div>
+        {view === "list" && selected.size > 0 && (
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1 shadow-soft">
+            <span className="flex items-center gap-1.5 pl-1 text-xs font-medium">
+              <CheckSquare className="h-3.5 w-3.5" /> {selected.size} selecionada{selected.size === 1 ? "" : "s"}
+            </span>
+            <Button
+              size="sm"
+              className="h-7 gap-1.5 text-xs"
+              onClick={() => bulkReview.mutate(Array.from(selected))}
+              disabled={bulkReview.isPending}
+            >
+              <Send className="h-3 w-3" /> Enviar para revisão
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={clearSelection}>
+              <X className="h-3 w-3" /> Limpar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Views */}
