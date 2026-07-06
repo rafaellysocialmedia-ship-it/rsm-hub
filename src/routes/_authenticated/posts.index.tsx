@@ -123,6 +123,19 @@ function PostsPage() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }),
   });
 
+  const bulkReview = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("posts").update({ status: "review" as PostStatus }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      toast.success(`${ids.length} publicaç${ids.length === 1 ? "ão enviada" : "ões enviadas"} para revisão`);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: () => toast.error("Falha ao enviar para revisão"),
+  });
+
   const updateDate = useMutation({
     mutationFn: async ({ id, scheduled_date }: { id: string; scheduled_date: string }) => {
       const { error } = await supabase.from("posts").update({ scheduled_date }).eq("id", id);
