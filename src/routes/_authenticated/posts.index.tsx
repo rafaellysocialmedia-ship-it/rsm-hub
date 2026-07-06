@@ -268,7 +268,15 @@ function PostsPage() {
             onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
           />
         )}
-        {view === "list" && <ListView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
+        {view === "list" && (
+          <ListView
+            posts={filtered}
+            clientMap={clientMap}
+            onOpen={openExisting}
+            selected={selected}
+            onToggleSelect={toggleSelect}
+          />
+        )}
         {view === "kanban" && (
           <KanbanView
             posts={filtered}
