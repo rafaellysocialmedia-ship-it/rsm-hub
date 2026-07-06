@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  CalendarDays, KanbanSquare, List as ListIcon, GanttChart, Table2, Plus, Search, Filter, X, Download,
+  CalendarDays, KanbanSquare, List as ListIcon, GanttChart, Table2, Plus, Search, Filter, X, Download, Send, CheckSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,6 +47,16 @@ function PostsPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["posts"],
@@ -111,6 +121,19 @@ function PostsPage() {
     },
     onError: (_e, _v, ctx) => { if (ctx?.prev) qc.setQueryData(["posts"], ctx.prev); toast.error("Falha ao mover"); },
     onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }),
+  });
+
+  const bulkReview = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("posts").update({ status: "review" as PostStatus }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      toast.success(`${ids.length} publicaç${ids.length === 1 ? "ão enviada" : "ões enviadas"} para revisão`);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["posts"] });
+    },
+    onError: () => toast.error("Falha ao enviar para revisão"),
   });
 
   const updateDate = useMutation({
@@ -228,10 +251,30 @@ function PostsPage() {
         </div>
       </div>
 
-      {/* Result count */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Filter className="h-3 w-3" />
-        {isLoading ? "Carregando..." : `${filtered.length} publicação${filtered.length === 1 ? "" : "ões"}`}
+      {/* Result count + bulk actions */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Filter className="h-3 w-3" />
+          {isLoading ? "Carregando..." : `${filtered.length} publicação${filtered.length === 1 ? "" : "ões"}`}
+        </div>
+        {view === "list" && selected.size > 0 && (
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1 shadow-soft">
+            <span className="flex items-center gap-1.5 pl-1 text-xs font-medium">
+              <CheckSquare className="h-3.5 w-3.5" /> {selected.size} selecionada{selected.size === 1 ? "" : "s"}
+            </span>
+            <Button
+              size="sm"
+              className="h-7 gap-1.5 text-xs"
+              onClick={() => bulkReview.mutate(Array.from(selected))}
+              disabled={bulkReview.isPending}
+            >
+              <Send className="h-3 w-3" /> Enviar para revisão
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={clearSelection}>
+              <X className="h-3 w-3" /> Limpar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Views */}
@@ -245,7 +288,15 @@ function PostsPage() {
             onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
           />
         )}
-        {view === "list" && <ListView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
+        {view === "list" && (
+          <ListView
+            posts={filtered}
+            clientMap={clientMap}
+            onOpen={openExisting}
+            selected={selected}
+            onToggleSelect={toggleSelect}
+          />
+        )}
         {view === "kanban" && (
           <KanbanView
             posts={filtered}
