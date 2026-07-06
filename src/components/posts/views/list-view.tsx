@@ -1,25 +1,46 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 import { cn } from "@/lib/utils";
 
 export function ListView({
-  posts, clientMap, onOpen,
-}: { posts: Post[]; clientMap: Map<string, string>; onOpen: (p: Post) => void }) {
+  posts, clientMap, onOpen, selected, onToggleSelect,
+}: {
+  posts: Post[];
+  clientMap: Map<string, string>;
+  onOpen: (p: Post) => void;
+  selected?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+}) {
   if (posts.length === 0) {
     return <Empty />;
   }
+  const selectable = !!onToggleSelect;
   return (
     <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-soft">
       {posts.map((p) => {
         const meta = statusMeta(p.status);
+        const isSelected = selected?.has(p.id) ?? false;
         return (
           <li
             key={p.id}
             onClick={() => onOpen(p)}
-            className="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
+            className={cn(
+              "flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40",
+              isSelected && "bg-primary/5",
+            )}
           >
+            {selectable && (
+              <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => onToggleSelect?.(p.id)}
+                  aria-label="Selecionar publicação"
+                />
+              </div>
+            )}
             <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{p.title}</p>
