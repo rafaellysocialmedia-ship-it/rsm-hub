@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      _vault_master: {
+        Row: {
+          created_at: string
+          id: number
+          key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          key: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          key?: string
+        }
+        Relationships: []
+      }
       client_portal_settings: {
         Row: {
           can_approve: boolean
