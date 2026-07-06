@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { sanitizeHtml } from "@/lib/sanitize";
 import type { Database } from "@/integrations/supabase/types";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
@@ -473,7 +474,7 @@ function ClientPortal() {
                     {openPost.caption && (
                       <section>
                         <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Legenda</p>
-                        <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: openPost.caption }} />
+                        <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: sanitizeHtml(openPost.caption) }} />
                       </section>
                     )}
                     {openPost.cta && <section><p className="mb-1 text-xs font-medium uppercase text-muted-foreground">CTA</p><p>{openPost.cta}</p></section>}
