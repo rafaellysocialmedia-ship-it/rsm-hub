@@ -47,6 +47,16 @@ function PostsPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelected(new Set());
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["posts"],
