@@ -17,6 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/portal/calendar")({
@@ -210,7 +211,7 @@ function ClientCalendarPage() {
                   {openPost.caption && (
                     <section>
                       <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Legenda</p>
-                      <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: openPost.caption }} />
+                      <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: sanitizeHtml(openPost.caption) }} />
                     </section>
                   )}
                   {openPost.cta && (
