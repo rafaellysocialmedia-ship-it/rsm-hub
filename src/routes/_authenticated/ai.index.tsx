@@ -63,7 +63,7 @@ function AiIndex() {
         activeId={null}
         loading={isLoading}
         onNew={() => create.mutate()}
-        onDelete={(id) => del.mutate(id)}
+        onDelete={(id: string) => del.mutate(id)}
       />
       <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-brand">
