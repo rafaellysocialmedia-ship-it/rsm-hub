@@ -52,11 +52,11 @@ const staffWorkspace: NavItem[] = [
 ];
 
 const staffSoon: NavItem[] = [
+  { title: "IA", url: "/ai", icon: Bot },
   { title: "Analytics", url: "/dashboard", icon: BarChart3, soon: true },
   { title: "Relatórios", url: "/dashboard", icon: BarChart3, soon: true },
   { title: "Financeiro", url: "/finance", icon: CircleDollarSign },
   { title: "Equipe", url: "/dashboard", icon: Users, soon: true },
-  { title: "IA", url: "/dashboard", icon: Bot, soon: true },
 ];
 
 const clientItems: NavItem[] = [

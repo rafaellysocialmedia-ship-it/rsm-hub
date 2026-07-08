@@ -26,6 +26,7 @@ import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
+import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
 
@@ -118,6 +119,11 @@ const AuthenticatedClientsClientIdRoute =
     path: '/clients/$clientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAiToolsRoute = AuthenticatedAiToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => AuthenticatedAiRoute,
+} as any)
 const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
   id: '/$threadId',
   path: '/$threadId',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/ai/tools': typeof AuthenticatedAiToolsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/ai/tools': typeof AuthenticatedAiToolsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/ai': typeof AuthenticatedAiIndexRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
+  '/_authenticated/ai/tools': typeof AuthenticatedAiToolsRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/admin/permissions'
     | '/ai/$threadId'
+    | '/ai/tools'
     | '/clients/$clientId'
     | '/portal/calendar'
     | '/ai/'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/admin/permissions'
     | '/ai/$threadId'
+    | '/ai/tools'
     | '/clients/$clientId'
     | '/portal/calendar'
     | '/ai'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/_authenticated/admin/permissions'
     | '/_authenticated/ai/$threadId'
+    | '/_authenticated/ai/tools'
     | '/_authenticated/clients/$clientId'
     | '/_authenticated/portal/calendar'
     | '/_authenticated/ai/'
@@ -383,6 +395,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsClientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ai/tools': {
+      id: '/_authenticated/ai/tools'
+      path: '/tools'
+      fullPath: '/ai/tools'
+      preLoaderRoute: typeof AuthenticatedAiToolsRouteImport
+      parentRoute: typeof AuthenticatedAiRoute
+    }
     '/_authenticated/ai/$threadId': {
       id: '/_authenticated/ai/$threadId'
       path: '/$threadId'
@@ -402,11 +421,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAiRouteChildren {
   AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
+  AuthenticatedAiToolsRoute: typeof AuthenticatedAiToolsRoute
   AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
 }
 
 const AuthenticatedAiRouteChildren: AuthenticatedAiRouteChildren = {
   AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
+  AuthenticatedAiToolsRoute: AuthenticatedAiToolsRoute,
   AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
 }
 
