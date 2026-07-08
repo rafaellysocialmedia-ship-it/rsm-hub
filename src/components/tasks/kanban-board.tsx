@@ -1,5 +1,6 @@
 import { DndContext, DragEndEvent, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
-import { Plus } from "lucide-react";
+import { Eye, EyeOff, Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "@/components/tasks/task-card";
 import { STATUS_COLUMNS, type Task, type TaskStatus } from "@/lib/tasks";
