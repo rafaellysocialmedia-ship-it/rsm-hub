@@ -1,5 +1,6 @@
 import { DndContext, DragEndEvent, PointerSensor, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
-import { Plus } from "lucide-react";
+import { Eye, EyeOff, Plus } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "@/components/tasks/task-card";
 import { STATUS_COLUMNS, type Task, type TaskStatus } from "@/lib/tasks";
@@ -41,6 +42,7 @@ function Column({ id, label, tone, children, count, onAdd }: { id: TaskStatus; l
 export function KanbanBoard({ tasks, clients, onMove, onAdd, onOpen }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const clientMap = new Map(clients.map((c) => [c.id, c]));
+  const [showDone, setShowDone] = useState(false);
 
   const handleDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
@@ -50,10 +52,19 @@ export function KanbanBoard({ tasks, clients, onMove, onAdd, onOpen }: Props) {
     if (t && t.status !== newStatus) onMove(t.id, newStatus);
   };
 
+  const visibleColumns = STATUS_COLUMNS.filter((c) => c.id !== "done" || showDone);
+  const doneCount = tasks.filter((t) => t.status === "done").length;
+
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="mb-3 flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => setShowDone((v) => !v)} className="gap-2">
+          {showDone ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+          {showDone ? "Ocultar concluídos" : `Ver concluídos${doneCount ? ` (${doneCount})` : ""}`}
+        </Button>
+      </div>
       <div className="flex gap-3 overflow-x-auto pb-4">
-        {STATUS_COLUMNS.map((col) => {
+        {visibleColumns.map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.id);
           return (
             <Column key={col.id} id={col.id} label={col.label} tone={col.tone} count={colTasks.length} onAdd={() => onAdd(col.id)}>
