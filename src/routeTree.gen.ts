@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedVaultIndexRouteImport } from './routes/_authenticated/vault.index'
@@ -42,6 +43,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/finance': typeof AuthenticatedFinanceRoute
+  '/api/chat': typeof ApiChatRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/finance': typeof AuthenticatedFinanceRoute
+  '/api/chat': typeof ApiChatRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/api/chat': typeof ApiChatRoute
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/dashboard'
     | '/finance'
+    | '/api/chat'
     | '/admin/permissions'
     | '/clients/$clientId'
     | '/portal/calendar'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/dashboard'
     | '/finance'
+    | '/api/chat'
     | '/admin/permissions'
     | '/clients/$clientId'
     | '/portal/calendar'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/dashboard'
     | '/_authenticated/finance'
+    | '/api/chat'
     | '/_authenticated/admin/permissions'
     | '/_authenticated/clients/$clientId'
     | '/_authenticated/portal/calendar'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiChatRoute: typeof ApiChatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -243,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/finance': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
