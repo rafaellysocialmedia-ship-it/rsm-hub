@@ -409,18 +409,148 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
         </Card>
 
         <Card className="shadow-soft">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base">Próximas reuniões</CardTitle>
+            <Button asChild variant="ghost" size="sm" className="gap-1 text-xs">
+              <Link to="/meetings"><ArrowUpRight className="h-3.5 w-3.5" /> Ver todas</Link>
+            </Button>
           </CardHeader>
-          <CardContent>
-            <EmptyState
-              icon={CalendarCheck}
-              title="Nenhuma reunião"
-              description="Suas próximas reuniões com clientes aparecerão aqui."
-            />
+          <CardContent className="space-y-2">
+            {meetings.length === 0 ? (
+              <EmptyState icon={CalendarCheck} title="Nenhuma reunião" description="Agende a próxima reunião com seus clientes." />
+            ) : (
+              meetings.map((m) => (
+                <Link
+                  key={m.id}
+                  to="/meetings"
+                  className="flex items-center gap-3 rounded-lg border border-border bg-card/50 px-3 py-2 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-md border border-border bg-muted text-center">
+                    <span className="text-[9px] uppercase leading-none text-muted-foreground">
+                      {format(new Date(m.meeting_date + "T00:00:00"), "MMM", { locale: ptBR })}
+                    </span>
+                    <span className="mt-0.5 text-sm font-semibold leading-none">
+                      {format(new Date(m.meeting_date + "T00:00:00"), "dd")}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {m.meeting_time ? m.meeting_time.slice(0, 5) : "—"}
+                      {m.client_id && clientNameById.get(m.client_id) ? ` · ${clientNameById.get(m.client_id)}` : ""}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Bottom row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="text-base">Pendências</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {overdueTasks === 0 && pendingApprovals === 0 ? (
+              <EmptyState icon={Clock} title="Tudo em dia" description="Sem pendências no momento." />
+            ) : (
+              <>
+                {overdueTasks > 0 && (
+                  <Link to="/tasks" className="flex items-center justify-between rounded-lg border border-rose-500/20 bg-rose-500/5 px-3 py-2 hover:bg-rose-500/10">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-rose-500" />
+                      <span className="text-sm">Tarefas atrasadas</span>
+                    </div>
+                    <Badge variant="outline" className="border-rose-500/40 text-rose-600">{overdueTasks}</Badge>
+                  </Link>
+                )}
+                {pendingApprovals > 0 && (
+                  <Link to="/portal" className="flex items-center justify-between rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 hover:bg-amber-500/10">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-amber-500" />
+                      <span className="text-sm">Aprovações pendentes</span>
+                    </div>
+                    <Badge variant="outline" className="border-amber-500/40 text-amber-600">{pendingApprovals}</Badge>
+                  </Link>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-soft">
+          <CardHeader>
+            <CardTitle className="text-base">Aprovações pendentes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pendingApprovals === 0 ? (
+              <EmptyState icon={CheckCircle2} title="Nenhuma aprovação" description="Posts aguardando aprovação aparecerão aqui." />
+            ) : (
+              <Link to="/portal" className="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center hover:bg-muted/40">
+                <div className="text-3xl font-semibold text-amber-500">{pendingApprovals}</div>
+                <p className="mt-1 text-xs text-muted-foreground">Publicações aguardando o cliente</p>
+                <p className="mt-3 text-xs text-primary underline">Ir para aprovações</p>
+              </Link>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-soft">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base">Últimas atividades</CardTitle>
+            <Radio className="h-3.5 w-3.5 text-emerald-500" />
+          </CardHeader>
+          <CardContent className="px-0">
+            {activity.length === 0 ? (
+              <div className="px-6">
+                <EmptyState icon={Activity} title="Sem atividades" description="Ações recentes aparecerão aqui." />
+              </div>
+            ) : (
+              <ul className="divide-y divide-border">
+                {activity.map((a) => {
+                  const item = a as { id: string; action: string; detail: string | null; created_at: string; client_id: string | null };
+                  return (
+                    <li key={item.id} className="flex items-start gap-3 px-6 py-2.5">
+                      <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                        <Activity className="h-3.5 w-3.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {actionLabel(item.action)}
+                          {item.client_id && clientNameById.get(item.client_id)
+                            ? ` · ${clientNameById.get(item.client_id)}`
+                            : ""}
+                        </p>
+                        {item.detail && <p className="truncate text-xs text-muted-foreground">{item.detail}</p>}
+                        <p className="text-[10px] text-muted-foreground">
+                          {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: ptBR })}
+                        </p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function actionLabel(a: string) {
+  const map: Record<string, string> = {
+    commented: "Novo comentário",
+    approval_approved: "Aprovação concedida",
+    approval_rejected: "Publicação rejeitada",
+    approval_changes_requested: "Alterações solicitadas",
+  };
+  return map[a] ?? a;
+}
+
 
       {/* Bottom row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
