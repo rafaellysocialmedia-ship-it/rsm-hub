@@ -87,19 +87,84 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     queryFn: fetchClients,
   });
 
+  const { data: posts = [] } = useQuery({
+    queryKey: ["dash-posts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("posts").select("id,title,status,scheduled_date,scheduled_time,client_id,social_network");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: approvals = [] } = useQuery({
+    queryKey: ["dash-approvals"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("post_approvals").select("id,decision,post_id,client_id,created_at");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["dash-tasks"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tasks").select("id,title,status,due_date");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["dash-finance"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("finance_transactions").select("id,type,status,amount,issue_date,paid_date");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: meetings = [] } = useQuery({
+    queryKey: ["dash-meetings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("meetings")
+        .select("id,title,meeting_date,meeting_time,status,client_id")
+        .eq("status", "scheduled")
+        .gte("meeting_date", new Date().toISOString().slice(0, 10))
+        .order("meeting_date", { ascending: true })
+        .order("meeting_time", { ascending: true, nullsFirst: true })
+        .limit(5);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: activity = [] } = useQuery({
+    queryKey: ["dash-activity"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("post_activity_log")
+        .select("id,action,detail,created_at,post_id,client_id")
+        .order("created_at", { ascending: false })
+        .limit(8);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   // Realtime: invalidate on any change
   useEffect(() => {
     const channel = supabase
-      .channel("dashboard-clients")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "clients" },
-        () => qc.invalidateQueries({ queryKey: ["clients"] }),
-      )
+      .channel("dashboard-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => qc.invalidateQueries({ queryKey: ["clients"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => qc.invalidateQueries({ queryKey: ["dash-posts"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "post_approvals" }, () => qc.invalidateQueries({ queryKey: ["dash-approvals"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => qc.invalidateQueries({ queryKey: ["dash-tasks"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "finance_transactions" }, () => qc.invalidateQueries({ queryKey: ["dash-finance"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, () => qc.invalidateQueries({ queryKey: ["dash-meetings"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "post_activity_log" }, () => qc.invalidateQueries({ queryKey: ["dash-activity"] }))
       .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [qc]);
 
   const metrics = useMemo(() => {
@@ -110,6 +175,34 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     const prospect = clients.filter((c) => c.status === "prospect").length;
     return { total, active, inactive, paused, prospect };
   }, [clients]);
+
+  const postMetrics = useMemo(() => {
+    const scheduled = posts.filter((p) => p.status === "scheduled").length;
+    const published = posts.filter((p) => p.status === "published").length;
+    return { scheduled, published };
+  }, [posts]);
+
+  const pendingApprovals = useMemo(
+    () => (approvals as Array<{ decision: string }>).filter((a) => a.decision === "pending").length,
+    [approvals],
+  );
+
+  const overdueTasks = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return (tasks as Array<{ status: string; due_date: string | null }>)
+      .filter((t) => t.status !== "done" && t.due_date && t.due_date < today).length;
+  }, [tasks]);
+
+  const monthRevenue = useMemo(() => {
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    return (transactions as Array<{ type: string; status: string; amount: number | string; paid_date: string | null; issue_date: string }>)
+      .filter((t) => t.type === "income" && t.status === "paid")
+      .filter((t) => (t.paid_date ?? t.issue_date).startsWith(ym))
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  }, [transactions]);
+
+  const brl = (n: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
 
   const trend = useMemo(() => {
     const months: { key: string; label: string; clientes: number }[] = [];
@@ -128,7 +221,6 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
       const m = months.find((x) => x.key === key);
       if (m) m.clientes += 1;
     });
-    // cumulative
     let acc = 0;
     return months.map((m) => {
       acc += m.clientes;
@@ -147,6 +239,11 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
   );
 
   const recentActivity = useMemo(() => clients.slice(0, 6), [clients]);
+  const clientNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    clients.forEach((c) => m.set(c.id, c.name));
+    return m;
+  }, [clients]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10 space-y-8">
@@ -192,9 +289,9 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
           accent="from-slate-500/20 to-transparent"
         />
         <StatCard
-          label="Receita mensal"
-          value="—"
-          hint="Configure planos por valor"
+          label="Receita paga (mês)"
+          value={brl(monthRevenue)}
+          hint="Somente transações pagas"
           icon={CircleDollarSign}
           loading={false}
           accent="from-amber-500/20 to-transparent"
@@ -203,11 +300,12 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
 
       {/* Secondary stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MiniStat label="Posts programados" value={0} icon={Send} />
-        <MiniStat label="Posts publicados" value={0} icon={CheckCircle2} />
-        <MiniStat label="Aprovações pendentes" value={0} icon={Clock} tone="text-amber-500" />
-        <MiniStat label="Tarefas atrasadas" value={0} icon={AlertTriangle} tone="text-rose-500" />
+        <MiniStat label="Posts programados" value={postMetrics.scheduled} icon={Send} />
+        <MiniStat label="Posts publicados" value={postMetrics.published} icon={CheckCircle2} />
+        <MiniStat label="Aprovações pendentes" value={pendingApprovals} icon={Clock} tone="text-amber-500" />
+        <MiniStat label="Tarefas atrasadas" value={overdueTasks} icon={AlertTriangle} tone="text-rose-500" />
       </div>
+
 
       {/* Charts row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
