@@ -4,7 +4,6 @@ import {
   Users,
   Briefcase,
   Calendar,
-  BarChart3,
   Settings,
   Sparkles,
   Shield,
@@ -14,6 +13,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Bot,
+  Video,
 } from "lucide-react";
 
 import {
