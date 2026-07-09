@@ -4,7 +4,6 @@ import {
   Users,
   Briefcase,
   Calendar,
-  BarChart3,
   Settings,
   Sparkles,
   Shield,
@@ -14,6 +13,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Bot,
+  Video,
 } from "lucide-react";
 
 import {
@@ -44,6 +44,7 @@ const staffMain: NavItem[] = [
   { title: "Calendário", url: "/posts", icon: Calendar },
   { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
+  { title: "Reuniões", url: "/meetings", icon: Video },
 ];
 
 const staffWorkspace: NavItem[] = [
@@ -53,8 +54,6 @@ const staffWorkspace: NavItem[] = [
 
 const staffSoon: NavItem[] = [
   { title: "IA", url: "/ai", icon: Bot },
-  { title: "Analytics", url: "/dashboard", icon: BarChart3, soon: true },
-  { title: "Relatórios", url: "/dashboard", icon: BarChart3, soon: true },
   { title: "Financeiro", url: "/finance", icon: CircleDollarSign },
   { title: "Equipe", url: "/dashboard", icon: Users, soon: true },
 ];
