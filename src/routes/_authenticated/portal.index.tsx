@@ -235,12 +235,35 @@ function StaffApprovals() {
                       <p className="text-muted-foreground">{ap.feedback}</p>
                     </div>
                   )}
+                  <div className="flex items-center gap-2 pt-2">
+                    <Select
+                      value={p.status}
+                      onValueChange={(v) => statusMutation.mutate({ postId: p.id, status: v as PostStatus })}
+                    >
+                      <SelectTrigger className="h-8 flex-1 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {POST_STATUS.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setEditingPost(p)}>
+                      <Pencil className="h-3 w-3" /> Editar
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
       )}
+
+      <PostEditorSheet
+        open={!!editingPost}
+        onOpenChange={(o) => { if (!o) setEditingPost(null); }}
+        post={editingPost}
+        clients={clients}
+      />
     </div>
   );
 }
