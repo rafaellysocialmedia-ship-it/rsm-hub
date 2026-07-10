@@ -18,6 +18,8 @@ export const POST_STATUS: {
   { value: "approved", label: "Aprovado", tone: "bg-violet-500/10 text-violet-500 border-violet-500/20", dot: "bg-violet-500" },
   { value: "scheduled", label: "Agendado", tone: "bg-sky-500/10 text-sky-500 border-sky-500/20", dot: "bg-sky-500" },
   { value: "published", label: "Publicado", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20", dot: "bg-emerald-500" },
+  { value: "rejected" as PostStatus, label: "Reprovado", tone: "bg-rose-500/10 text-rose-500 border-rose-500/20", dot: "bg-rose-500" },
+  { value: "archived" as PostStatus, label: "Arquivado", tone: "bg-zinc-500/10 text-zinc-500 border-zinc-500/20", dot: "bg-zinc-400" },
 ];
 
 export function statusMeta(s: PostStatus) {

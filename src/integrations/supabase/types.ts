@@ -1127,6 +1127,8 @@ export type Database = {
         | "approved"
         | "scheduled"
         | "published"
+        | "rejected"
+        | "archived"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "production" | "waiting_client" | "review" | "done"
     }
@@ -1284,6 +1286,8 @@ export const Constants = {
         "approved",
         "scheduled",
         "published",
+        "rejected",
+        "archived",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "production", "waiting_client", "review", "done"],

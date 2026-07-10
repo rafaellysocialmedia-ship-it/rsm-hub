@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, XCircle, MessageSquareWarning, Clock, Calendar, Sparkles, Search, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquareWarning, Clock, Calendar, Sparkles, Search, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { POST_STATUS, statusMeta, postNetworks, type Post, type PostStatus } from "@/lib/posts";
 import { sanitizeHtml } from "@/lib/sanitize";
 import type { Database } from "@/integrations/supabase/types";
+import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
+import type { Client as ClientData } from "@/lib/clients";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
@@ -52,16 +55,18 @@ function PortalRouter() {
 /* ---------------- STAFF VIEW ---------------- */
 
 function StaffApprovals() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<Decision | "all">("pending");
   const [clientFilter, setClientFilter] = useState<string>("all");
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   const { data: posts = [] } = useQuery({
     queryKey: ["staff-approvals-posts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("posts").select("*")
-        .in("status", ["review", "approved", "scheduled", "published"])
+        .in("status", ["review", "approved", "scheduled", "published", "rejected", "archived"])
         .order("scheduled_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data as Post[];
@@ -78,22 +83,36 @@ function StaffApprovals() {
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ["clients-min"],
+    queryKey: ["clients-full"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("id,name").order("name");
+      const { data, error } = await supabase.from("clients").select("*").order("name");
       if (error) throw error;
-      return data as { id: string; name: string }[];
+      return data as ClientData[];
     },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ postId, status }: { postId: string; status: PostStatus }) => {
+      const { error } = await supabase.from("posts").update({ status }).eq("id", postId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Status atualizado");
+      qc.invalidateQueries({ queryKey: ["staff-approvals-posts"] });
+      qc.invalidateQueries({ queryKey: ["staff-approvals"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   useEffect(() => {
     const ch = supabase.channel("staff-approvals-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "post_approvals" }, () => {
-        // rely on invalidate via reload; simpler: refetch below
+        qc.invalidateQueries({ queryKey: ["staff-approvals"] });
+        qc.invalidateQueries({ queryKey: ["staff-approvals-posts"] });
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [qc]);
 
   const approvalByPost = useMemo(() => {
     const m = new Map<string, Approval>();
@@ -216,12 +235,35 @@ function StaffApprovals() {
                       <p className="text-muted-foreground">{ap.feedback}</p>
                     </div>
                   )}
+                  <div className="flex items-center gap-2 pt-2">
+                    <Select
+                      value={p.status}
+                      onValueChange={(v) => statusMutation.mutate({ postId: p.id, status: v as PostStatus })}
+                    >
+                      <SelectTrigger className="h-8 flex-1 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {POST_STATUS.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => setEditingPost(p)}>
+                      <Pencil className="h-3 w-3" /> Editar
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
       )}
+
+      <PostEditorSheet
+        open={!!editingPost}
+        onOpenChange={(o) => { if (!o) setEditingPost(null); }}
+        post={editingPost}
+        clients={clients}
+      />
     </div>
   );
 }
