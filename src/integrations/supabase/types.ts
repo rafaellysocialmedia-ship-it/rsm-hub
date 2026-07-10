@@ -436,6 +436,39 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          notify_approvals: boolean
+          notify_comments: boolean
+          notify_files: boolean
+          notify_publish: boolean
+          notify_tasks: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          notify_approvals?: boolean
+          notify_comments?: boolean
+          notify_files?: boolean
+          notify_publish?: boolean
+          notify_tasks?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          notify_approvals?: boolean
+          notify_comments?: boolean
+          notify_files?: boolean
+          notify_publish?: boolean
+          notify_tasks?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -628,6 +661,77 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "post_files_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_metrics: {
+        Row: {
+          clicks: number
+          collected_at: string
+          comments: number
+          created_at: string
+          created_by: string | null
+          followers_gained: number
+          id: string
+          impressions: number
+          likes: number
+          network: string | null
+          notes: string | null
+          post_id: string
+          profile_visits: number
+          reach: number
+          saves: number
+          shares: number
+          updated_at: string
+          video_views: number
+        }
+        Insert: {
+          clicks?: number
+          collected_at?: string
+          comments?: number
+          created_at?: string
+          created_by?: string | null
+          followers_gained?: number
+          id?: string
+          impressions?: number
+          likes?: number
+          network?: string | null
+          notes?: string | null
+          post_id: string
+          profile_visits?: number
+          reach?: number
+          saves?: number
+          shares?: number
+          updated_at?: string
+          video_views?: number
+        }
+        Update: {
+          clicks?: number
+          collected_at?: string
+          comments?: number
+          created_at?: string
+          created_by?: string | null
+          followers_gained?: number
+          id?: string
+          impressions?: number
+          likes?: number
+          network?: string | null
+          notes?: string | null
+          post_id?: string
+          profile_visits?: number
+          reach?: number
+          saves?: number
+          shares?: number
+          updated_at?: string
+          video_views?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_metrics_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
@@ -908,6 +1012,8 @@ export type Database = {
           id: string
           position: number
           priority: Database["public"]["Enums"]["task_priority"]
+          recurrence: Json | null
+          source_post_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
@@ -922,6 +1028,8 @@ export type Database = {
           id?: string
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence?: Json | null
+          source_post_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
@@ -936,6 +1044,8 @@ export type Database = {
           id?: string
           position?: number
           priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence?: Json | null
+          source_post_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
@@ -946,6 +1056,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_source_post_id_fkey"
+            columns: ["source_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]
@@ -1058,6 +1175,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workspace_settings: {
+        Row: {
+          created_at: string
+          id: number
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          timezone: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          timezone?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          timezone?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
