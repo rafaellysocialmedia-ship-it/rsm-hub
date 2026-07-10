@@ -22,7 +22,7 @@ import { POST_STATUS, statusMeta, postNetworks, type Post, type PostStatus } fro
 import { sanitizeHtml } from "@/lib/sanitize";
 import type { Database } from "@/integrations/supabase/types";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
-import type { Client } from "@/lib/clients";
+import type { Client as ClientData } from "@/lib/clients";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
