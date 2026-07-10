@@ -147,14 +147,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {!loading && isStaff && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Próximos módulos</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>{staffSoon.map(renderItem)}</SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
 
         {!loading && hasRole("administrator") && (
           <SidebarGroup>
