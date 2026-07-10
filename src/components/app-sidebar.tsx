@@ -14,6 +14,7 @@ import {
   CircleDollarSign,
   Bot,
   Video,
+  BarChart3,
 } from "lucide-react";
 
 import {
@@ -45,29 +46,28 @@ const staffMain: NavItem[] = [
   { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
   { title: "Reuniões", url: "/meetings", icon: Video },
+  { title: "Analytics", url: "/analytics", icon: BarChart3 },
 ];
 
 const staffWorkspace: NavItem[] = [
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
   { title: "Acessos", url: "/vault", icon: KeyRound },
-];
-
-const staffSoon: NavItem[] = [
   { title: "IA", url: "/ai", icon: Bot },
   { title: "Financeiro", url: "/finance", icon: CircleDollarSign },
-  { title: "Equipe", url: "/dashboard", icon: Users, soon: true },
 ];
 
 const clientItems: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Calendário", url: "/portal/calendar", icon: Calendar },
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
+  { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
 ];
 
 const adminItems: NavItem[] = [
+  { title: "Equipe", url: "/team", icon: Users },
   { title: "Permissões", url: "/admin/permissions", icon: Shield },
-  { title: "Configurações", url: "/dashboard", icon: Settings, soon: true },
+  { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -147,14 +147,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {!loading && isStaff && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Próximos módulos</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>{staffSoon.map(renderItem)}</SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
 
         {!loading && hasRole("administrator") && (
           <SidebarGroup>
