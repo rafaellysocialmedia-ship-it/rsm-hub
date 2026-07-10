@@ -55,16 +55,18 @@ function PortalRouter() {
 /* ---------------- STAFF VIEW ---------------- */
 
 function StaffApprovals() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<Decision | "all">("pending");
   const [clientFilter, setClientFilter] = useState<string>("all");
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   const { data: posts = [] } = useQuery({
     queryKey: ["staff-approvals-posts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("posts").select("*")
-        .in("status", ["review", "approved", "scheduled", "published"])
+        .in("status", ["review", "approved", "scheduled", "published", "rejected", "archived"])
         .order("scheduled_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data as Post[];
@@ -81,22 +83,36 @@ function StaffApprovals() {
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ["clients-min"],
+    queryKey: ["clients-full"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("id,name").order("name");
+      const { data, error } = await supabase.from("clients").select("*").order("name");
       if (error) throw error;
-      return data as { id: string; name: string }[];
+      return data as ClientData[];
     },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: async ({ postId, status }: { postId: string; status: PostStatus }) => {
+      const { error } = await supabase.from("posts").update({ status }).eq("id", postId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Status atualizado");
+      qc.invalidateQueries({ queryKey: ["staff-approvals-posts"] });
+      qc.invalidateQueries({ queryKey: ["staff-approvals"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   useEffect(() => {
     const ch = supabase.channel("staff-approvals-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "post_approvals" }, () => {
-        // rely on invalidate via reload; simpler: refetch below
+        qc.invalidateQueries({ queryKey: ["staff-approvals"] });
+        qc.invalidateQueries({ queryKey: ["staff-approvals-posts"] });
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [qc]);
 
   const approvalByPost = useMemo(() => {
     const m = new Map<string, Approval>();
