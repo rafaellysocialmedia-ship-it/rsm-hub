@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, XCircle, MessageSquareWarning, Clock, Calendar, Sparkles, Search, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquareWarning, Clock, Calendar, Sparkles, Search, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,15 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { POST_STATUS, statusMeta, postNetworks, type Post, type PostStatus } from "@/lib/posts";
 import { sanitizeHtml } from "@/lib/sanitize";
 import type { Database } from "@/integrations/supabase/types";
+import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
+import type { Client } from "@/lib/clients";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
