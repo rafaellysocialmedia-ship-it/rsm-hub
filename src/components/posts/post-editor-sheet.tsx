@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Loader2, Paperclip, Repeat, Send, Trash2, X } from "lucide-react";
+import { CheckSquare, Copy, Loader2, Paperclip, Repeat, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -196,6 +196,28 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const createTaskMutation = useMutation({
+    mutationFn: async () => {
+      if (!post) return;
+      const { error } = await supabase.from("tasks").insert({
+        title: `Publicação: ${post.title}`,
+        description: post.headline ?? null,
+        status: "todo",
+        priority: "medium",
+        client_id: post.client_id ?? null,
+        due_date: post.scheduled_date ? new Date(post.scheduled_date).toISOString() : null,
+        source_post_id: post.id,
+        created_by: user?.id ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Tarefa criada a partir do post");
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   // ---- File upload
   const [uploading, setUploading] = useState(false);
@@ -259,6 +281,9 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
             <div className="flex items-center gap-1">
               {isEdit && (
                 <>
+                  <Button size="sm" variant="ghost" onClick={() => createTaskMutation.mutate()} disabled={createTaskMutation.isPending} title="Criar tarefa a partir do post">
+                    <CheckSquare className="h-4 w-4" />
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => duplicateMutation.mutate()} title="Duplicar">
                     <Copy className="h-4 w-4" />
                   </Button>
