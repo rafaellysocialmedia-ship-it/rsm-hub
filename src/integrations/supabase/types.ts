@@ -1235,7 +1235,6 @@ export type Database = {
         }
         Returns: string
       }
-      vault_encryption_key: { Args: never; Returns: string }
       vault_reveal_password: { Args: { _id: string }; Returns: string }
       vault_update_credential: {
         Args: {
