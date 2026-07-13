@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Paperclip, Plus, Trash2, Upload, X } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, Plus, Repeat, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -55,6 +55,8 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [clientId, setClientId] = useState<string>("none");
   const [dueDate, setDueDate] = useState<string>("");
+  const [recFreq, setRecFreq] = useState<"none" | "daily" | "weekly" | "biweekly" | "monthly">("none");
+  const [recCount, setRecCount] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -65,6 +67,9 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
       setPriority(task?.priority ?? "medium");
       setClientId(task?.client_id ?? "none");
       setDueDate(task?.due_date ? task.due_date.slice(0, 10) : "");
+      const r = (task as unknown as { recurrence?: { frequency?: string; count?: number } } | null)?.recurrence;
+      setRecFreq((r?.frequency as typeof recFreq) ?? "none");
+      setRecCount(r?.count ?? 4);
     }
   }, [open, task, defaultStatus]);
 
@@ -86,6 +91,7 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
 
   const save = useMutation({
     mutationFn: async () => {
+      const recurrence = recFreq === "none" ? null : { frequency: recFreq, count: recCount };
       const payload = {
         title: title.trim(),
         description: description.trim() || null,
@@ -93,10 +99,26 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
         priority,
         client_id: clientId === "none" ? null : clientId,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
-      };
+        recurrence,
+      } as Partial<Task>;
       if (!payload.title) throw new Error("Título obrigatório");
-      if (isEdit && task) await updateTask(task.id, payload);
-      else await createTask({ ...payload, created_by: user?.id ?? null });
+      if (isEdit && task) {
+        await updateTask(task.id, payload);
+      } else {
+        await createTask({ ...payload, created_by: user?.id ?? null });
+        // Spawn extra occurrences
+        if (recFreq !== "none" && dueDate && recCount > 1) {
+          const extras = buildTaskRecurrenceDates(dueDate, recFreq, recCount).slice(1);
+          for (const d of extras) {
+            await createTask({
+              ...payload,
+              recurrence: null,
+              due_date: new Date(d).toISOString(),
+              created_by: user?.id ?? null,
+            });
+          }
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tasks"] });
@@ -222,6 +244,41 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
             </div>
           </div>
 
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={recFreq} onValueChange={(v) => setRecFreq(v as typeof recFreq)}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem recorrência</SelectItem>
+                  <SelectItem value="daily">Diária</SelectItem>
+                  <SelectItem value="weekly">Semanal</SelectItem>
+                  <SelectItem value="biweekly">Quinzenal</SelectItem>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                </SelectContent>
+              </Select>
+              {recFreq !== "none" && !isEdit && (
+                <>
+                  <Input
+                    type="number"
+                    min={2}
+                    max={52}
+                    value={recCount}
+                    onChange={(e) => setRecCount(Number(e.target.value) || 1)}
+                    className="w-24"
+                  />
+                  <span className="text-xs text-muted-foreground">ocorrências (inclui esta)</span>
+                </>
+              )}
+              {recFreq !== "none" && isEdit && (
+                <span className="text-xs text-muted-foreground">Edite ocorrências individualmente</span>
+              )}
+            </div>
+            {recFreq !== "none" && !dueDate && !isEdit && (
+              <p className="text-xs text-amber-600">Defina um prazo para gerar as ocorrências.</p>
+            )}
+          </div>
+
           {isEdit && (
             <>
               <Separator />
@@ -345,4 +402,18 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
       </SheetContent>
     </Sheet>
   );
+}
+
+function buildTaskRecurrenceDates(start: string, freq: "daily" | "weekly" | "biweekly" | "monthly", count: number): string[] {
+  const out: string[] = [start];
+  const d = new Date(start + "T00:00:00");
+  const n = Math.max(1, Math.min(52, count));
+  for (let i = 1; i < n; i++) {
+    if (freq === "daily") d.setDate(d.getDate() + 1);
+    else if (freq === "weekly") d.setDate(d.getDate() + 7);
+    else if (freq === "biweekly") d.setDate(d.getDate() + 14);
+    else if (freq === "monthly") d.setMonth(d.getMonth() + 1);
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
 }

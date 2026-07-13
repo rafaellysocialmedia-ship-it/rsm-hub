@@ -3,6 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 export type TaskStatus = "todo" | "production" | "waiting_client" | "review" | "done";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
+export type TaskRecurrence = {
+  frequency: "daily" | "weekly" | "biweekly" | "monthly";
+  count?: number;
+} | null;
+
 export type Task = {
   id: string;
   title: string;
@@ -14,6 +19,8 @@ export type Task = {
   due_date: string | null;
   position: number;
   created_by: string | null;
+  recurrence: TaskRecurrence;
+  source_post_id: string | null;
   created_at: string;
   updated_at: string;
 };
