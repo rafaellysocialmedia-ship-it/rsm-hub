@@ -403,3 +403,17 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
     </Sheet>
   );
 }
+
+function buildTaskRecurrenceDates(start: string, freq: "daily" | "weekly" | "biweekly" | "monthly", count: number): string[] {
+  const out: string[] = [start];
+  const d = new Date(start + "T00:00:00");
+  const n = Math.max(1, Math.min(52, count));
+  for (let i = 1; i < n; i++) {
+    if (freq === "daily") d.setDate(d.getDate() + 1);
+    else if (freq === "weekly") d.setDate(d.getDate() + 7);
+    else if (freq === "biweekly") d.setDate(d.getDate() + 14);
+    else if (freq === "monthly") d.setMonth(d.getMonth() + 1);
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
