@@ -23,6 +23,8 @@ import { ListView } from "@/components/posts/views/list-view";
 import { TableView } from "@/components/posts/views/table-view";
 import { TimelineView } from "@/components/posts/views/timeline-view";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
+import { QuotaBadge } from "@/components/clients/quota-badge";
+import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 
 export const Route = createFileRoute("/_authenticated/posts/")({
@@ -250,6 +252,24 @@ function PostsPage() {
           )}
         </div>
       </div>
+
+      {/* Quota banner (visible when a client filter is applied) */}
+      {clientFilter !== "all" && (() => {
+        const activeClient = clients.find((c) => c.id === clientFilter);
+        if (!activeClient?.monthly_post_quota) return null;
+        const used = countMonthPosts(posts, clientFilter);
+        return (
+          <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Cota mensal — {activeClient.name}</p>
+                <p className="text-xs capitalize text-muted-foreground">{formatMonth()}</p>
+              </div>
+            </div>
+            <QuotaBadge used={used} quota={activeClient.monthly_post_quota} />
+          </div>
+        );
+      })()}
 
       {/* Result count + bulk actions */}
       <div className="flex flex-wrap items-center justify-between gap-2">
