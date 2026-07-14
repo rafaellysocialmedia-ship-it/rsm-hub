@@ -358,12 +358,14 @@ function ClientsPage() {
 
 function ClientCard({
   client,
+  usedThisMonth,
   canManage,
   canDelete,
   onEdit,
   onDelete,
 }: {
   client: Client;
+  usedThisMonth: number;
   canManage: boolean;
   canDelete: boolean;
   onEdit: () => void;
@@ -421,6 +423,13 @@ function ClientCard({
             <span className="text-xs text-muted-foreground">{client.plan}</span>
           )}
         </div>
+
+        {client.monthly_post_quota != null && client.monthly_post_quota > 0 && (
+          <div className="mt-3">
+            <QuotaBadge used={usedThisMonth} quota={client.monthly_post_quota} />
+          </div>
+        )}
+
 
         <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
           {client.email && (
