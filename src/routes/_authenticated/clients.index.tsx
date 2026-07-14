@@ -302,6 +302,7 @@ function ClientsPage() {
               <ClientCard
                 key={c.id}
                 client={c}
+                usedThisMonth={usageByClient.get(c.id) ?? 0}
                 canManage={canManage}
                 canDelete={canDelete}
                 onEdit={() => {
