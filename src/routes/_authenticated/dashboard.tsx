@@ -306,6 +306,8 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
         <MiniStat label="Tarefas atrasadas" value={overdueTasks} icon={AlertTriangle} tone="text-rose-500" />
       </div>
 
+      {/* Monthly post quota */}
+      <MonthlyQuotaCard clients={clients} posts={posts} />
 
       {/* Charts row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
