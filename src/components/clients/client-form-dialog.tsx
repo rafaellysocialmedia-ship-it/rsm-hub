@@ -43,6 +43,7 @@ const schema = z.object({
   plan: z.string().trim().max(80).optional().or(z.literal("")),
   start_date: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive", "paused", "prospect"]),
+  monthly_post_quota: z.union([z.string(), z.number()]).optional(),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
   user_id: z.string().optional().or(z.literal("")),
 });
@@ -61,6 +62,7 @@ const empty: FormValues = {
   plan: "",
   start_date: "",
   status: "active",
+  monthly_post_quota: "",
   notes: "",
   user_id: "",
 };
@@ -101,6 +103,7 @@ export function ClientFormDialog({
               plan: client.plan ?? "",
               start_date: client.start_date ?? "",
               status: client.status,
+              monthly_post_quota: client.monthly_post_quota ?? "",
               notes: client.notes ?? "",
               user_id: client.user_id ?? "",
             }
@@ -133,6 +136,9 @@ export function ClientFormDialog({
 
   const mutation = useMutation({
     mutationFn: async (values: FormValues) => {
+      const quotaNum = values.monthly_post_quota === "" || values.monthly_post_quota == null
+        ? null
+        : Number(values.monthly_post_quota) || null;
       const payload = {
         ...values,
         legal_name: values.legal_name || null,
@@ -144,6 +150,7 @@ export function ClientFormDialog({
         segment: values.segment || null,
         plan: values.plan || null,
         start_date: values.start_date || null,
+        monthly_post_quota: quotaNum,
         notes: values.notes || null,
         user_id: values.user_id ? values.user_id : null,
         logo_url: logoPath,
@@ -265,6 +272,14 @@ export function ClientFormDialog({
             </Field>
             <Field label="Data de início">
               <Input type="date" {...form.register("start_date")} />
+            </Field>
+            <Field label="Cota mensal de posts">
+              <Input
+                type="number"
+                min={0}
+                placeholder="Ex: 12"
+                {...form.register("monthly_post_quota")}
+              />
             </Field>
             <Field label="Status">
               <Select
