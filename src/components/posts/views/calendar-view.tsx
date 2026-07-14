@@ -157,6 +157,7 @@ function DayCell({
 function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map<string, string>; onOpen: (p: Post) => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: post.id });
   const meta = statusMeta(post.status);
+  const isRejected = post.status === ("rejected" as typeof post.status);
   return (
     <div
       ref={setNodeRef}
@@ -166,13 +167,14 @@ function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map
       className={cn(
         "cursor-pointer truncate rounded border-l-2 bg-muted/60 px-1.5 py-0.5 text-[10px] hover:bg-muted",
         isDragging && "opacity-30",
+        isRejected && "opacity-50 grayscale",
       )}
       style={{ borderLeftColor: `var(--${meta.value})` }}
     >
       <div className="flex items-center gap-1">
         <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", meta.dot)} />
         {post.scheduled_time && <span className="text-muted-foreground">{post.scheduled_time.slice(0, 5)}</span>}
-        <span className="truncate font-medium">{post.title}</span>
+        <span className={cn("truncate font-medium", isRejected && "line-through")}>{post.title}</span>
       </div>
       {post.client_id && clientMap.get(post.client_id) && (
         <div className="truncate text-muted-foreground">{clientMap.get(post.client_id)}</div>

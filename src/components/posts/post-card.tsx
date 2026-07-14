@@ -15,6 +15,7 @@ type Props = {
 
 export function PostCard({ post, clientName, onClick, compact, dragging }: Props) {
   const meta = statusMeta(post.status);
+  const isRejected = post.status === ("rejected" as typeof post.status);
   return (
     <div
       onClick={onClick}
@@ -22,14 +23,15 @@ export function PostCard({ post, clientName, onClick, compact, dragging }: Props
         "group cursor-pointer rounded-lg border border-border bg-card p-3 shadow-soft transition-all",
         "hover:border-primary/40 hover:shadow-md",
         dragging && "rotate-1 opacity-60",
+        isRejected && "opacity-60 grayscale",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="line-clamp-2 text-sm font-medium leading-tight">{post.title}</p>
+        <p className={cn("line-clamp-2 text-sm font-medium leading-tight", isRejected && "line-through text-muted-foreground")}>{post.title}</p>
         <span className={cn("mt-0.5 h-2 w-2 shrink-0 rounded-full", meta.dot)} />
       </div>
       {!compact && clientName && (
-        <p className="mt-1 text-xs text-muted-foreground">{clientName}</p>
+        <p className={cn("mt-1 text-xs text-muted-foreground", isRejected && "line-through")}>{clientName}</p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         {postNetworks(post).map((n) => (
