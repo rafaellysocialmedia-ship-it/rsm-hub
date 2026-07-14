@@ -58,6 +58,8 @@ import {
 import { ClientLogo } from "@/components/clients/client-logo";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
+import { QuotaBadge } from "@/components/clients/quota-badge";
+import { countMonthPosts } from "@/lib/post-quota";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/clients/")({
@@ -97,6 +99,28 @@ function ClientsPage() {
       return data as Client[];
     },
   });
+
+  const { data: postsForQuota = [] } = useQuery({
+    queryKey: ["posts-quota-month"],
+    queryFn: async () => {
+      const ref = new Date();
+      const first = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().slice(0, 10);
+      const last = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("posts")
+        .select("client_id,status,scheduled_date")
+        .gte("scheduled_date", first)
+        .lte("scheduled_date", last);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const usageByClient = useMemo(() => {
+    const map = new Map<string, number>();
+    clients.forEach((c) => map.set(c.id, countMonthPosts(postsForQuota, c.id)));
+    return map;
+  }, [clients, postsForQuota]);
 
   const segments = useMemo(() => {
     const set = new Set<string>();
