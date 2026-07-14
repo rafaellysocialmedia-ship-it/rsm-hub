@@ -58,6 +58,8 @@ import {
 import { ClientLogo } from "@/components/clients/client-logo";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
+import { QuotaBadge } from "@/components/clients/quota-badge";
+import { countMonthPosts } from "@/lib/post-quota";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/clients/")({
@@ -97,6 +99,28 @@ function ClientsPage() {
       return data as Client[];
     },
   });
+
+  const { data: postsForQuota = [] } = useQuery({
+    queryKey: ["posts-quota-month"],
+    queryFn: async () => {
+      const ref = new Date();
+      const first = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().slice(0, 10);
+      const last = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("posts")
+        .select("client_id,status,scheduled_date")
+        .gte("scheduled_date", first)
+        .lte("scheduled_date", last);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const usageByClient = useMemo(() => {
+    const map = new Map<string, number>();
+    clients.forEach((c) => map.set(c.id, countMonthPosts(postsForQuota, c.id)));
+    return map;
+  }, [clients, postsForQuota]);
 
   const segments = useMemo(() => {
     const set = new Set<string>();
@@ -278,6 +302,7 @@ function ClientsPage() {
               <ClientCard
                 key={c.id}
                 client={c}
+                usedThisMonth={usageByClient.get(c.id) ?? 0}
                 canManage={canManage}
                 canDelete={canDelete}
                 onEdit={() => {
@@ -333,12 +358,14 @@ function ClientsPage() {
 
 function ClientCard({
   client,
+  usedThisMonth,
   canManage,
   canDelete,
   onEdit,
   onDelete,
 }: {
   client: Client;
+  usedThisMonth: number;
   canManage: boolean;
   canDelete: boolean;
   onEdit: () => void;
@@ -396,6 +423,13 @@ function ClientCard({
             <span className="text-xs text-muted-foreground">{client.plan}</span>
           )}
         </div>
+
+        {client.monthly_post_quota != null && client.monthly_post_quota > 0 && (
+          <div className="mt-3">
+            <QuotaBadge used={usedThisMonth} quota={client.monthly_post_quota} />
+          </div>
+        )}
+
 
         <div className="mt-4 space-y-1.5 border-t border-border pt-3 text-xs text-muted-foreground">
           {client.email && (

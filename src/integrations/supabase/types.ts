@@ -153,6 +153,7 @@ export type Database = {
           id: string
           legal_name: string | null
           logo_url: string | null
+          monthly_post_quota: number | null
           name: string
           notes: string | null
           phone: string | null
@@ -173,6 +174,7 @@ export type Database = {
           id?: string
           legal_name?: string | null
           logo_url?: string | null
+          monthly_post_quota?: number | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -193,6 +195,7 @@ export type Database = {
           id?: string
           legal_name?: string | null
           logo_url?: string | null
+          monthly_post_quota?: number | null
           name?: string
           notes?: string | null
           phone?: string | null

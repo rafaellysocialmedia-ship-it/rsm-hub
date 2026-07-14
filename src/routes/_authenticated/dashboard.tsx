@@ -306,6 +306,8 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
         <MiniStat label="Tarefas atrasadas" value={overdueTasks} icon={AlertTriangle} tone="text-rose-500" />
       </div>
 
+      {/* Monthly post quota */}
+      <MonthlyQuotaCard clients={clients} posts={posts} />
 
       {/* Charts row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -851,3 +853,93 @@ function Row({ label, value, highlight }: { label: string; value: number; highli
     </div>
   );
 }
+
+function MonthlyQuotaCard({
+  clients,
+  posts,
+}: {
+  clients: Client[];
+  posts: { client_id: string | null; status: string | null; scheduled_date: string | null }[];
+}) {
+  const withQuota = clients.filter((c) => (c.monthly_post_quota ?? 0) > 0);
+  if (withQuota.length === 0) return null;
+  const ref = new Date();
+  const y = ref.getFullYear();
+  const m = ref.getMonth();
+  const rows = withQuota
+    .map((c) => {
+      const used = posts.filter((p) => {
+        if (p.client_id !== c.id) return false;
+        if (!p.scheduled_date) return false;
+        const s = p.status ?? "";
+        if (s === "archived" || s === "rejected") return false;
+        const d = new Date(p.scheduled_date + "T00:00:00");
+        return d.getFullYear() === y && d.getMonth() === m;
+      }).length;
+      const quota = c.monthly_post_quota ?? 0;
+      return { client: c, used, quota, remaining: Math.max(0, quota - used) };
+    })
+    .sort((a, b) => (a.remaining === b.remaining ? b.quota - a.quota : b.remaining - a.remaining));
+
+  return (
+    <Card className="shadow-soft">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle className="text-base">Cota mensal de posts</CardTitle>
+          <p className="mt-1 text-xs capitalize text-muted-foreground">
+            {ref.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+          </p>
+        </div>
+        <Badge variant="secondary" className="text-xs">
+          {withQuota.length} client{withQuota.length === 1 ? "e" : "es"} com cota
+        </Badge>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rows.map(({ client, used, quota, remaining }) => {
+            const pct = Math.min(100, Math.round((used / quota) * 100));
+            const done = used >= quota;
+            const closing = !done && used / quota >= 0.8;
+            const barCls = done
+              ? "bg-emerald-500"
+              : closing
+                ? "bg-amber-500"
+                : "bg-primary";
+            const label = done
+              ? "Meta batida"
+              : `${remaining} restante${remaining === 1 ? "" : "s"}`;
+            return (
+              <Link
+                key={client.id}
+                to="/clients/$clientId"
+                params={{ clientId: client.id }}
+                className="group rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/40"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-sm font-medium">{client.name}</p>
+                  <span
+                    className={cn(
+                      "text-xs font-semibold",
+                      done
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : closing
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-primary",
+                    )}
+                  >
+                    {used}/{quota}
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                  <div className={cn("h-full rounded-full transition-all", barCls)} style={{ width: `${pct}%` }} />
+                </div>
+                <p className="mt-1.5 text-[11px] text-muted-foreground">{label}</p>
+              </Link>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
