@@ -15,6 +15,7 @@ import {
   Bot,
   Video,
   BarChart3,
+  ClipboardList,
 } from "lucide-react";
 
 import {
@@ -51,6 +52,7 @@ const staffMain: NavItem[] = [
 
 const staffWorkspace: NavItem[] = [
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
+  { title: "Briefings", url: "/briefings", icon: ClipboardList },
   { title: "Acessos", url: "/vault", icon: KeyRound },
   { title: "IA", url: "/ai", icon: Bot },
   { title: "Financeiro", url: "/finance", icon: CircleDollarSign },
