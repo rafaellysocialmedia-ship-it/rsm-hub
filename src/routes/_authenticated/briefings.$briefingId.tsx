@@ -332,7 +332,7 @@ function BriefingDetail() {
       </Card>
 
       <div className="sticky bottom-4 flex justify-end gap-2 rounded-lg border bg-background/95 p-3 shadow-md backdrop-blur">
-        <Button variant="outline" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+        <Button variant="outline" onClick={() => saveMutation.mutate(undefined)} disabled={saveMutation.isPending}>
           {saveMutation.isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
