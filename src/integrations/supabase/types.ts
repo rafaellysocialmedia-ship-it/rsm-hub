@@ -91,6 +91,80 @@ export type Database = {
         }
         Relationships: []
       }
+      briefing_template: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sections: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string
+          sections?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sections?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      briefings: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          meeting_date: string | null
+          notes: string | null
+          sections: Json
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_date?: string | null
+          notes?: string | null
+          sections?: Json
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meeting_date?: string | null
+          notes?: string | null
+          sections?: Json
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "briefings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_portal_settings: {
         Row: {
           can_approve: boolean
