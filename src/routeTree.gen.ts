@@ -27,9 +27,12 @@ import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
+import { Route as AuthenticatedBriefingsIndexRouteImport } from './routes/_authenticated/briefings.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
+import { Route as AuthenticatedBriefingsTemplateRouteImport } from './routes/_authenticated/briefings.template'
+import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_authenticated/briefings.$briefingId'
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
@@ -126,6 +129,12 @@ const AuthenticatedClientsIndexRoute =
     path: '/clients/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBriefingsIndexRoute =
+  AuthenticatedBriefingsIndexRouteImport.update({
+    id: '/briefings/',
+    path: '/briefings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -141,6 +150,18 @@ const AuthenticatedClientsClientIdRoute =
   AuthenticatedClientsClientIdRouteImport.update({
     id: '/clients/$clientId',
     path: '/clients/$clientId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBriefingsTemplateRoute =
+  AuthenticatedBriefingsTemplateRouteImport.update({
+    id: '/briefings/template',
+    path: '/briefings/template',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBriefingsBriefingIdRoute =
+  AuthenticatedBriefingsBriefingIdRouteImport.update({
+    id: '/briefings/$briefingId',
+    path: '/briefings/$briefingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAiToolsRoute = AuthenticatedAiToolsRouteImport.update({
@@ -175,9 +196,12 @@ export interface FileRoutesByFullPath {
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/ai/tools': typeof AuthenticatedAiToolsRoute
+  '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
+  '/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
+  '/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
@@ -199,9 +223,12 @@ export interface FileRoutesByTo {
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/ai/tools': typeof AuthenticatedAiToolsRoute
+  '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
+  '/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/ai': typeof AuthenticatedAiIndexRoute
+  '/briefings': typeof AuthenticatedBriefingsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
@@ -226,9 +253,12 @@ export interface FileRoutesById {
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/_authenticated/ai/tools': typeof AuthenticatedAiToolsRoute
+  '/_authenticated/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
+  '/_authenticated/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
+  '/_authenticated/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
@@ -253,9 +283,12 @@ export interface FileRouteTypes {
     | '/admin/permissions'
     | '/ai/$threadId'
     | '/ai/tools'
+    | '/briefings/$briefingId'
+    | '/briefings/template'
     | '/clients/$clientId'
     | '/portal/calendar'
     | '/ai/'
+    | '/briefings/'
     | '/clients/'
     | '/library/'
     | '/portal/'
@@ -277,9 +310,12 @@ export interface FileRouteTypes {
     | '/admin/permissions'
     | '/ai/$threadId'
     | '/ai/tools'
+    | '/briefings/$briefingId'
+    | '/briefings/template'
     | '/clients/$clientId'
     | '/portal/calendar'
     | '/ai'
+    | '/briefings'
     | '/clients'
     | '/library'
     | '/portal'
@@ -303,9 +339,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/permissions'
     | '/_authenticated/ai/$threadId'
     | '/_authenticated/ai/tools'
+    | '/_authenticated/briefings/$briefingId'
+    | '/_authenticated/briefings/template'
     | '/_authenticated/clients/$clientId'
     | '/_authenticated/portal/calendar'
     | '/_authenticated/ai/'
+    | '/_authenticated/briefings/'
     | '/_authenticated/clients/'
     | '/_authenticated/library/'
     | '/_authenticated/portal/'
@@ -450,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/briefings/': {
+      id: '/_authenticated/briefings/'
+      path: '/briefings'
+      fullPath: '/briefings/'
+      preLoaderRoute: typeof AuthenticatedBriefingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ai/': {
       id: '/_authenticated/ai/'
       path: '/'
@@ -469,6 +515,20 @@ declare module '@tanstack/react-router' {
       path: '/clients/$clientId'
       fullPath: '/clients/$clientId'
       preLoaderRoute: typeof AuthenticatedClientsClientIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/briefings/template': {
+      id: '/_authenticated/briefings/template'
+      path: '/briefings/template'
+      fullPath: '/briefings/template'
+      preLoaderRoute: typeof AuthenticatedBriefingsTemplateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/briefings/$briefingId': {
+      id: '/_authenticated/briefings/$briefingId'
+      path: '/briefings/$briefingId'
+      fullPath: '/briefings/$briefingId'
+      preLoaderRoute: typeof AuthenticatedBriefingsBriefingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ai/tools': {
@@ -520,8 +580,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
+  AuthenticatedBriefingsBriefingIdRoute: typeof AuthenticatedBriefingsBriefingIdRoute
+  AuthenticatedBriefingsTemplateRoute: typeof AuthenticatedBriefingsTemplateRoute
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
+  AuthenticatedBriefingsIndexRoute: typeof AuthenticatedBriefingsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
@@ -539,8 +602,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
+  AuthenticatedBriefingsBriefingIdRoute: AuthenticatedBriefingsBriefingIdRoute,
+  AuthenticatedBriefingsTemplateRoute: AuthenticatedBriefingsTemplateRoute,
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
+  AuthenticatedBriefingsIndexRoute: AuthenticatedBriefingsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
