@@ -165,20 +165,23 @@ function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map
       {...listeners}
       onClick={() => onOpen(post)}
       className={cn(
-        "cursor-pointer truncate rounded border-l-2 bg-muted/60 px-1.5 py-0.5 text-[10px] hover:bg-muted",
+        "cursor-pointer truncate rounded border-l-2 px-1.5 py-0.5 text-[10px] hover:brightness-105",
+        meta.tone,
         isDragging && "opacity-30",
         isRejected && "opacity-50 grayscale",
       )}
-      style={{ borderLeftColor: `var(--${meta.value})` }}
     >
       <div className="flex items-center gap-1">
         <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", meta.dot)} />
-        {post.scheduled_time && <span className="text-muted-foreground">{post.scheduled_time.slice(0, 5)}</span>}
+        {post.scheduled_time && <span className="opacity-70">{post.scheduled_time.slice(0, 5)}</span>}
         <span className={cn("truncate font-medium", isRejected && "line-through")}>{post.title}</span>
       </div>
-      {post.client_id && clientMap.get(post.client_id) && (
-        <div className="truncate text-muted-foreground">{clientMap.get(post.client_id)}</div>
-      )}
+      <div className="flex items-center gap-1 truncate opacity-80">
+        {post.format && <span className="rounded bg-background/60 px-1 text-[9px] font-medium">{post.format}</span>}
+        {post.client_id && clientMap.get(post.client_id) && (
+          <span className="truncate">{clientMap.get(post.client_id)}</span>
+        )}
+      </div>
     </div>
   );
 }
