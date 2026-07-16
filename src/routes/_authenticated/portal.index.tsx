@@ -122,24 +122,35 @@ function StaffApprovals() {
 
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
+  function decisionOf(p: Post): Decision {
+    const ap = approvalByPost.get(p.id);
+    if (ap) return ap.decision;
+    // Fallback derived from post status when there's no approval row
+    if (p.status === "approved" || p.status === "scheduled" || p.status === "published") return "approved";
+    if ((p.status as string) === "rejected" || p.status === "archived") return "rejected";
+    return "pending";
+  }
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return posts.filter((p) => {
-      const d: Decision = approvalByPost.get(p.id)?.decision ?? "pending";
+      const d = decisionOf(p);
       if (tab !== "all" && d !== tab) return false;
       if (clientFilter !== "all" && p.client_id !== clientFilter) return false;
       if (!q) return true;
       return [p.title, p.headline, p.theme].some((v) => v?.toLowerCase().includes(q));
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, search, tab, clientFilter, approvalByPost]);
 
   const counts = useMemo(() => {
     const c: Record<Decision | "all", number> = { all: posts.length, pending: 0, approved: 0, rejected: 0, changes_requested: 0 };
     posts.forEach((p) => {
-      const d = approvalByPost.get(p.id)?.decision ?? "pending";
+      const d = decisionOf(p);
       c[d] = (c[d] ?? 0) + 1;
     });
     return c;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, approvalByPost]);
 
   return (
