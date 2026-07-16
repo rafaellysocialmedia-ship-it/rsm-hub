@@ -122,24 +122,35 @@ function StaffApprovals() {
 
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
+  function decisionOf(p: Post): Decision {
+    const ap = approvalByPost.get(p.id);
+    if (ap) return ap.decision;
+    // Fallback derived from post status when there's no approval row
+    if (p.status === "approved" || p.status === "scheduled" || p.status === "published") return "approved";
+    if ((p.status as string) === "rejected" || p.status === "archived") return "rejected";
+    return "pending";
+  }
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return posts.filter((p) => {
-      const d: Decision = approvalByPost.get(p.id)?.decision ?? "pending";
+      const d = decisionOf(p);
       if (tab !== "all" && d !== tab) return false;
       if (clientFilter !== "all" && p.client_id !== clientFilter) return false;
       if (!q) return true;
       return [p.title, p.headline, p.theme].some((v) => v?.toLowerCase().includes(q));
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, search, tab, clientFilter, approvalByPost]);
 
   const counts = useMemo(() => {
     const c: Record<Decision | "all", number> = { all: posts.length, pending: 0, approved: 0, rejected: 0, changes_requested: 0 };
     posts.forEach((p) => {
-      const d = approvalByPost.get(p.id)?.decision ?? "pending";
+      const d = decisionOf(p);
       c[d] = (c[d] ?? 0) + 1;
     });
     return c;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, approvalByPost]);
 
   return (
@@ -203,7 +214,7 @@ function StaffApprovals() {
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => {
             const ap = approvalByPost.get(p.id);
-            const decision: Decision = ap?.decision ?? "pending";
+            const decision: Decision = decisionOf(p);
             const dMeta = DECISION_META[decision];
             const sMeta = statusMeta(p.status);
             const clientName = p.client_id ? clientMap.get(p.client_id) : null;
@@ -352,20 +363,30 @@ function ClientPortal() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  function clientDecisionOf(p: Post): Decision {
+    const ap = approvalByPost.get(p.id);
+    if (ap) return ap.decision;
+    if (p.status === "approved" || p.status === "scheduled" || p.status === "published") return "approved";
+    if ((p.status as string) === "rejected" || p.status === "archived") return "rejected";
+    return "pending";
+  }
+
   const filteredPosts = useMemo(() => {
     const q = search.toLowerCase().trim();
     return posts.filter((p) => {
-      const d: Decision = approvalByPost.get(p.id)?.decision ?? "pending";
+      const d = clientDecisionOf(p);
       if (tab !== "all" && d !== tab) return false;
       if (!q) return true;
       return [p.title, p.headline, p.theme].some((v) => v?.toLowerCase().includes(q));
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, search, tab, approvalByPost]);
 
   const counts = useMemo(() => {
     const c: Record<Decision | "all", number> = { all: posts.length, pending: 0, approved: 0, rejected: 0, changes_requested: 0 };
-    posts.forEach((p) => { const d = approvalByPost.get(p.id)?.decision ?? "pending"; c[d] = (c[d] ?? 0) + 1; });
+    posts.forEach((p) => { const d = clientDecisionOf(p); c[d] = (c[d] ?? 0) + 1; });
     return c;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts, approvalByPost]);
 
   if (!client) {
@@ -441,7 +462,7 @@ function ClientPortal() {
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredPosts.map((p) => {
             const ap = approvalByPost.get(p.id);
-            const decision: Decision = ap?.decision ?? "pending";
+            const decision: Decision = clientDecisionOf(p);
             const dMeta = DECISION_META[decision];
             const isPending = decideMutation.isPending && decideMutation.variables?.post.id === p.id;
 
@@ -498,7 +519,7 @@ function ClientPortal() {
         <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
           {openPost && (() => {
             const ap = approvalByPost.get(openPost.id);
-            const decision: Decision = ap?.decision ?? "pending";
+            const decision: Decision = clientDecisionOf(openPost);
             const dMeta = DECISION_META[decision];
             return (
               <>
