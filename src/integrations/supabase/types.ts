@@ -1349,6 +1349,7 @@ export type Database = {
       post_status:
         | "idea"
         | "production"
+        | "recording"
         | "review"
         | "approved"
         | "scheduled"
@@ -1508,6 +1509,7 @@ export const Constants = {
       post_status: [
         "idea",
         "production",
+        "recording",
         "review",
         "approved",
         "scheduled",
