@@ -462,7 +462,7 @@ function ClientPortal() {
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredPosts.map((p) => {
             const ap = approvalByPost.get(p.id);
-            const decision: Decision = ap?.decision ?? "pending";
+            const decision: Decision = clientDecisionOf(p);
             const dMeta = DECISION_META[decision];
             const isPending = decideMutation.isPending && decideMutation.variables?.post.id === p.id;
 
@@ -519,7 +519,7 @@ function ClientPortal() {
         <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
           {openPost && (() => {
             const ap = approvalByPost.get(openPost.id);
-            const decision: Decision = ap?.decision ?? "pending";
+            const decision: Decision = clientDecisionOf(openPost);
             const dMeta = DECISION_META[decision];
             return (
               <>
