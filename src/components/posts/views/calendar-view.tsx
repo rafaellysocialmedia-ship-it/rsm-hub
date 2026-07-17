@@ -128,6 +128,7 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
           {days.map((d) => {
             const iso = format(d, "yyyy-MM-dd");
             const list = byDate.get(iso) ?? [];
+            const dates = commemorativesByMD.get(`${d.getMonth() + 1}-${d.getDate()}`) ?? [];
             return (
               <DayCell
                 key={iso}
@@ -136,6 +137,7 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
                 inMonth={isSameMonth(d, cursor)}
                 isToday={isSameDay(d, new Date())}
                 posts={list}
+                commemoratives={dates}
                 clientMap={clientMap}
                 onOpen={onOpen}
                 onAdd={() => onAddOn(iso)}
@@ -149,10 +151,10 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
 }
 
 function DayCell({
-  date, iso, inMonth, isToday, posts, clientMap, onOpen, onAdd,
+  date, iso, inMonth, isToday, posts, commemoratives, clientMap, onOpen, onAdd,
 }: {
   date: Date; iso: string; inMonth: boolean; isToday: boolean;
-  posts: Post[]; clientMap: Map<string, string>;
+  posts: Post[]; commemoratives: CommemorativeDate[]; clientMap: Map<string, string>;
   onOpen: (p: Post) => void; onAdd: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: iso });
@@ -163,9 +165,10 @@ function DayCell({
         "group relative min-h-[110px] border-b border-r border-border p-1.5 transition-colors",
         !inMonth && "bg-muted/20",
         isOver && "bg-primary/5",
+        commemoratives.length > 0 && inMonth && "bg-amber-500/5",
       )}
     >
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between gap-1">
         <span className={cn(
           "text-xs font-medium",
           !inMonth && "text-muted-foreground/50",
@@ -173,9 +176,35 @@ function DayCell({
         )}>
           {format(date, "d")}
         </span>
-        <button onClick={onAdd} className="opacity-0 transition-opacity group-hover:opacity-100">
-          <Plus className="h-3 w-3 text-muted-foreground" />
-        </button>
+        <div className="flex items-center gap-0.5">
+          {commemoratives.length > 0 && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help text-sm leading-none">
+                    {commemoratives[0].emoji ?? "🎉"}
+                    {commemoratives.length > 1 && (
+                      <span className="ml-0.5 text-[9px] font-medium text-amber-600">+{commemoratives.length - 1}</span>
+                    )}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <div className="space-y-0.5">
+                    {commemoratives.map((c) => (
+                      <div key={c.id} className="text-xs">
+                        {c.emoji} <span className="font-medium">{c.name}</span>
+                        {c.category && <span className="ml-1 text-muted-foreground">· {c.category}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          <button onClick={onAdd} className="opacity-0 transition-opacity group-hover:opacity-100">
+            <Plus className="h-3 w-3 text-muted-foreground" />
+          </button>
+        </div>
       </div>
       <div className="space-y-1">
         {posts.slice(0, 3).map((p) => (
