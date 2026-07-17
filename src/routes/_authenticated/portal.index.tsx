@@ -23,6 +23,7 @@ import { sanitizeHtml } from "@/lib/sanitize";
 import type { Database } from "@/integrations/supabase/types";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import type { Client as ClientData } from "@/lib/clients";
+import { PostCreativeThumb, PostCreativeGallery } from "@/components/posts/post-creative-viewer";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
@@ -480,6 +481,7 @@ function ClientPortal() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2 pt-0">
+                    <PostCreativeThumb postId={p.id} />
                     {p.headline && <p className="line-clamp-2 text-sm">{p.headline}</p>}
                     {p.scheduled_date && (
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -534,6 +536,10 @@ function ClientPortal() {
 
                 <ScrollArea className="mt-4 max-h-[55vh] pr-3">
                   <div className="space-y-4 text-sm">
+                    <section>
+                      <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Criativo</p>
+                      <PostCreativeGallery postId={openPost.id} />
+                    </section>
                     {openPost.caption && (
                       <section>
                         <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Legenda</p>
