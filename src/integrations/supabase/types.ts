@@ -284,6 +284,48 @@ export type Database = {
         }
         Relationships: []
       }
+      commemorative_dates: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          day: number
+          emoji: string | null
+          id: string
+          is_national: boolean
+          month: number
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          day: number
+          emoji?: string | null
+          id?: string
+          is_national?: boolean
+          month: number
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          day?: number
+          emoji?: string | null
+          id?: string
+          is_national?: boolean
+          month?: number
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       file_folders: {
         Row: {
           client_id: string | null
@@ -1164,6 +1206,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      vault_attachments: {
+        Row: {
+          created_at: string
+          credential_id: string
+          file_name: string
+          id: string
+          label: string | null
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          credential_id: string
+          file_name: string
+          id?: string
+          label?: string | null
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string
+          file_name?: string
+          id?: string
+          label?: string | null
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vault_attachments_credential_id_fkey"
+            columns: ["credential_id"]
+            isOneToOne: false
+            referencedRelation: "vault_credentials"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vault_credential_history: {
         Row: {
