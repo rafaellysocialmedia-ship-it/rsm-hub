@@ -5,7 +5,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
-  Copy, Eye, EyeOff, ExternalLink, MoreHorizontal, Pencil, Trash2, History, User as UserIcon,
+  Copy, Eye, EyeOff, MoreHorizontal, Pencil, Trash2, History, User as UserIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -100,13 +100,7 @@ export function CredentialRow({ credential, clients, onEdit, onHistory }: Props)
         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCopyPassword} title="Copiar senha">
           <Copy className="h-4 w-4" />
         </Button>
-        {credential.url && (
-          <Button asChild size="icon" variant="ghost" className="h-8 w-8" title="Abrir URL">
-            <a href={credential.url.startsWith("http") ? credential.url : `https://${credential.url}`} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </Button>
-        )}
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>

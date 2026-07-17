@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export const VAULT_BUCKET = "vault-attachments";
+
 export type VaultCredential = {
   id: string;
   client_id: string | null;
@@ -10,6 +12,18 @@ export type VaultCredential = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type VaultAttachment = {
+  id: string;
+  credential_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  label: string | null;
+  uploaded_by: string | null;
+  created_at: string;
 };
 
 export type VaultHistoryEntry = {
@@ -91,6 +105,48 @@ export async function revealPassword(id: string): Promise<string> {
 export async function deleteCredential(id: string) {
   const { error } = await sb.from("vault_credentials").delete().eq("id", id);
   if (error) throw error;
+}
+
+export async function listAttachments(credentialId: string): Promise<VaultAttachment[]> {
+  const { data, error } = await sb
+    .from("vault_attachments")
+    .select("*")
+    .eq("credential_id", credentialId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as VaultAttachment[];
+}
+
+export async function uploadAttachment(credentialId: string, file: File, label?: string) {
+  const ext = file.name.split(".").pop() ?? "bin";
+  const path = `${credentialId}/${crypto.randomUUID()}.${ext}`;
+  const { error: upErr } = await supabase.storage.from(VAULT_BUCKET).upload(path, file, {
+    contentType: file.type || "application/octet-stream",
+    upsert: false,
+  });
+  if (upErr) throw upErr;
+  const { data: u } = await supabase.auth.getUser();
+  const { error } = await sb.from("vault_attachments").insert({
+    credential_id: credentialId,
+    storage_path: path,
+    file_name: file.name,
+    mime_type: file.type || null,
+    size_bytes: file.size,
+    label: label ?? null,
+    uploaded_by: u.user?.id ?? null,
+  } as never);
+  if (error) throw error;
+}
+
+export async function deleteAttachment(att: VaultAttachment) {
+  await supabase.storage.from(VAULT_BUCKET).remove([att.storage_path]);
+  const { error } = await sb.from("vault_attachments").delete().eq("id", att.id);
+  if (error) throw error;
+}
+
+export async function attachmentUrl(path: string): Promise<string | null> {
+  const { data } = await supabase.storage.from(VAULT_BUCKET).createSignedUrl(path, 60 * 60);
+  return data?.signedUrl ?? null;
 }
 
 export async function copyToClipboard(text: string) {
