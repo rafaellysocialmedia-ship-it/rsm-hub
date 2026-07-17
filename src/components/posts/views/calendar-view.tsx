@@ -22,9 +22,21 @@ import {
   useDroppable,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { statusMeta, type Post } from "@/lib/posts";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+
+type CommemorativeDate = {
+  id: string;
+  name: string;
+  month: number;
+  day: number;
+  category: string | null;
+  emoji: string | null;
+};
 
 type Props = {
   posts: Post[];
@@ -37,6 +49,29 @@ type Props = {
 export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Props) {
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const { data: commemoratives = [] } = useQuery({
+    queryKey: ["commemorative-dates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("commemorative_dates" as never)
+        .select("id, name, month, day, category, emoji");
+      if (error) throw error;
+      return (data ?? []) as unknown as CommemorativeDate[];
+    },
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const commemorativesByMD = useMemo(() => {
+    const m = new Map<string, CommemorativeDate[]>();
+    commemoratives.forEach((c) => {
+      const key = `${c.month}-${c.day}`;
+      const arr = m.get(key) ?? [];
+      arr.push(c);
+      m.set(key, arr);
+    });
+    return m;
+  }, [commemoratives]);
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
