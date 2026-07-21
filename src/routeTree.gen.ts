@@ -26,10 +26,12 @@ import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts.index'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
+import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedBriefingsIndexRouteImport } from './routes/_authenticated/briefings.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
+import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
 import { Route as AuthenticatedBriefingsTemplateRouteImport } from './routes/_authenticated/briefings.template'
 import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_authenticated/briefings.$briefingId'
@@ -123,6 +125,12 @@ const AuthenticatedLibraryIndexRoute =
     path: '/library/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCoursesIndexRoute =
+  AuthenticatedCoursesIndexRouteImport.update({
+    id: '/courses/',
+    path: '/courses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientsIndexRoute =
   AuthenticatedClientsIndexRouteImport.update({
     id: '/clients/',
@@ -144,6 +152,12 @@ const AuthenticatedPortalCalendarRoute =
   AuthenticatedPortalCalendarRouteImport.update({
     id: '/portal/calendar',
     path: '/portal/calendar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCoursesCourseIdRoute =
+  AuthenticatedCoursesCourseIdRouteImport.update({
+    id: '/courses/$courseId',
+    path: '/courses/$courseId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClientsClientIdRoute =
@@ -199,10 +213,12 @@ export interface FileRoutesByFullPath {
   '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
   '/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
+  '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
+  '/courses/': typeof AuthenticatedCoursesIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
@@ -226,10 +242,12 @@ export interface FileRoutesByTo {
   '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
   '/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
+  '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/briefings': typeof AuthenticatedBriefingsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
+  '/courses': typeof AuthenticatedCoursesIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
@@ -256,10 +274,12 @@ export interface FileRoutesById {
   '/_authenticated/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
   '/_authenticated/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
+  '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
+  '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
@@ -286,10 +306,12 @@ export interface FileRouteTypes {
     | '/briefings/$briefingId'
     | '/briefings/template'
     | '/clients/$clientId'
+    | '/courses/$courseId'
     | '/portal/calendar'
     | '/ai/'
     | '/briefings/'
     | '/clients/'
+    | '/courses/'
     | '/library/'
     | '/portal/'
     | '/posts/'
@@ -313,10 +335,12 @@ export interface FileRouteTypes {
     | '/briefings/$briefingId'
     | '/briefings/template'
     | '/clients/$clientId'
+    | '/courses/$courseId'
     | '/portal/calendar'
     | '/ai'
     | '/briefings'
     | '/clients'
+    | '/courses'
     | '/library'
     | '/portal'
     | '/posts'
@@ -342,10 +366,12 @@ export interface FileRouteTypes {
     | '/_authenticated/briefings/$briefingId'
     | '/_authenticated/briefings/template'
     | '/_authenticated/clients/$clientId'
+    | '/_authenticated/courses/$courseId'
     | '/_authenticated/portal/calendar'
     | '/_authenticated/ai/'
     | '/_authenticated/briefings/'
     | '/_authenticated/clients/'
+    | '/_authenticated/courses/'
     | '/_authenticated/library/'
     | '/_authenticated/portal/'
     | '/_authenticated/posts/'
@@ -482,6 +508,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/courses/': {
+      id: '/_authenticated/courses/'
+      path: '/courses'
+      fullPath: '/courses/'
+      preLoaderRoute: typeof AuthenticatedCoursesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clients/': {
       id: '/_authenticated/clients/'
       path: '/clients'
@@ -508,6 +541,13 @@ declare module '@tanstack/react-router' {
       path: '/portal/calendar'
       fullPath: '/portal/calendar'
       preLoaderRoute: typeof AuthenticatedPortalCalendarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/courses/$courseId': {
+      id: '/_authenticated/courses/$courseId'
+      path: '/courses/$courseId'
+      fullPath: '/courses/$courseId'
+      preLoaderRoute: typeof AuthenticatedCoursesCourseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clients/$clientId': {
@@ -583,9 +623,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBriefingsBriefingIdRoute: typeof AuthenticatedBriefingsBriefingIdRoute
   AuthenticatedBriefingsTemplateRoute: typeof AuthenticatedBriefingsTemplateRoute
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
+  AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
   AuthenticatedBriefingsIndexRoute: typeof AuthenticatedBriefingsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
+  AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
@@ -605,9 +647,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBriefingsBriefingIdRoute: AuthenticatedBriefingsBriefingIdRoute,
   AuthenticatedBriefingsTemplateRoute: AuthenticatedBriefingsTemplateRoute,
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
+  AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
   AuthenticatedBriefingsIndexRoute: AuthenticatedBriefingsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
+  AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
