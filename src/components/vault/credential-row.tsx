@@ -5,7 +5,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
-  Copy, Eye, EyeOff, MoreHorizontal, Pencil, Trash2, History, User as UserIcon,
+  Copy, Eye, EyeOff, MoreHorizontal, Pencil, Trash2, History, User as UserIcon, ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
