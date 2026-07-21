@@ -139,6 +139,37 @@ function AnalyticsPage() {
         <MetricCard icon={TrendingUp} label="Taxa eng." value={`${totals.engagementRate.toFixed(1)}%`} tone="text-primary" />
       </div>
 
+      {clientFilter !== "all" && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> Baseline vs atual</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentBaseline ? `Snapshot registrado em ${new Date(currentBaseline.captured_at).toLocaleDateString("pt-BR")} · ${currentBaseline.network}` : "Registre as métricas iniciais para comparar a evolução."}
+              </p>
+            </div>
+            {isStaff && (
+              <Button size="sm" variant="outline" onClick={() => setBaselineOpen(true)}>
+                {currentBaseline ? "Editar baseline" : <><Plus className="mr-1 h-3.5 w-3.5" /> Registrar baseline</>}
+              </Button>
+            )}
+          </CardHeader>
+          {currentBaseline && (
+            <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <CompareCell label="Seguidores" baseline={currentBaseline.followers} current={totals.followers + currentBaseline.followers} />
+              <CompareCell label="Alcance médio" baseline={currentBaseline.avg_reach} current={totals.postsWithData ? Math.round(totals.reach / totals.postsWithData) : 0} />
+              <CompareCell label="Curtidas médias" baseline={currentBaseline.avg_likes} current={totals.postsWithData ? Math.round(totals.likes / totals.postsWithData) : 0} />
+              <CompareCell label="Coment. médios" baseline={currentBaseline.avg_comments} current={totals.postsWithData ? Math.round(totals.comments / totals.postsWithData) : 0} />
+              <CompareCell label="Compart. médios" baseline={currentBaseline.avg_shares} current={totals.postsWithData ? Math.round(totals.shares / totals.postsWithData) : 0} />
+              <CompareCell label="Salvamentos" baseline={currentBaseline.avg_saves} current={totals.postsWithData ? Math.round(totals.saves / totals.postsWithData) : 0} />
+              <CompareCell label="Taxa eng. (%)" baseline={Number(currentBaseline.engagement_rate)} current={Number(totals.engagementRate.toFixed(2))} suffix="%" />
+              <CompareCell label="Impressões médias" baseline={currentBaseline.avg_impressions} current={totals.postsWithData ? Math.round(totals.impressions / totals.postsWithData) : 0} />
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Publicações ({filteredPosts.length})</CardTitle>
