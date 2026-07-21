@@ -38,6 +38,7 @@ import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
+import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -194,6 +195,12 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminCoursesIndexRoute =
+  AuthenticatedAdminCoursesIndexRouteImport.update({
+    id: '/admin/courses/',
+    path: '/admin/courses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/posts/': typeof AuthenticatedPostsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
+  '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -253,6 +261,7 @@ export interface FileRoutesByTo {
   '/posts': typeof AuthenticatedPostsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
+  '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -285,6 +294,7 @@ export interface FileRoutesById {
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
+  '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/posts/'
     | '/tasks/'
     | '/vault/'
+    | '/admin/courses/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '/posts'
     | '/tasks'
     | '/vault'
+    | '/admin/courses'
   id:
     | '__root__'
     | '/'
@@ -377,6 +389,7 @@ export interface FileRouteTypes {
     | '/_authenticated/posts/'
     | '/_authenticated/tasks/'
     | '/_authenticated/vault/'
+    | '/_authenticated/admin/courses/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -592,6 +605,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/courses/': {
+      id: '/_authenticated/admin/courses/'
+      path: '/admin/courses'
+      fullPath: '/admin/courses/'
+      preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -633,6 +653,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
+  AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -657,6 +678,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
+  AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
