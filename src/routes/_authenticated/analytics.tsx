@@ -31,6 +31,7 @@ function AnalyticsPage() {
   const isStaff = hasRole("administrator") || hasRole("team");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [editingPost, setEditingPost] = useState<{ postId: string; metric: Metric | null } | null>(null);
+  const [baselineOpen, setBaselineOpen] = useState(false);
 
   const { data: posts = [] } = useQuery({
     queryKey: ["analytics-posts"],
