@@ -203,8 +203,38 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="text-xs">Observações</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Códigos de recuperação, perguntas de segurança, contexto…" />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Perguntas de segurança, contexto…" />
           </div>
+
+          <div className="col-span-2 flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2">
+            <div>
+              <Label className="text-sm">Tem autenticação em 2 fatores (2FA)?</Label>
+              <p className="text-xs text-muted-foreground">Marque se essa conta usa 2FA.</p>
+            </div>
+            <Switch checked={has2fa} onCheckedChange={setHas2fa} />
+          </div>
+
+          {has2fa && (
+            <div className="col-span-2 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Códigos reserva (backup codes)</Label>
+                {editing && !backupLoaded && (
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={loadBackup}>
+                    Revelar códigos salvos
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                value={backupCodes}
+                onChange={(e) => { setBackupCodes(e.target.value); setBackupLoaded(true); }}
+                rows={4}
+                className="font-mono text-xs"
+                placeholder={editing && !backupLoaded ? "•••• •••• •••• (clique em Revelar para editar)" : "Cole os códigos reserva, um por linha"}
+                readOnly={editing && !backupLoaded}
+              />
+              <p className="text-[10px] text-muted-foreground">Os códigos são criptografados no servidor.</p>
+            </div>
+          )}
 
           {editing && (
             <div className="col-span-2 space-y-2">
