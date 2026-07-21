@@ -222,9 +222,41 @@ function AnalyticsPage() {
           metric={editingPost.metric}
         />
       )}
+
+      {clientFilter !== "all" && baselineOpen && (
+        <BaselineDialog
+          open={baselineOpen}
+          onOpenChange={setBaselineOpen}
+          clientId={clientFilter}
+          baseline={currentBaseline}
+        />
+      )}
     </div>
   );
 }
+
+function CompareCell({ label, baseline, current, suffix }: { label: string; baseline: number; current: number; suffix?: string }) {
+  const diff = current - baseline;
+  const pct = baseline > 0 ? (diff / baseline) * 100 : 0;
+  const up = diff > 0;
+  const flat = diff === 0;
+  const color = flat ? "text-muted-foreground" : up ? "text-emerald-500" : "text-rose-500";
+  const Icon = up ? TrendingUp : TrendingDown;
+  return (
+    <div className="rounded-lg border border-border/60 p-3">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <div className="mt-1 flex items-baseline gap-2">
+        <span className="text-lg font-semibold">{current.toLocaleString("pt-BR")}{suffix ?? ""}</span>
+        <span className="text-[11px] text-muted-foreground">vs {baseline.toLocaleString("pt-BR")}{suffix ?? ""}</span>
+      </div>
+      <div className={`mt-1 flex items-center gap-1 text-xs ${color}`}>
+        {!flat && <Icon className="h-3 w-3" />}
+        {flat ? "sem variação" : `${up ? "+" : ""}${diff.toLocaleString("pt-BR")}${suffix ?? ""} (${pct.toFixed(1)}%)`}
+      </div>
+    </div>
+  );
+}
+
 
 function MetricCard({ icon: Icon, label, value, tone }: { icon: typeof Eye; label: string; value: number | string; tone: string }) {
   return (
