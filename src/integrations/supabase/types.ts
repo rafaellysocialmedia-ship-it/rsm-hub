@@ -491,6 +491,220 @@ export type Database = {
         }
         Relationships: []
       }
+      course_lessons: {
+        Row: {
+          content_type: string
+          course_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          file_url: string | null
+          id: string
+          is_free_preview: boolean
+          module_id: string
+          sort_order: number
+          text_content: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          content_type?: string
+          course_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          file_url?: string | null
+          id?: string
+          is_free_preview?: boolean
+          module_id: string
+          sort_order?: number
+          text_content?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          content_type?: string
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          file_url?: string | null
+          id?: string
+          is_free_preview?: boolean
+          module_id?: string
+          sort_order?: number
+          text_content?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "course_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_modules: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_purchases: {
+        Row: {
+          amount_cents: number
+          course_id: string
+          created_at: string
+          currency: string
+          external_id: string | null
+          id: string
+          note: string | null
+          paid_at: string | null
+          provider: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          course_id: string
+          created_at?: string
+          currency?: string
+          external_id?: string | null
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          course_id?: string
+          created_at?: string
+          currency?: string
+          external_id?: string | null
+          id?: string
+          note?: string | null
+          paid_at?: string | null
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_purchases_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_published: boolean
+          level: string | null
+          price_cents: number
+          short_description: string | null
+          slug: string
+          sort_order: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean
+          level?: string | null
+          price_cents?: number
+          short_description?: string | null
+          slug: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean
+          level?: string | null
+          price_cents?: number
+          short_description?: string | null
+          slug?: string
+          sort_order?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       file_folders: {
         Row: {
           client_id: string | null
@@ -1559,6 +1773,10 @@ export type Database = {
       notify_overdue_and_upcoming: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      user_owns_course: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
       vault_create_credential:
         | {
             Args: {
