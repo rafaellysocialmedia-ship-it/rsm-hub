@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Eye, Heart, MessageCircle, Plus, Repeat, Share2, TrendingUp, Users } from "lucide-react";
+import { BarChart3, Eye, Heart, MessageCircle, Plus, Repeat, Share2, TrendingUp, TrendingDown, Users, Target } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 import { MetricsDialog } from "@/components/analytics/metrics-dialog";
+import { BaselineDialog, type Baseline } from "@/components/analytics/baseline-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Metric = Database["public"]["Tables"]["post_metrics"]["Row"];
