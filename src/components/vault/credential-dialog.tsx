@@ -48,6 +48,9 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
   const [notes, setNotes] = useState("");
   const [clientId, setClientId] = useState<string>("none");
   const [show, setShow] = useState(false);
+  const [has2fa, setHas2fa] = useState(false);
+  const [backupCodes, setBackupCodes] = useState("");
+  const [backupLoaded, setBackupLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,18 +61,34 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
       setPassword("");
       setNotes(credential.notes ?? "");
       setClientId(credential.client_id ?? "none");
+      setHas2fa(!!credential.has_2fa);
+      setBackupCodes("");
+      setBackupLoaded(false);
     } else {
       setPlatform(""); setUsername(""); setPassword("");
       setNotes(""); setClientId("none");
+      setHas2fa(false); setBackupCodes(""); setBackupLoaded(false);
     }
     setShow(false);
   }, [credential, open]);
+
+  const loadBackup = async () => {
+    if (!credential) return;
+    try {
+      const codes = await revealBackupCodes(credential.id);
+      setBackupCodes(codes ?? "");
+      setBackupLoaded(true);
+    } catch (e) { toast.error(describeError(e)); }
+  };
 
   const save = useMutation({
     mutationFn: async () => {
       if (!platform.trim()) throw new Error("Plataforma obrigatória");
       if (!username.trim()) throw new Error("Usuário obrigatório");
       if (!editing && !password) throw new Error("Senha obrigatória");
+      const backupPayload = editing
+        ? (backupLoaded ? backupCodes : null)
+        : (backupCodes.trim() || null);
       if (editing) {
         await updateCredential({
           id: credential!.id,
@@ -79,6 +98,8 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
           url: null,
           notes: notes.trim() || null,
           client_id: clientId === "none" ? null : clientId,
+          has_2fa: has2fa,
+          backup_codes: backupPayload,
         });
         return credential!.id;
       }
@@ -89,6 +110,8 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
         url: null,
         notes: notes.trim() || null,
         client_id: clientId === "none" ? null : clientId,
+        has_2fa: has2fa,
+        backup_codes: backupPayload,
       });
       return id as string;
     },
