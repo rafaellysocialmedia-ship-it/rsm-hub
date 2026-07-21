@@ -1294,9 +1294,11 @@ export type Database = {
       }
       vault_credentials: {
         Row: {
+          backup_codes_encrypted: string | null
           client_id: string | null
           created_at: string
           created_by: string | null
+          has_2fa: boolean
           id: string
           notes: string | null
           password_encrypted: string
@@ -1306,9 +1308,11 @@ export type Database = {
           username: string
         }
         Insert: {
+          backup_codes_encrypted?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          has_2fa?: boolean
           id?: string
           notes?: string | null
           password_encrypted: string
@@ -1318,9 +1322,11 @@ export type Database = {
           username: string
         }
         Update: {
+          backup_codes_encrypted?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          has_2fa?: boolean
           id?: string
           notes?: string | null
           password_encrypted?: string
@@ -1387,30 +1393,60 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
-      vault_create_credential: {
-        Args: {
-          _client_id?: string
-          _notes?: string
-          _password: string
-          _platform: string
-          _url?: string
-          _username: string
-        }
-        Returns: string
-      }
+      vault_create_credential:
+        | {
+            Args: {
+              _client_id?: string
+              _notes?: string
+              _password: string
+              _platform: string
+              _url?: string
+              _username: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _backup_codes?: string
+              _client_id?: string
+              _has_2fa?: boolean
+              _notes?: string
+              _password: string
+              _platform: string
+              _url?: string
+              _username: string
+            }
+            Returns: string
+          }
+      vault_reveal_backup_codes: { Args: { _id: string }; Returns: string }
       vault_reveal_password: { Args: { _id: string }; Returns: string }
-      vault_update_credential: {
-        Args: {
-          _client_id: string
-          _id: string
-          _notes: string
-          _password: string
-          _platform: string
-          _url: string
-          _username: string
-        }
-        Returns: undefined
-      }
+      vault_update_credential:
+        | {
+            Args: {
+              _client_id: string
+              _id: string
+              _notes: string
+              _password: string
+              _platform: string
+              _url: string
+              _username: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _backup_codes?: string
+              _client_id: string
+              _has_2fa?: boolean
+              _id: string
+              _notes: string
+              _password: string
+              _platform: string
+              _url: string
+              _username: string
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       app_role: "administrator" | "team" | "client"

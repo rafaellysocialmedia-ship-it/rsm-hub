@@ -5,7 +5,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
-  Copy, Eye, EyeOff, MoreHorizontal, Pencil, Trash2, History, User as UserIcon,
+  Copy, Eye, EyeOff, MoreHorizontal, Pencil, Trash2, History, User as UserIcon, ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -72,6 +72,11 @@ export function CredentialRow({ credential, clients, onEdit, onHistory }: Props)
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-medium">{credential.platform}</span>
+          {credential.has_2fa && (
+            <Badge variant="secondary" className="h-5 gap-1 border-emerald-500/20 bg-emerald-500/10 px-1.5 text-[10px] font-normal text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="h-3 w-3" />2FA
+            </Badge>
+          )}
           {client && (
             <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
               {client.name}

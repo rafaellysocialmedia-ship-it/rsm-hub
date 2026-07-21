@@ -9,6 +9,7 @@ export type VaultCredential = {
   username: string;
   url: string | null;
   notes: string | null;
+  has_2fa: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -48,7 +49,7 @@ const sb = supabase as unknown as {
 export async function listCredentials(): Promise<VaultCredential[]> {
   const { data, error } = await sb
     .from("vault_credentials")
-    .select("id, client_id, platform, username, url, notes, created_by, created_at, updated_at")
+    .select("id, client_id, platform, username, url, notes, has_2fa, created_by, created_at, updated_at")
     .order("platform", { ascending: true });
   if (error) throw error;
   return (data ?? []) as unknown as VaultCredential[];
@@ -67,6 +68,7 @@ export async function listHistory(credentialId: string): Promise<VaultHistoryEnt
 export async function createCredential(input: {
   platform: string; username: string; password: string;
   url?: string | null; notes?: string | null; client_id?: string | null;
+  has_2fa?: boolean; backup_codes?: string | null;
 }) {
   const { data, error } = await sb.rpc("vault_create_credential", {
     _platform: input.platform,
@@ -75,6 +77,8 @@ export async function createCredential(input: {
     _url: input.url ?? null,
     _notes: input.notes ?? null,
     _client_id: input.client_id ?? null,
+    _has_2fa: input.has_2fa ?? false,
+    _backup_codes: input.backup_codes ?? null,
   });
   if (error) throw error;
   return data as unknown as string;
@@ -83,6 +87,7 @@ export async function createCredential(input: {
 export async function updateCredential(input: {
   id: string; platform: string; username: string;
   password?: string | null; url: string | null; notes: string | null; client_id: string | null;
+  has_2fa?: boolean | null; backup_codes?: string | null;
 }) {
   const { error } = await sb.rpc("vault_update_credential", {
     _id: input.id,
@@ -92,6 +97,8 @@ export async function updateCredential(input: {
     _url: input.url,
     _notes: input.notes,
     _client_id: input.client_id,
+    _has_2fa: input.has_2fa ?? null,
+    _backup_codes: input.backup_codes ?? null,
   });
   if (error) throw error;
 }
@@ -100,6 +107,12 @@ export async function revealPassword(id: string): Promise<string> {
   const { data, error } = await sb.rpc("vault_reveal_password", { _id: id });
   if (error) throw error;
   return data as unknown as string;
+}
+
+export async function revealBackupCodes(id: string): Promise<string | null> {
+  const { data, error } = await sb.rpc("vault_reveal_backup_codes", { _id: id });
+  if (error) throw error;
+  return (data as unknown as string) ?? null;
 }
 
 export async function deleteCredential(id: string) {

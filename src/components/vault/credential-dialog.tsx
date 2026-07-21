@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, RefreshCw, ImagePlus, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 import {
-  createCredential, updateCredential,
+  createCredential, updateCredential, revealBackupCodes,
   listAttachments, uploadAttachment, deleteAttachment, attachmentUrl,
   type VaultCredential, type VaultAttachment,
 } from "@/lib/vault";
@@ -47,6 +48,9 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
   const [notes, setNotes] = useState("");
   const [clientId, setClientId] = useState<string>("none");
   const [show, setShow] = useState(false);
+  const [has2fa, setHas2fa] = useState(false);
+  const [backupCodes, setBackupCodes] = useState("");
+  const [backupLoaded, setBackupLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,18 +61,34 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
       setPassword("");
       setNotes(credential.notes ?? "");
       setClientId(credential.client_id ?? "none");
+      setHas2fa(!!credential.has_2fa);
+      setBackupCodes("");
+      setBackupLoaded(false);
     } else {
       setPlatform(""); setUsername(""); setPassword("");
       setNotes(""); setClientId("none");
+      setHas2fa(false); setBackupCodes(""); setBackupLoaded(false);
     }
     setShow(false);
   }, [credential, open]);
+
+  const loadBackup = async () => {
+    if (!credential) return;
+    try {
+      const codes = await revealBackupCodes(credential.id);
+      setBackupCodes(codes ?? "");
+      setBackupLoaded(true);
+    } catch (e) { toast.error(describeError(e)); }
+  };
 
   const save = useMutation({
     mutationFn: async () => {
       if (!platform.trim()) throw new Error("Plataforma obrigatória");
       if (!username.trim()) throw new Error("Usuário obrigatório");
       if (!editing && !password) throw new Error("Senha obrigatória");
+      const backupPayload = editing
+        ? (backupLoaded ? backupCodes : null)
+        : (backupCodes.trim() || null);
       if (editing) {
         await updateCredential({
           id: credential!.id,
@@ -78,6 +98,8 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
           url: null,
           notes: notes.trim() || null,
           client_id: clientId === "none" ? null : clientId,
+          has_2fa: has2fa,
+          backup_codes: backupPayload,
         });
         return credential!.id;
       }
@@ -88,6 +110,8 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
         url: null,
         notes: notes.trim() || null,
         client_id: clientId === "none" ? null : clientId,
+        has_2fa: has2fa,
+        backup_codes: backupPayload,
       });
       return id as string;
     },
@@ -179,8 +203,38 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label className="text-xs">Observações</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Códigos de recuperação, perguntas de segurança, contexto…" />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Perguntas de segurança, contexto…" />
           </div>
+
+          <div className="col-span-2 flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2">
+            <div>
+              <Label className="text-sm">Tem autenticação em 2 fatores (2FA)?</Label>
+              <p className="text-xs text-muted-foreground">Marque se essa conta usa 2FA.</p>
+            </div>
+            <Switch checked={has2fa} onCheckedChange={setHas2fa} />
+          </div>
+
+          {has2fa && (
+            <div className="col-span-2 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Códigos reserva (backup codes)</Label>
+                {editing && !backupLoaded && (
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={loadBackup}>
+                    Revelar códigos salvos
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                value={backupCodes}
+                onChange={(e) => { setBackupCodes(e.target.value); setBackupLoaded(true); }}
+                rows={4}
+                className="font-mono text-xs"
+                placeholder={editing && !backupLoaded ? "•••• •••• •••• (clique em Revelar para editar)" : "Cole os códigos reserva, um por linha"}
+                readOnly={editing && !backupLoaded}
+              />
+              <p className="text-[10px] text-muted-foreground">Os códigos são criptografados no servidor.</p>
+            </div>
+          )}
 
           {editing && (
             <div className="col-span-2 space-y-2">
