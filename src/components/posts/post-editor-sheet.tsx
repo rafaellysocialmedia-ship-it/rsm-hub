@@ -122,7 +122,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
         theme: form.theme || null,
         pillar: form.pillar || null,
         headline: form.headline || null,
-        caption: form.caption || null,
+        caption: form.caption ? sanitizeHtml(form.caption) : null,
         cta: form.cta || null,
         hashtags: form.hashtags || null,
         status: (form.status ?? "idea") as PostStatus,
