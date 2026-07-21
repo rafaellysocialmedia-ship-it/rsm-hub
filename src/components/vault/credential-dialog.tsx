@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, RefreshCw, ImagePlus, Trash2, Loader2, ExternalLink } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 import {
-  createCredential, updateCredential,
+  createCredential, updateCredential, revealBackupCodes,
   listAttachments, uploadAttachment, deleteAttachment, attachmentUrl,
   type VaultCredential, type VaultAttachment,
 } from "@/lib/vault";
