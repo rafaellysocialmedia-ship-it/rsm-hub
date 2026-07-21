@@ -60,6 +60,20 @@ function AnalyticsPage() {
     },
   });
 
+  const { data: baselines = [] } = useQuery({
+    queryKey: ["client-baselines"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("client_baselines").select("*");
+      if (error) throw error;
+      return data as Baseline[];
+    },
+  });
+
+  const currentBaseline = useMemo(
+    () => (clientFilter === "all" ? null : baselines.find((b) => b.client_id === clientFilter) ?? null),
+    [baselines, clientFilter]
+  );
+
   const metricByPost = useMemo(() => {
     const m = new Map<string, Metric>();
     metrics.forEach((x) => { if (!m.has(x.post_id)) m.set(x.post_id, x); });
