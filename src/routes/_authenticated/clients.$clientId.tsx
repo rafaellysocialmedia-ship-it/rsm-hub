@@ -225,6 +225,11 @@ function ClientDetailPage() {
         </Card>
 
         {canManage && <PortalSettingsCard clientId={client.id} />}
+
+        <div className="lg:col-span-2">
+          <JourneyCard clientId={client.id} currentStage={(client as unknown as { journey_stage: "closing" | "kickoff" | "onboarding" | "ongoing" | "renewal" | "offboarded" }).journey_stage ?? "closing"} />
+        </div>
+        <ContractsCard clientId={client.id} />
       </div>
 
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} client={client} />
