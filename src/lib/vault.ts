@@ -9,6 +9,7 @@ export type VaultCredential = {
   username: string;
   url: string | null;
   notes: string | null;
+  has_2fa: boolean;
   created_by: string | null;
   created_at: string;
   updated_at: string;
