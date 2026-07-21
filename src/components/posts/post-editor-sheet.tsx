@@ -30,6 +30,7 @@ import {
 import type { Client } from "@/lib/clients";
 import { RichTextEditor } from "./rich-text-editor";
 import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 type Props = {
   open: boolean;
