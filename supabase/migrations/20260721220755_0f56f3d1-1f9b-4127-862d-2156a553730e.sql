@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.notify_overdue_and_upcoming() FROM PUBLIC;

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, Eye, Heart, MessageCircle, Plus, Repeat, Share2, TrendingUp, Users } from "lucide-react";
+import { BarChart3, Eye, Heart, MessageCircle, Plus, Repeat, Share2, TrendingUp, TrendingDown, Users, Target } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 import { MetricsDialog } from "@/components/analytics/metrics-dialog";
+import { BaselineDialog, type Baseline } from "@/components/analytics/baseline-dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type Metric = Database["public"]["Tables"]["post_metrics"]["Row"];
@@ -30,6 +31,7 @@ function AnalyticsPage() {
   const isStaff = hasRole("administrator") || hasRole("team");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [editingPost, setEditingPost] = useState<{ postId: string; metric: Metric | null } | null>(null);
+  const [baselineOpen, setBaselineOpen] = useState(false);
 
   const { data: posts = [] } = useQuery({
     queryKey: ["analytics-posts"],
@@ -57,6 +59,20 @@ function AnalyticsPage() {
       return data as { id: string; name: string }[];
     },
   });
+
+  const { data: baselines = [] } = useQuery({
+    queryKey: ["client-baselines"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("client_baselines").select("*");
+      if (error) throw error;
+      return data as Baseline[];
+    },
+  });
+
+  const currentBaseline = useMemo(
+    () => (clientFilter === "all" ? null : baselines.find((b) => b.client_id === clientFilter) ?? null),
+    [baselines, clientFilter]
+  );
 
   const metricByPost = useMemo(() => {
     const m = new Map<string, Metric>();
@@ -123,6 +139,37 @@ function AnalyticsPage() {
         <MetricCard icon={TrendingUp} label="Taxa eng." value={`${totals.engagementRate.toFixed(1)}%`} tone="text-primary" />
       </div>
 
+      {clientFilter !== "all" && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> Baseline vs atual</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentBaseline ? `Snapshot registrado em ${new Date(currentBaseline.captured_at).toLocaleDateString("pt-BR")} · ${currentBaseline.network}` : "Registre as métricas iniciais para comparar a evolução."}
+              </p>
+            </div>
+            {isStaff && (
+              <Button size="sm" variant="outline" onClick={() => setBaselineOpen(true)}>
+                {currentBaseline ? "Editar baseline" : <><Plus className="mr-1 h-3.5 w-3.5" /> Registrar baseline</>}
+              </Button>
+            )}
+          </CardHeader>
+          {currentBaseline && (
+            <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              <CompareCell label="Seguidores" baseline={currentBaseline.followers} current={totals.followers + currentBaseline.followers} />
+              <CompareCell label="Alcance médio" baseline={currentBaseline.avg_reach} current={totals.postsWithData ? Math.round(totals.reach / totals.postsWithData) : 0} />
+              <CompareCell label="Curtidas médias" baseline={currentBaseline.avg_likes} current={totals.postsWithData ? Math.round(totals.likes / totals.postsWithData) : 0} />
+              <CompareCell label="Coment. médios" baseline={currentBaseline.avg_comments} current={totals.postsWithData ? Math.round(totals.comments / totals.postsWithData) : 0} />
+              <CompareCell label="Compart. médios" baseline={currentBaseline.avg_shares} current={totals.postsWithData ? Math.round(totals.shares / totals.postsWithData) : 0} />
+              <CompareCell label="Salvamentos" baseline={currentBaseline.avg_saves} current={totals.postsWithData ? Math.round(totals.saves / totals.postsWithData) : 0} />
+              <CompareCell label="Taxa eng. (%)" baseline={Number(currentBaseline.engagement_rate)} current={Number(totals.engagementRate.toFixed(2))} suffix="%" />
+              <CompareCell label="Impressões médias" baseline={currentBaseline.avg_impressions} current={totals.postsWithData ? Math.round(totals.impressions / totals.postsWithData) : 0} />
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">Publicações ({filteredPosts.length})</CardTitle>
@@ -175,9 +222,41 @@ function AnalyticsPage() {
           metric={editingPost.metric}
         />
       )}
+
+      {clientFilter !== "all" && baselineOpen && (
+        <BaselineDialog
+          open={baselineOpen}
+          onOpenChange={setBaselineOpen}
+          clientId={clientFilter}
+          baseline={currentBaseline}
+        />
+      )}
     </div>
   );
 }
+
+function CompareCell({ label, baseline, current, suffix }: { label: string; baseline: number; current: number; suffix?: string }) {
+  const diff = current - baseline;
+  const pct = baseline > 0 ? (diff / baseline) * 100 : 0;
+  const up = diff > 0;
+  const flat = diff === 0;
+  const color = flat ? "text-muted-foreground" : up ? "text-emerald-500" : "text-rose-500";
+  const Icon = up ? TrendingUp : TrendingDown;
+  return (
+    <div className="rounded-lg border border-border/60 p-3">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <div className="mt-1 flex items-baseline gap-2">
+        <span className="text-lg font-semibold">{current.toLocaleString("pt-BR")}{suffix ?? ""}</span>
+        <span className="text-[11px] text-muted-foreground">vs {baseline.toLocaleString("pt-BR")}{suffix ?? ""}</span>
+      </div>
+      <div className={`mt-1 flex items-center gap-1 text-xs ${color}`}>
+        {!flat && <Icon className="h-3 w-3" />}
+        {flat ? "sem variação" : `${up ? "+" : ""}${diff.toLocaleString("pt-BR")}${suffix ?? ""} (${pct.toFixed(1)}%)`}
+      </div>
+    </div>
+  );
+}
+
 
 function MetricCard({ icon: Icon, label, value, tone }: { icon: typeof Eye; label: string; value: number | string; tone: string }) {
   return (

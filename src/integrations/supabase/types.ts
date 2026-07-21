@@ -165,6 +165,71 @@ export type Database = {
           },
         ]
       }
+      client_baselines: {
+        Row: {
+          avg_comments: number
+          avg_impressions: number
+          avg_likes: number
+          avg_reach: number
+          avg_saves: number
+          avg_shares: number
+          captured_at: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          engagement_rate: number
+          followers: number
+          id: string
+          network: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          avg_comments?: number
+          avg_impressions?: number
+          avg_likes?: number
+          avg_reach?: number
+          avg_saves?: number
+          avg_shares?: number
+          captured_at?: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          engagement_rate?: number
+          followers?: number
+          id?: string
+          network?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avg_comments?: number
+          avg_impressions?: number
+          avg_likes?: number
+          avg_reach?: number
+          avg_saves?: number
+          avg_shares?: number
+          captured_at?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          engagement_rate?: number
+          followers?: number
+          id?: string
+          network?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_baselines_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_contracts: {
         Row: {
           client_id: string
@@ -1491,6 +1556,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_overdue_and_upcoming: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       vault_create_credential:
