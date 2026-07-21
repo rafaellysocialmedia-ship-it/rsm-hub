@@ -16,6 +16,7 @@ import {
   Video,
   BarChart3,
   ClipboardList,
+  GraduationCap,
 } from "lucide-react";
 
 import {
@@ -48,6 +49,7 @@ const staffMain: NavItem[] = [
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
   { title: "Reuniões", url: "/meetings", icon: Video },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Cursos", url: "/courses", icon: GraduationCap },
 ];
 
 const staffWorkspace: NavItem[] = [
@@ -64,11 +66,13 @@ const clientItems: NavItem[] = [
   { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Biblioteca", url: "/library", icon: FolderOpen },
+  { title: "Cursos", url: "/courses", icon: GraduationCap },
 ];
 
 const adminItems: NavItem[] = [
   { title: "Equipe", url: "/team", icon: Users },
   { title: "Permissões", url: "/admin/permissions", icon: Shield },
+  { title: "Gerenciar Cursos", url: "/admin/courses", icon: GraduationCap },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
