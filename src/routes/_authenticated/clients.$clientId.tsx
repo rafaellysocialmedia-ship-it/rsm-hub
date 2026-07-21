@@ -39,6 +39,8 @@ import { ClientLogo } from "@/components/clients/client-logo";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { PortalSettingsCard } from "@/components/clients/portal-settings-card";
+import { JourneyCard } from "@/components/clients/journey-card";
+import { ContractsCard } from "@/components/clients/contracts-card";
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId")({
   head: () => ({ meta: [{ title: "Cliente · Social Media Hub" }] }),
@@ -223,6 +225,11 @@ function ClientDetailPage() {
         </Card>
 
         {canManage && <PortalSettingsCard clientId={client.id} />}
+
+        <div className="lg:col-span-2">
+          <JourneyCard clientId={client.id} currentStage={(client as unknown as { journey_stage: "closing" | "kickoff" | "onboarding" | "ongoing" | "renewal" | "offboarded" }).journey_stage ?? "closing"} />
+        </div>
+        <ContractsCard clientId={client.id} />
       </div>
 
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} client={client} />

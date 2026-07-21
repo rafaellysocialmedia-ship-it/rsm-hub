@@ -165,6 +165,100 @@ export type Database = {
           },
         ]
       }
+      client_contracts: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          file_name: string | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          signed_at: string | null
+          size_bytes: number | null
+          status: string
+          storage_path: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          file_name?: string | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          signed_at?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          file_name?: string | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          signed_at?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_journey_events: {
+        Row: {
+          changed_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          note: string | null
+          stage: Database["public"]["Enums"]["client_journey_stage"]
+        }
+        Insert: {
+          changed_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          stage: Database["public"]["Enums"]["client_journey_stage"]
+        }
+        Update: {
+          changed_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          stage?: Database["public"]["Enums"]["client_journey_stage"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_journey_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_portal_settings: {
         Row: {
           can_approve: boolean
@@ -225,6 +319,8 @@ export type Database = {
           created_by: string | null
           email: string | null
           id: string
+          journey_stage: Database["public"]["Enums"]["client_journey_stage"]
+          journey_updated_at: string
           legal_name: string | null
           logo_url: string | null
           monthly_post_quota: number | null
@@ -246,6 +342,8 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          journey_stage?: Database["public"]["Enums"]["client_journey_stage"]
+          journey_updated_at?: string
           legal_name?: string | null
           logo_url?: string | null
           monthly_post_quota?: number | null
@@ -267,6 +365,8 @@ export type Database = {
           created_by?: string | null
           email?: string | null
           id?: string
+          journey_stage?: Database["public"]["Enums"]["client_journey_stage"]
+          journey_updated_at?: string
           legal_name?: string | null
           logo_url?: string | null
           monthly_post_quota?: number | null
@@ -1455,6 +1555,13 @@ export type Database = {
         | "approved"
         | "rejected"
         | "changes_requested"
+      client_journey_stage:
+        | "closing"
+        | "kickoff"
+        | "onboarding"
+        | "ongoing"
+        | "renewal"
+        | "offboarded"
       client_status: "active" | "inactive" | "paused" | "prospect"
       file_category:
         | "logos"
@@ -1613,6 +1720,14 @@ export const Constants = {
         "approved",
         "rejected",
         "changes_requested",
+      ],
+      client_journey_stage: [
+        "closing",
+        "kickoff",
+        "onboarding",
+        "ongoing",
+        "renewal",
+        "offboarded",
       ],
       client_status: ["active", "inactive", "paused", "prospect"],
       file_category: [
