@@ -1292,9 +1292,12 @@ export type Database = {
           recurrence: Json | null
           scheduled_date: string | null
           scheduled_time: string | null
+          script: string | null
+          slides: Json | null
           social_network: string | null
           social_networks: string[]
           status: Database["public"]["Enums"]["post_status"]
+          subheadline: string | null
           theme: string | null
           title: string
           updated_at: string
@@ -1315,9 +1318,12 @@ export type Database = {
           recurrence?: Json | null
           scheduled_date?: string | null
           scheduled_time?: string | null
+          script?: string | null
+          slides?: Json | null
           social_network?: string | null
           social_networks?: string[]
           status?: Database["public"]["Enums"]["post_status"]
+          subheadline?: string | null
           theme?: string | null
           title: string
           updated_at?: string
@@ -1338,9 +1344,12 @@ export type Database = {
           recurrence?: Json | null
           scheduled_date?: string | null
           scheduled_time?: string | null
+          script?: string | null
+          slides?: Json | null
           social_network?: string | null
           social_networks?: string[]
           status?: Database["public"]["Enums"]["post_status"]
+          subheadline?: string | null
           theme?: string | null
           title?: string
           updated_at?: string
