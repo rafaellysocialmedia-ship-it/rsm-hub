@@ -333,6 +333,12 @@ function ClientPortal() {
     return () => { supabase.removeChannel(ch); };
   }, [client?.id, refetchPosts, refetchAppr]);
 
+  const approvalByPost = useMemo(() => {
+    const m = new Map<string, Approval>();
+    approvals.forEach((a) => m.set(a.post_id, a));
+    return m;
+  }, [approvals]);
+
   // Auto-open a post when ?open=<post_id> is in the URL (from a notification)
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -346,12 +352,6 @@ function ClientPortal() {
     url.searchParams.delete("open");
     window.history.replaceState({}, "", url.pathname + url.search + url.hash);
   }, [posts, approvalByPost]);
-
-  const approvalByPost = useMemo(() => {
-    const m = new Map<string, Approval>();
-    approvals.forEach((a) => m.set(a.post_id, a));
-    return m;
-  }, [approvals]);
 
   const decideMutation = useMutation({
     mutationFn: async (args: { post: Post; decision: Decision; feedback: string }) => {
