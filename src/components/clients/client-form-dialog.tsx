@@ -65,6 +65,8 @@ const empty: FormValues = {
   start_date: "",
   status: "active",
   monthly_post_quota: "",
+  profile_project_deadline: "",
+  editorial_deadline: "",
   notes: "",
   user_id: "",
 };
