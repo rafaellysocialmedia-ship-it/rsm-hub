@@ -261,7 +261,7 @@ function LibraryPage() {
           </div>
           {canManage && (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setFolderOpen(true)} className="gap-1.5">
+              <Button variant="outline" onClick={() => { setEditingFolder(null); setFolderOpen(true); }} className="gap-1.5">
                 <FolderPlus className="h-4 w-4" />Nova pasta
               </Button>
               <Button onClick={() => setUploadOpen(true)} className="gap-1.5">
