@@ -44,6 +44,8 @@ const schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive", "paused", "prospect"]),
   monthly_post_quota: z.union([z.string(), z.number()]).optional(),
+  profile_project_deadline: z.string().optional().or(z.literal("")),
+  editorial_deadline: z.string().optional().or(z.literal("")),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
   user_id: z.string().optional().or(z.literal("")),
 });
