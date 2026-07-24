@@ -106,6 +106,24 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
     enabled: !!post?.id,
   });
 
+  const authorIds = Array.from(new Set(comments.map((c) => c.author_id).filter(Boolean)));
+  const { data: authorProfiles = [] } = useQuery({
+    queryKey: ["comment-authors", post?.id, authorIds.join(",")],
+    queryFn: async () => {
+      if (authorIds.length === 0) return [] as { id: string; name: string | null; avatar_url: string | null }[];
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .in("id", authorIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!post?.id && authorIds.length > 0,
+  });
+  const authorMap = new Map(authorProfiles.map((p) => [p.id, p]));
+  const clientUserId = post?.client_id ? clients.find((c) => c.id === post.client_id)?.user_id ?? null : null;
+
+
   // ---- Save
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -498,14 +516,29 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
                 <div>
                   <div className="mb-2 text-xs font-medium text-muted-foreground">Comentários ({comments.length})</div>
                   <div className="space-y-2">
-                    {comments.map((c) => (
-                      <div key={c.id} className="rounded-md bg-muted/50 px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground">
-                          {format(new Date(c.created_at), "dd/MM HH:mm")}
-                        </p>
-                        <p className="mt-0.5 whitespace-pre-wrap text-sm">{c.content}</p>
-                      </div>
-                    ))}
+                    {comments.map((c) => {
+                      const author = authorMap.get(c.author_id);
+                      const isClient = clientUserId && c.author_id === clientUserId;
+                      return (
+                        <div key={c.id} className="rounded-md bg-muted/50 px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium">{author?.name ?? "Usuário"}</span>
+                            <Badge variant={isClient ? "default" : "secondary"} className="h-4 px-1.5 text-[9px]">
+                              {isClient ? "Cliente" : "Equipe"}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground">
+                              {format(new Date(c.created_at), "dd/MM HH:mm")}
+                            </span>
+                          </div>
+                          <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
+                        </div>
+                      );
+                    })}
+                    {comments.length === 0 && (
+                      <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+                        Nenhum comentário ainda
+                      </p>
+                    )}
                   </div>
                   <div className="mt-2 flex items-end gap-2">
                     <Textarea
