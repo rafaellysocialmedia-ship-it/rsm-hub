@@ -417,7 +417,13 @@ function LibraryPage() {
         defaultFolderId={folderId}
         defaultCategory={catFilter === "all" ? undefined : catFilter}
       />
-      <FolderDialog open={folderOpen} onOpenChange={setFolderOpen} folders={folders} clients={clients} />
+      <FolderDialog
+        open={folderOpen}
+        onOpenChange={(o) => { setFolderOpen(o); if (!o) setEditingFolder(null); }}
+        folders={folders}
+        clients={clients}
+        folder={editingFolder}
+      />
       <FilePreviewDialog file={preview} open={!!preview} onOpenChange={(o) => !o && setPreview(null)} canManage={canManage} />
     </div>
   );
