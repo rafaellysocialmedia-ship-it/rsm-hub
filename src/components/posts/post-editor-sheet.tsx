@@ -413,17 +413,105 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
 
             <Separator />
 
-            <Field label="Headline">
-              <Input value={form.headline ?? ""} onChange={(e) => update("headline", e.target.value || null)} placeholder="Chamada principal" />
-            </Field>
+            {(() => {
+              const fmt = (form.format ?? "").toLowerCase();
+              const isCarousel = fmt === "carrossel";
+              const isReels = fmt === "reels" || fmt === "vídeo" || fmt === "video" || fmt === "live";
+              const slides: string[] = Array.isArray((form as unknown as { slides?: unknown }).slides)
+                ? ((form as unknown as { slides: unknown[] }).slides.filter((s) => typeof s === "string") as string[])
+                : [];
+              const setSlides = (next: string[]) =>
+                setForm((f) => ({ ...(f as Partial<Post>), slides: next } as unknown as Partial<Post>));
+              const script = (form as unknown as { script?: string | null }).script ?? "";
+              const subheadline = (form as unknown as { subheadline?: string | null }).subheadline ?? "";
 
-            <Field label="Legenda">
-              <RichTextEditor
-                value={form.caption ?? ""}
-                onChange={(html) => update("caption", html)}
-                placeholder="Escreva a legenda..."
-              />
-            </Field>
+              return (
+                <>
+                  {isCarousel ? (
+                    <Field label={`Slides (${slides.length})`}>
+                      <div className="space-y-2">
+                        {slides.map((s, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="mt-2 w-6 shrink-0 text-center text-[10px] font-medium text-muted-foreground">
+                              {i + 1}
+                            </span>
+                            <Textarea
+                              rows={2}
+                              value={s}
+                              onChange={(e) => {
+                                const next = [...slides];
+                                next[i] = e.target.value;
+                                setSlides(next);
+                              }}
+                              placeholder={`Conteúdo do slide ${i + 1}`}
+                              className="resize-none text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSlides(slides.filter((_, idx) => idx !== i))}
+                              className="h-7 w-7 p-0"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSlides([...slides, ""])}
+                          className="h-8 gap-1 text-xs"
+                        >
+                          + Adicionar slide
+                        </Button>
+                      </div>
+                    </Field>
+                  ) : isReels ? (
+                    <Field label="Roteiro do vídeo">
+                      <Textarea
+                        rows={6}
+                        value={script}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...(f as Partial<Post>), script: e.target.value } as unknown as Partial<Post>))
+                        }
+                        placeholder="Ex: Cena 1 – Abertura com pergunta&#10;Cena 2 – Desenvolvimento&#10;Cena 3 – CTA"
+                        className="resize-none text-sm"
+                      />
+                    </Field>
+                  ) : (
+                    <>
+                      <Field label="Headline">
+                        <Input
+                          value={form.headline ?? ""}
+                          onChange={(e) => update("headline", e.target.value || null)}
+                          placeholder="Chamada principal"
+                        />
+                      </Field>
+                      <Field label="Subheadline">
+                        <Input
+                          value={subheadline}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...(f as Partial<Post>),
+                              subheadline: e.target.value || null,
+                            } as unknown as Partial<Post>))
+                          }
+                          placeholder="Complemento da chamada"
+                        />
+                      </Field>
+                    </>
+                  )}
+
+                  <Field label="Legenda">
+                    <RichTextEditor
+                      value={form.caption ?? ""}
+                      onChange={(html) => update("caption", html)}
+                      placeholder="Escreva a legenda..."
+                    />
+                  </Field>
+                </>
+              );
+            })()}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="CTA">
