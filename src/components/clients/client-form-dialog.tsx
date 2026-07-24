@@ -108,6 +108,8 @@ export function ClientFormDialog({
               start_date: client.start_date ?? "",
               status: client.status,
               monthly_post_quota: client.monthly_post_quota ?? "",
+              profile_project_deadline: (client as unknown as { profile_project_deadline?: string | null }).profile_project_deadline ?? "",
+              editorial_deadline: (client as unknown as { editorial_deadline?: string | null }).editorial_deadline ?? "",
               notes: client.notes ?? "",
               user_id: client.user_id ?? "",
             }
