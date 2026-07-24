@@ -106,6 +106,24 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
     enabled: !!post?.id,
   });
 
+  const authorIds = Array.from(new Set(comments.map((c) => c.author_id).filter(Boolean)));
+  const { data: authorProfiles = [] } = useQuery({
+    queryKey: ["comment-authors", post?.id, authorIds.join(",")],
+    queryFn: async () => {
+      if (authorIds.length === 0) return [] as { id: string; name: string | null; avatar_url: string | null }[];
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .in("id", authorIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!post?.id && authorIds.length > 0,
+  });
+  const authorMap = new Map(authorProfiles.map((p) => [p.id, p]));
+  const clientUserId = post?.client_id ? clients.find((c) => c.id === post.client_id)?.user_id ?? null : null;
+
+
   // ---- Save
   const saveMutation = useMutation({
     mutationFn: async () => {
