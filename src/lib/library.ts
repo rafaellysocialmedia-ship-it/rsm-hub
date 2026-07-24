@@ -7,7 +7,8 @@ import {
 export type FileRow = Database["public"]["Tables"]["files"]["Row"];
 export type FileInsert = Database["public"]["Tables"]["files"]["Insert"];
 export type FolderRow = Database["public"]["Tables"]["file_folders"]["Row"];
-export type FileCategory = Database["public"]["Enums"]["file_category"];
+export type FileCategory = Database["public"]["Enums"]["file_category"] | "projeto_perfil";
+
 
 export const FILE_CATEGORIES: {
   value: FileCategory;
