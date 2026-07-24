@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import { Bell, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,8 @@ const sb = supabase as unknown as typeof supabase;
 export function NotificationsMenu() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   const { data: items = [] } = useQuery({
     queryKey: ["notifications", user?.id],
@@ -65,10 +68,27 @@ export function NotificationsMenu() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", user?.id] }),
   });
 
+  const markOne = async (id: string) => {
+    await sb.from("notifications" as never).update({ read: true } as never).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["notifications", user?.id] });
+  };
+
+  const handleClick = async (n: Notification) => {
+    if (!n.read) await markOne(n.id);
+    setOpen(false);
+    if (n.link) {
+      try {
+        router.navigate({ to: n.link });
+      } catch {
+        window.location.href = n.link;
+      }
+    }
+  };
+
   const unread = items.filter((i) => !i.read).length;
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative h-9 w-9">
           <Bell className="h-4 w-4" />
@@ -96,16 +116,18 @@ export function NotificationsMenu() {
             </div>
           ) : (
             items.map((n) => (
-              <div
+              <button
                 key={n.id}
-                className={`border-b border-border px-3 py-2 text-sm last:border-0 ${n.read ? "opacity-60" : "bg-muted/30"}`}
+                type="button"
+                onClick={() => handleClick(n)}
+                className={`block w-full border-b border-border px-3 py-2 text-left text-sm last:border-0 transition-colors hover:bg-muted/60 ${n.read ? "opacity-60" : "bg-muted/30"}`}
               >
                 <div className="font-medium">{n.title}</div>
-                {n.body && <div className="mt-0.5 text-xs text-muted-foreground">{n.body}</div>}
+                {n.body && <div className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{n.body}</div>}
                 <div className="mt-1 text-[10px] text-muted-foreground">
                   {new Date(n.created_at).toLocaleString("pt-BR")}
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
