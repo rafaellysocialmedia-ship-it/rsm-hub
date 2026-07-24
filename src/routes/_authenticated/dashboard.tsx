@@ -309,6 +309,9 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
       {/* Monthly post quota */}
       <MonthlyQuotaCard clients={clients} posts={posts} />
 
+      {/* Deliverable deadlines */}
+      <DeadlinesCard clients={clients} />
+
       {/* Charts row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="shadow-soft lg:col-span-2">
