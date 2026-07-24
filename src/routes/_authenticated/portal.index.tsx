@@ -333,6 +333,20 @@ function ClientPortal() {
     return () => { supabase.removeChannel(ch); };
   }, [client?.id, refetchPosts, refetchAppr]);
 
+  // Auto-open a post when ?open=<post_id> is in the URL (from a notification)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openId = new URLSearchParams(window.location.search).get("open");
+    if (!openId || posts.length === 0) return;
+    const target = posts.find((p) => p.id === openId);
+    if (!target) return;
+    setOpenPost(target);
+    setFeedback(approvalByPost.get(openId)?.feedback ?? "");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("open");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }, [posts, approvalByPost]);
+
   const approvalByPost = useMemo(() => {
     const m = new Map<string, Approval>();
     approvals.forEach((a) => m.set(a.post_id, a));
