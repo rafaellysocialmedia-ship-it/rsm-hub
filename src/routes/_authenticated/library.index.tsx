@@ -52,6 +52,7 @@ function LibraryPage() {
   const [folderId, setFolderId] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [folderOpen, setFolderOpen] = useState(false);
+  const [editingFolder, setEditingFolder] = useState<FolderRow | null>(null);
   const [preview, setPreview] = useState<FileRow | null>(null);
 
   const { data: folders = [] } = useQuery({
