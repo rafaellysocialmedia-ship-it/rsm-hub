@@ -1788,6 +1788,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      notify_client_deadlines: { Args: never; Returns: undefined }
       notify_overdue_and_upcoming: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
@@ -1889,6 +1890,7 @@ export type Database = {
         | "published"
         | "rejected"
         | "archived"
+        | "changes_requested"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "production" | "waiting_client" | "review" | "done"
     }
@@ -2059,6 +2061,7 @@ export const Constants = {
         "published",
         "rejected",
         "archived",
+        "changes_requested",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "production", "waiting_client", "review", "done"],
