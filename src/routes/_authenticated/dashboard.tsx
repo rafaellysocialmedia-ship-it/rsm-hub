@@ -857,6 +857,97 @@ function Row({ label, value, highlight }: { label: string; value: number; highli
   );
 }
 
+function DeadlinesCard({ clients }: { clients: Client[] }) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  type Row = {
+    clientId: string;
+    clientName: string;
+    kind: "profile" | "editorial";
+    deadline: Date;
+    days: number;
+  };
+
+  const rows: Row[] = [];
+  (clients as unknown as Array<Client & {
+    profile_project_deadline?: string | null;
+    editorial_deadline?: string | null;
+  }>).forEach((c) => {
+    const push = (kind: Row["kind"], iso: string | null | undefined) => {
+      if (!iso) return;
+      const d = new Date(iso + "T00:00:00");
+      const days = Math.round((d.getTime() - today.getTime()) / 86400000);
+      rows.push({ clientId: c.id, clientName: c.name, kind, deadline: d, days });
+    };
+    push("profile", c.profile_project_deadline);
+    push("editorial", c.editorial_deadline);
+  });
+
+  rows.sort((a, b) => a.deadline.getTime() - b.deadline.getTime());
+  const upcoming = rows.slice(0, 10);
+
+  return (
+    <Card className="shadow-soft">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle className="text-base">Entregas em andamento</CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Prazos de Projeto de Perfil e Editorial por cliente.</p>
+        </div>
+        <Badge variant="outline" className="gap-1 text-xs"><Clock className="h-3 w-3" />{rows.length}</Badge>
+      </CardHeader>
+      <CardContent>
+        {upcoming.length === 0 ? (
+          <p className="py-6 text-center text-xs text-muted-foreground">
+            Nenhum prazo definido. Edite um cliente para incluir prazos de Projeto de Perfil ou Editorial.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {upcoming.map((r) => {
+              const overdue = r.days < 0;
+              const urgent = r.days >= 0 && r.days <= 3;
+              return (
+                <Link
+                  key={`${r.clientId}-${r.kind}`}
+                  to="/clients/$clientId"
+                  params={{ clientId: r.clientId }}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors",
+                    overdue ? "border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10"
+                    : urgent ? "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10"
+                    : "border-border bg-card/50 hover:bg-muted/50",
+                  )}
+                >
+                  <div className={cn(
+                    "flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-md border text-center",
+                    overdue ? "border-rose-500/40 text-rose-500"
+                    : urgent ? "border-amber-500/40 text-amber-500"
+                    : "border-border text-muted-foreground",
+                  )}>
+                    <span className="text-sm font-semibold leading-none">{Math.abs(r.days)}</span>
+                    <span className="mt-0.5 text-[9px] uppercase leading-none">
+                      {overdue ? "atras." : "dias"}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{r.clientName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {r.kind === "profile" ? "Projeto de Perfil" : "Editorial"}
+                      {" · "}
+                      {format(r.deadline, "dd 'de' MMM", { locale: ptBR })}
+                    </p>
+                  </div>
+                  {overdue && <AlertTriangle className="h-4 w-4 text-rose-500" />}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function MonthlyQuotaCard({
   clients,
   posts,
