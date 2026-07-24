@@ -182,6 +182,7 @@ export type Database = {
           id: string
           network: string
           notes: string | null
+          screenshot_path: string | null
           updated_at: string
         }
         Insert: {
@@ -200,6 +201,7 @@ export type Database = {
           id?: string
           network?: string
           notes?: string | null
+          screenshot_path?: string | null
           updated_at?: string
         }
         Update: {
@@ -218,6 +220,7 @@ export type Database = {
           id?: string
           network?: string
           notes?: string | null
+          screenshot_path?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -382,6 +385,7 @@ export type Database = {
           cnpj: string | null
           created_at: string
           created_by: string | null
+          editorial_deadline: string | null
           email: string | null
           id: string
           journey_stage: Database["public"]["Enums"]["client_journey_stage"]
@@ -393,6 +397,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           plan: string | null
+          profile_project_deadline: string | null
           responsible: string | null
           segment: string | null
           start_date: string | null
@@ -405,6 +410,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string
           created_by?: string | null
+          editorial_deadline?: string | null
           email?: string | null
           id?: string
           journey_stage?: Database["public"]["Enums"]["client_journey_stage"]
@@ -416,6 +422,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           plan?: string | null
+          profile_project_deadline?: string | null
           responsible?: string | null
           segment?: string | null
           start_date?: string | null
@@ -428,6 +435,7 @@ export type Database = {
           cnpj?: string | null
           created_at?: string
           created_by?: string | null
+          editorial_deadline?: string | null
           email?: string | null
           id?: string
           journey_stage?: Database["public"]["Enums"]["client_journey_stage"]
@@ -439,6 +447,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           plan?: string | null
+          profile_project_deadline?: string | null
           responsible?: string | null
           segment?: string | null
           start_date?: string | null
@@ -1866,6 +1875,7 @@ export type Database = {
         | "briefing"
         | "contrato"
         | "relatorios"
+        | "projeto_perfil"
       finance_status: "pending" | "paid" | "overdue" | "cancelled"
       finance_type: "income" | "expense"
       post_status:
@@ -2034,6 +2044,7 @@ export const Constants = {
         "briefing",
         "contrato",
         "relatorios",
+        "projeto_perfil",
       ],
       finance_status: ["pending", "paid", "overdue", "cancelled"],
       finance_type: ["income", "expense"],

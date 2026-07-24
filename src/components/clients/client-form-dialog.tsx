@@ -44,6 +44,8 @@ const schema = z.object({
   start_date: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive", "paused", "prospect"]),
   monthly_post_quota: z.union([z.string(), z.number()]).optional(),
+  profile_project_deadline: z.string().optional().or(z.literal("")),
+  editorial_deadline: z.string().optional().or(z.literal("")),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
   user_id: z.string().optional().or(z.literal("")),
 });
@@ -63,6 +65,8 @@ const empty: FormValues = {
   start_date: "",
   status: "active",
   monthly_post_quota: "",
+  profile_project_deadline: "",
+  editorial_deadline: "",
   notes: "",
   user_id: "",
 };
@@ -104,6 +108,8 @@ export function ClientFormDialog({
               start_date: client.start_date ?? "",
               status: client.status,
               monthly_post_quota: client.monthly_post_quota ?? "",
+              profile_project_deadline: (client as unknown as { profile_project_deadline?: string | null }).profile_project_deadline ?? "",
+              editorial_deadline: (client as unknown as { editorial_deadline?: string | null }).editorial_deadline ?? "",
               notes: client.notes ?? "",
               user_id: client.user_id ?? "",
             }
@@ -151,17 +157,19 @@ export function ClientFormDialog({
         plan: values.plan || null,
         start_date: values.start_date || null,
         monthly_post_quota: quotaNum,
+        profile_project_deadline: values.profile_project_deadline || null,
+        editorial_deadline: values.editorial_deadline || null,
         notes: values.notes || null,
         user_id: values.user_id ? values.user_id : null,
         logo_url: logoPath,
       };
       if (client) {
-        const { error } = await supabase.from("clients").update(payload).eq("id", client.id);
+        const { error } = await supabase.from("clients").update(payload as never).eq("id", client.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("clients")
-          .insert({ ...payload, created_by: user?.id ?? null });
+          .insert({ ...payload, created_by: user?.id ?? null } as never);
         if (error) throw error;
       }
     },
@@ -280,6 +288,12 @@ export function ClientFormDialog({
                 placeholder="Ex: 12"
                 {...form.register("monthly_post_quota")}
               />
+            </Field>
+            <Field label="Prazo — Projeto de Perfil">
+              <Input type="date" {...form.register("profile_project_deadline")} />
+            </Field>
+            <Field label="Prazo — Editorial">
+              <Input type="date" {...form.register("editorial_deadline")} />
             </Field>
             <Field label="Status">
               <Select
