@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Search, Filter, FolderPlus, Grid3x3, List as ListIcon, X,
-  Folder as FolderIcon, ChevronRight, Tag as TagIcon, Library,
+  Folder as FolderIcon, ChevronRight, Tag as TagIcon, Library, Pencil,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
