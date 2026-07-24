@@ -289,6 +289,12 @@ export function ClientFormDialog({
                 {...form.register("monthly_post_quota")}
               />
             </Field>
+            <Field label="Prazo — Projeto de Perfil">
+              <Input type="date" {...form.register("profile_project_deadline")} />
+            </Field>
+            <Field label="Prazo — Editorial">
+              <Input type="date" {...form.register("editorial_deadline")} />
+            </Field>
             <Field label="Status">
               <Select
                 value={form.watch("status")}
