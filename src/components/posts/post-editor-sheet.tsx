@@ -129,6 +129,10 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
     mutationFn: async () => {
       if (!form.title || form.title.trim().length === 0) throw new Error("Título obrigatório");
       const networks = ((form as { social_networks?: string[] }).social_networks ?? []).filter(Boolean);
+      const extra = form as unknown as { subheadline?: string | null; slides?: unknown; script?: string | null };
+      const cleanSlides = Array.isArray(extra.slides)
+        ? (extra.slides as unknown[]).filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+        : null;
       const payload = {
         title: form.title!,
         client_id: form.client_id || null,
@@ -141,6 +145,9 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
         theme: form.theme || null,
         pillar: form.pillar || null,
         headline: form.headline || null,
+        subheadline: extra.subheadline || null,
+        slides: cleanSlides && cleanSlides.length > 0 ? cleanSlides : null,
+        script: extra.script || null,
         caption: form.caption ? sanitizeHtml(form.caption) : null,
         cta: form.cta || null,
         hashtags: form.hashtags || null,
