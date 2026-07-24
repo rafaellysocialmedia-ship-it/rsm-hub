@@ -1865,6 +1865,7 @@ export type Database = {
         | "recording"
         | "review"
         | "approved"
+        | "to_schedule"
         | "scheduled"
         | "published"
         | "rejected"
@@ -2033,6 +2034,7 @@ export const Constants = {
         "recording",
         "review",
         "approved",
+        "to_schedule",
         "scheduled",
         "published",
         "rejected",
