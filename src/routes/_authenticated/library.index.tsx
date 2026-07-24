@@ -172,7 +172,11 @@ function LibraryPage() {
             <div className="mb-1.5 flex items-center justify-between px-2.5">
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Pastas</p>
               {canManage && (
-                <button onClick={() => setFolderOpen(true)} className="text-muted-foreground hover:text-foreground" title="Nova pasta">
+                <button
+                  onClick={() => { setEditingFolder(null); setFolderOpen(true); }}
+                  className="text-muted-foreground hover:text-foreground"
+                  title="Nova pasta"
+                >
                   <FolderPlus className="h-3.5 w-3.5" />
                 </button>
               )}
@@ -185,23 +189,37 @@ function LibraryPage() {
                 {rootFolders.map((f) => {
                   const count = files.filter((x) => x.folder_id === f.id).length;
                   return (
-                    <button
+                    <div
                       key={f.id}
-                      onClick={() => { setFolderId(f.id); setCatFilter("all"); }}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
+                        "group flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors",
                         folderId === f.id ? "bg-muted font-medium" : "text-muted-foreground hover:bg-muted/50",
                       )}
                     >
-                      <FolderIcon className="h-4 w-4" />
-                      <span className="truncate">{f.name}</span>
-                      <span className="ml-auto text-[10px] tabular-nums">{count}</span>
-                    </button>
+                      <button
+                        onClick={() => { setFolderId(f.id); setCatFilter("all"); }}
+                        className="flex min-w-0 flex-1 items-center gap-2"
+                      >
+                        <FolderIcon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{f.name}</span>
+                      </button>
+                      <span className="text-[10px] tabular-nums group-hover:hidden">{count}</span>
+                      {canManage && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setEditingFolder(f); setFolderOpen(true); }}
+                          className="hidden text-muted-foreground hover:text-foreground group-hover:inline-flex"
+                          title="Editar pasta"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </ScrollArea>
           </div>
+
 
           {allTags.length > 0 && (
             <div>
