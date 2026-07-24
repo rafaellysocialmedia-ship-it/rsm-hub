@@ -157,17 +157,19 @@ export function ClientFormDialog({
         plan: values.plan || null,
         start_date: values.start_date || null,
         monthly_post_quota: quotaNum,
+        profile_project_deadline: values.profile_project_deadline || null,
+        editorial_deadline: values.editorial_deadline || null,
         notes: values.notes || null,
         user_id: values.user_id ? values.user_id : null,
         logo_url: logoPath,
       };
       if (client) {
-        const { error } = await supabase.from("clients").update(payload).eq("id", client.id);
+        const { error } = await supabase.from("clients").update(payload as never).eq("id", client.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("clients")
-          .insert({ ...payload, created_by: user?.id ?? null });
+          .insert({ ...payload, created_by: user?.id ?? null } as never);
         if (error) throw error;
       }
     },
