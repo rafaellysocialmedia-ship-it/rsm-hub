@@ -17,6 +17,7 @@ export const POST_STATUS: {
   { value: "recording" as PostStatus, label: "Em gravação", tone: "bg-fuchsia-500/10 text-fuchsia-600 border-fuchsia-500/30", dot: "bg-fuchsia-500" },
   { value: "review", label: "Revisão", tone: "bg-amber-500/10 text-amber-600 border-amber-500/30", dot: "bg-amber-500" },
   { value: "approved", label: "Aprovado", tone: "bg-violet-500/10 text-violet-600 border-violet-500/30", dot: "bg-violet-500" },
+  { value: "to_schedule" as PostStatus, label: "A agendar", tone: "bg-teal-500/10 text-teal-600 border-teal-500/30", dot: "bg-teal-500" },
   { value: "scheduled", label: "Agendado", tone: "bg-sky-500/10 text-sky-600 border-sky-500/30", dot: "bg-sky-500" },
   { value: "published", label: "Publicado", tone: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", dot: "bg-emerald-500" },
   { value: "rejected" as PostStatus, label: "Reprovado", tone: "bg-rose-500/10 text-rose-600 border-rose-500/30", dot: "bg-rose-500" },

@@ -90,6 +90,14 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
       arr.push(p);
       m.set(p.scheduled_date, arr);
     });
+    // Ordena as publicações do dia por horário crescente (sem horário fica no fim)
+    m.forEach((arr) => {
+      arr.sort((a, b) => {
+        const ta = a.scheduled_time ?? "99:99";
+        const tb = b.scheduled_time ?? "99:99";
+        return ta.localeCompare(tb);
+      });
+    });
     return m;
   }, [posts]);
 

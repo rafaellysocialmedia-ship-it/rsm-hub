@@ -127,7 +127,7 @@ function RootComponent() {
       <ThemeProvider defaultTheme="dark">
         <AuthProvider>
           <Outlet />
-          <Toaster richColors position="top-right" />
+          <Toaster richColors position="bottom-right" closeButton duration={5000} />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
