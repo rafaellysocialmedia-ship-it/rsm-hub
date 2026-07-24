@@ -77,8 +77,16 @@ export function NotificationsMenu() {
     if (!n.read) await markOne(n.id);
     setOpen(false);
     if (n.link) {
+      // Links may include ?search and #hash — TanStack Router's `to` expects a
+      // plain pathname, so parse them out and pass separately.
       try {
-        router.navigate({ to: n.link });
+        const [pathAndSearch, hash] = n.link.split("#");
+        const [pathname, searchStr] = pathAndSearch.split("?");
+        const search: Record<string, string> = {};
+        if (searchStr) {
+          for (const [k, v] of new URLSearchParams(searchStr)) search[k] = v;
+        }
+        router.navigate({ to: pathname, search, hash });
       } catch {
         window.location.href = n.link;
       }

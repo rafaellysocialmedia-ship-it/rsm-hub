@@ -339,6 +339,20 @@ function ClientPortal() {
     return m;
   }, [approvals]);
 
+  // Auto-open a post when ?open=<post_id> is in the URL (from a notification)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openId = new URLSearchParams(window.location.search).get("open");
+    if (!openId || posts.length === 0) return;
+    const target = posts.find((p) => p.id === openId);
+    if (!target) return;
+    setOpenPost(target);
+    setFeedback(approvalByPost.get(openId)?.feedback ?? "");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("open");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }, [posts, approvalByPost]);
+
   const decideMutation = useMutation({
     mutationFn: async (args: { post: Post; decision: Decision; feedback: string }) => {
       if (!client?.id) throw new Error("Cliente não vinculado");
