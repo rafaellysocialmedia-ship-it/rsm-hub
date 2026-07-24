@@ -534,20 +534,53 @@ function ClientPortal() {
                   {openPost.headline && <SheetDescription>{openPost.headline}</SheetDescription>}
                 </SheetHeader>
 
-                <ScrollArea className="mt-4 max-h-[55vh] pr-3">
+                <ScrollArea className="mt-4 max-h-[65vh] pr-3">
                   <div className="space-y-4 text-sm">
                     <section>
                       <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Criativo</p>
                       <PostCreativeGallery postId={openPost.id} />
                     </section>
+                    {(() => {
+                      const p = openPost as unknown as { subheadline?: string | null; slides?: unknown; script?: string | null };
+                      const slides = Array.isArray(p.slides) ? (p.slides as unknown[]).filter((s): s is string => typeof s === "string") : [];
+                      return (
+                        <>
+                          {p.subheadline && (
+                            <section>
+                              <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Subheadline</p>
+                              <p>{p.subheadline}</p>
+                            </section>
+                          )}
+                          {slides.length > 0 && (
+                            <section>
+                              <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Slides ({slides.length})</p>
+                              <ol className="space-y-2">
+                                {slides.map((s, i) => (
+                                  <li key={i} className="rounded-md border bg-muted/30 p-2">
+                                    <span className="mr-2 text-[10px] font-semibold text-muted-foreground">SLIDE {i + 1}</span>
+                                    <span className="whitespace-pre-wrap">{s}</span>
+                                  </li>
+                                ))}
+                              </ol>
+                            </section>
+                          )}
+                          {p.script && (
+                            <section>
+                              <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Roteiro</p>
+                              <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-3">{p.script}</div>
+                            </section>
+                          )}
+                        </>
+                      );
+                    })()}
                     {openPost.caption && (
                       <section>
                         <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Legenda</p>
-                        <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: sanitizeHtml(openPost.caption) }} />
+                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: sanitizeHtml(openPost.caption) }} />
                       </section>
                     )}
                     {openPost.cta && <section><p className="mb-1 text-xs font-medium uppercase text-muted-foreground">CTA</p><p>{openPost.cta}</p></section>}
-                    {openPost.hashtags && <section><p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Hashtags</p><p className="text-muted-foreground">{openPost.hashtags}</p></section>}
+                    {openPost.hashtags && <section><p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Hashtags</p><p className="break-words text-muted-foreground">{openPost.hashtags}</p></section>}
                     <div className="grid grid-cols-2 gap-3">
                       {openPost.theme && <div><p className="text-xs uppercase text-muted-foreground">Tema</p><p>{openPost.theme}</p></div>}
                       {openPost.objective && <div><p className="text-xs uppercase text-muted-foreground">Objetivo</p><p>{openPost.objective}</p></div>}
