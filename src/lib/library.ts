@@ -25,6 +25,7 @@ export const FILE_CATEGORIES: {
   { value: "briefing", label: "Briefing", icon: ClipboardList, tone: "text-sky-500 bg-sky-500/10" },
   { value: "contrato", label: "Contrato", icon: FileSignature, tone: "text-emerald-500 bg-emerald-500/10" },
   { value: "relatorios", label: "Relatórios", icon: BarChart3, tone: "text-blue-500 bg-blue-500/10" },
+  { value: "projeto_perfil", label: "Projeto de Perfil", icon: Sparkles, tone: "text-fuchsia-500 bg-fuchsia-500/10" },
 ];
 
 export function categoryMeta(c: FileCategory) {
