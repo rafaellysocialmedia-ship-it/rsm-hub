@@ -91,6 +91,22 @@ function PostsPage() {
     return () => { supabase.removeChannel(channel); };
   }, [qc]);
 
+  // Auto-open editor when ?open=<post_id> is in URL (e.g. from a notification)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openId = new URLSearchParams(window.location.search).get("open");
+    if (!openId || posts.length === 0) return;
+    const target = posts.find((p) => p.id === openId);
+    if (!target) return;
+    setEditing(target);
+    setInitial(undefined);
+    setEditorOpen(true);
+    // Clear the query param so it doesn't reopen on subsequent renders
+    const url = new URL(window.location.href);
+    url.searchParams.delete("open");
+    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+  }, [posts]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return posts.filter((p) => {
