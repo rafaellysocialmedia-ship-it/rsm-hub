@@ -636,7 +636,7 @@ function ClientPortal() {
                   <div className="space-y-4 text-sm">
                     <section>
                       <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Criativo</p>
-                      <PostCreativeGallery postId={openPost.id} />
+                      <PostCreativeGallery postId={openPost.id} previewOnly />
                     </section>
                     {(() => {
                       const p = openPost as unknown as { subheadline?: string | null; slides?: unknown; script?: string | null };
@@ -692,6 +692,93 @@ function ClientPortal() {
                     </div>
                   </div>
                 </ScrollArea>
+
+                <Separator className="my-4" />
+
+                <section id="comments" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Comentários ({comments.length})</p>
+                  </div>
+                  <div className="space-y-2">
+                    {comments.length === 0 ? (
+                      <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+                        Nenhum comentário ainda
+                      </p>
+                    ) : (
+                      comments.map((comment) => {
+                        const author = commentAuthorMap.get(comment.author_id);
+                        const isEditing = editingCommentId === comment.id;
+                        const canManage = comment.author_id === user?.id;
+                        return (
+                          <div
+                            key={comment.id}
+                            id={`portal-comment-${comment.id}`}
+                            className={`rounded-md bg-muted/50 px-3 py-2 transition-shadow ${focusedCommentId === comment.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-medium">{author?.name ?? "Cliente"}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {new Date(comment.created_at).toLocaleString("pt-BR")}
+                                </span>
+                              </div>
+                              {canManage && (
+                                <div className="flex shrink-0 items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => { setEditingCommentId(comment.id); setEditingCommentContent(comment.content); }}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-destructive hover:text-destructive"
+                                    onClick={() => deleteComment(comment.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                            {isEditing ? (
+                              <div className="mt-2 space-y-2">
+                                <Textarea
+                                  rows={2}
+                                  value={editingCommentContent}
+                                  onChange={(e) => setEditingCommentContent(e.target.value)}
+                                  className="resize-none text-sm"
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button type="button" variant="ghost" size="sm" onClick={() => setEditingCommentId(null)}>Cancelar</Button>
+                                  <Button type="button" size="sm" onClick={updateComment} disabled={!editingCommentContent.trim()}>Salvar</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="mt-1 whitespace-pre-wrap text-sm">{comment.content}</p>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Textarea
+                      rows={2}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Adicionar comentário..."
+                      className="resize-none text-sm"
+                    />
+                    <Button type="button" size="sm" onClick={sendComment} disabled={!newComment.trim()}>
+                      <Send className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </section>
 
                 <Separator className="my-4" />
 
