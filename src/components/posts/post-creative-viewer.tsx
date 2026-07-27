@@ -12,10 +12,11 @@ export function usePostCreatives(postId: string | undefined) {
     queryKey: ["post-files", postId],
     enabled: !!postId,
     queryFn: async () => {
+      if (!postId) return [] as PostFile[];
       const { data, error } = await supabase
         .from("post_files")
         .select("*")
-        .eq("post_id", postId!)
+        .eq("post_id", postId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as PostFile[];
