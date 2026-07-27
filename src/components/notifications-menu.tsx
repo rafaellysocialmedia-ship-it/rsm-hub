@@ -86,7 +86,8 @@ export function NotificationsMenu() {
         if (searchStr) {
           for (const [k, v] of new URLSearchParams(searchStr)) search[k] = v;
         }
-        router.navigate({ to: pathname, search, hash });
+        await router.navigate({ to: pathname, search, hash });
+        window.dispatchEvent(new CustomEvent("notification:navigate", { detail: { pathname, search, hash } }));
       } catch {
         window.location.href = n.link;
       }

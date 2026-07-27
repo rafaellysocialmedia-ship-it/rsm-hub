@@ -49,6 +49,7 @@ function PostsPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
+  const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const toggleSelect = (id: string) => {
@@ -93,18 +94,25 @@ function PostsPage() {
 
   // Auto-open editor when ?open=<post_id> is in URL (e.g. from a notification)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const openId = new URLSearchParams(window.location.search).get("open");
-    if (!openId || posts.length === 0) return;
-    const target = posts.find((p) => p.id === openId);
-    if (!target) return;
-    setEditing(target);
-    setInitial(undefined);
-    setEditorOpen(true);
-    // Clear the query param so it doesn't reopen on subsequent renders
-    const url = new URL(window.location.href);
-    url.searchParams.delete("open");
-    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    if (typeof window === "undefined") return undefined;
+    const openFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const openId = params.get("open");
+      if (!openId || posts.length === 0) return;
+      const target = posts.find((p) => p.id === openId);
+      if (!target) return;
+      setEditing(target);
+      setInitial(undefined);
+      setFocusedCommentId(params.get("comment"));
+      setEditorOpen(true);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("open");
+      url.searchParams.delete("comment");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    };
+    openFromUrl();
+    window.addEventListener("notification:navigate", openFromUrl);
+    return () => window.removeEventListener("notification:navigate", openFromUrl);
   }, [posts]);
 
   const filtered = useMemo(() => {
@@ -172,11 +180,13 @@ function PostsPage() {
   const openNew = (init?: Partial<Post>) => {
     setEditing(null);
     setInitial(init);
+    setFocusedCommentId(null);
     setEditorOpen(true);
   };
   const openExisting = (p: Post) => {
     setEditing(p);
     setInitial(undefined);
+    setFocusedCommentId(null);
     setEditorOpen(true);
   };
 
@@ -352,6 +362,7 @@ function PostsPage() {
         post={editing}
         initial={initial}
         clients={clients}
+        focusedCommentId={focusedCommentId}
       />
     </div>
   );

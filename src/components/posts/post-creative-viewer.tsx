@@ -55,7 +55,7 @@ export function PostCreativeThumb({ postId }: { postId: string }) {
         </div>
       )}
       {items.length > 1 && (
-        <span className="absolute right-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+        <span className="absolute right-1.5 top-1.5 rounded bg-foreground/70 px-1.5 py-0.5 text-[10px] font-medium text-background">
           +{items.length - 1}
         </span>
       )}
@@ -63,7 +63,7 @@ export function PostCreativeThumb({ postId }: { postId: string }) {
   );
 }
 
-export function PostCreativeGallery({ postId }: { postId: string }) {
+export function PostCreativeGallery({ postId, previewOnly = false }: { postId: string; previewOnly?: boolean }) {
   const items = usePostCreatives(postId);
   if (!items.length) {
     return (
@@ -76,23 +76,33 @@ export function PostCreativeGallery({ postId }: { postId: string }) {
     <div className="grid grid-cols-2 gap-2">
       {items.map(({ file, url }) => {
         const mime = file.mime_type ?? "";
+        const media = url && mime.startsWith("image/") ? (
+          <img src={url} alt={file.file_name} className="aspect-square w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+        ) : url && mime.startsWith("video/") ? (
+          <video src={url} controls={!previewOnly} muted={previewOnly} className="aspect-square w-full object-cover" />
+        ) : url ? (
+          <div className="flex aspect-square flex-col items-center justify-center gap-1 p-2 text-center text-xs text-muted-foreground">
+            <FileIcon className="h-6 w-6" />
+            <span className="line-clamp-2">{file.file_name}</span>
+          </div>
+        ) : (
+          <div className="flex aspect-square items-center justify-center">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        );
+
+        if (previewOnly) {
+          return (
+            <div key={file.id} className="group relative block overflow-hidden rounded-md border border-border bg-muted">
+              {media}
+            </div>
+          );
+        }
+
         return (
           <a key={file.id} href={url ?? "#"} target="_blank" rel="noreferrer"
             className="group relative block overflow-hidden rounded-md border border-border bg-muted">
-            {url && mime.startsWith("image/") ? (
-              <img src={url} alt={file.file_name} className="aspect-square w-full object-cover transition-transform group-hover:scale-105" />
-            ) : url && mime.startsWith("video/") ? (
-              <video src={url} controls className="aspect-square w-full object-cover" />
-            ) : url ? (
-              <div className="flex aspect-square flex-col items-center justify-center gap-1 p-2 text-center text-xs text-muted-foreground">
-                <FileIcon className="h-6 w-6" />
-                <span className="line-clamp-2">{file.file_name}</span>
-              </div>
-            ) : (
-              <div className="flex aspect-square items-center justify-center">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
+            {media}
           </a>
         );
       })}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckSquare, Copy, Loader2, Paperclip, Repeat, Send, Trash2, X } from "lucide-react";
+import { CheckSquare, Copy, Loader2, Paperclip, Pencil, Repeat, Send, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -38,6 +38,7 @@ type Props = {
   post: Post | null;
   initial?: Partial<Post>;
   clients: Client[];
+  focusedCommentId?: string | null;
 };
 
 const EMPTY: Partial<Post> = {
@@ -58,7 +59,7 @@ const EMPTY: Partial<Post> = {
   status: "idea",
 } as Partial<Post>;
 
-export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: Props) {
+export function PostEditorSheet({ open, onOpenChange, post, initial, clients, focusedCommentId }: Props) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [form, setForm] = useState<Partial<Post>>(EMPTY);
@@ -122,6 +123,13 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
   });
   const authorMap = new Map(authorProfiles.map((p) => [p.id, p]));
   const clientUserId = post?.client_id ? clients.find((c) => c.id === post.client_id)?.user_id ?? null : null;
+
+  useEffect(() => {
+    if (!open || !focusedCommentId || comments.length === 0) return;
+    window.setTimeout(() => {
+      document.getElementById(`comment-${focusedCommentId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  }, [open, focusedCommentId, comments.length]);
 
 
   // ---- Save
@@ -284,6 +292,8 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
 
   // ---- Comments
   const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
   const sendComment = async () => {
     if (!post?.id || !user?.id || !newComment.trim()) return;
     const { error } = await supabase.from("post_comments").insert({
@@ -294,6 +304,27 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
     if (error) return toast.error(error.message);
     setNewComment("");
     qc.invalidateQueries({ queryKey: ["post-comments", post.id] });
+  };
+
+  const updateComment = async () => {
+    if (!post?.id || !editingCommentId || !editingCommentContent.trim()) return;
+    const { error } = await supabase
+      .from("post_comments")
+      .update({ content: editingCommentContent.trim() })
+      .eq("id", editingCommentId);
+    if (error) return toast.error(error.message);
+    setEditingCommentId(null);
+    setEditingCommentContent("");
+    qc.invalidateQueries({ queryKey: ["post-comments", post.id] });
+    toast.success("Comentário atualizado");
+  };
+
+  const deleteComment = async (id: string) => {
+    if (!post?.id) return;
+    const { error } = await supabase.from("post_comments").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["post-comments", post.id] });
+    toast.success("Comentário excluído");
   };
 
   return (
@@ -614,18 +645,66 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients }: 
                     {comments.map((c) => {
                       const author = authorMap.get(c.author_id);
                       const isClient = clientUserId && c.author_id === clientUserId;
+                      const canManageComment = c.author_id === user?.id || user?.id !== clientUserId;
+                      const isEditingComment = editingCommentId === c.id;
                       return (
-                        <div key={c.id} className="rounded-md bg-muted/50 px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium">{author?.name ?? "Usuário"}</span>
-                            <Badge variant={isClient ? "default" : "secondary"} className="h-4 px-1.5 text-[9px]">
-                              {isClient ? "Cliente" : "Equipe"}
-                            </Badge>
-                            <span className="text-[10px] text-muted-foreground">
-                              {format(new Date(c.created_at), "dd/MM HH:mm")}
-                            </span>
+                        <div
+                          key={c.id}
+                          id={`comment-${c.id}`}
+                          className={cn(
+                            "rounded-md bg-muted/50 px-3 py-2 transition-shadow",
+                            focusedCommentId === c.id && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-medium">{author?.name ?? "Usuário"}</span>
+                              <Badge variant={isClient ? "default" : "secondary"} className="h-4 px-1.5 text-[9px]">
+                                {isClient ? "Cliente" : "Equipe"}
+                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">
+                                {format(new Date(c.created_at), "dd/MM HH:mm")}
+                              </span>
+                            </div>
+                            {canManageComment && (
+                              <div className="flex shrink-0 items-center gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => { setEditingCommentId(c.id); setEditingCommentContent(c.content); }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => deleteComment(c.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                          <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
+                          {isEditingComment ? (
+                            <div className="mt-2 space-y-2">
+                              <Textarea
+                                rows={2}
+                                value={editingCommentContent}
+                                onChange={(e) => setEditingCommentContent(e.target.value)}
+                                className="resize-none text-sm"
+                              />
+                              <div className="flex justify-end gap-2">
+                                <Button type="button" variant="ghost" size="sm" onClick={() => setEditingCommentId(null)}>Cancelar</Button>
+                                <Button type="button" size="sm" onClick={updateComment} disabled={!editingCommentContent.trim()}>Salvar</Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
+                          )}
                         </div>
                       );
                     })}
