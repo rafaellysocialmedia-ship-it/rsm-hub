@@ -567,7 +567,7 @@ function ClientPortal() {
 
             return (
               <Card key={p.id} className="group flex flex-col transition-all hover:border-primary/40 hover:shadow-md">
-                <div className="flex-1 cursor-pointer" onClick={() => { setOpenPost(p); setFeedback(ap?.feedback ?? ""); }}>
+                <div className="flex-1 cursor-pointer" onClick={() => { setOpenPost(p); setFeedback(ap?.feedback ?? ""); setFocusedCommentId(null); }}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="line-clamp-2 text-base">{p.title}</CardTitle>
@@ -598,8 +598,8 @@ function ClientPortal() {
                   ><XCircle className="mr-1 h-3.5 w-3.5" /> Rejeitar</Button>
                   <Button
                     size="sm" variant="ghost" disabled={isPending}
-                    className="h-8 text-xs text-violet-600 hover:bg-violet-500/10 hover:text-violet-600"
-                    onClick={(e) => { e.stopPropagation(); setOpenPost(p); setFeedback(ap?.feedback ?? ""); }}
+                    className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={(e) => { e.stopPropagation(); setOpenPost(p); setFeedback(ap?.feedback ?? ""); setFocusedCommentId(null); }}
                   ><MessageSquareWarning className="mr-1 h-3.5 w-3.5" /> Ajustes</Button>
                   <Button
                     size="sm" disabled={isPending}
@@ -792,7 +792,7 @@ function ClientPortal() {
                       onClick={() => decideMutation.mutate({ post: openPost, decision: "rejected", feedback })}>
                       <XCircle className="mr-1 h-4 w-4" /> Rejeitar
                     </Button>
-                    <Button variant="outline" className="border-violet-500/30 text-violet-600 hover:bg-violet-500/10" disabled={decideMutation.isPending}
+                    <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" disabled={decideMutation.isPending}
                       onClick={() => decideMutation.mutate({ post: openPost, decision: "changes_requested", feedback })}>
                       <MessageSquareWarning className="mr-1 h-4 w-4" /> Ajustes
                     </Button>
