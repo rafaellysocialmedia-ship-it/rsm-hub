@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, XCircle, MessageSquareWarning, Clock, Calendar, Sparkles, Search, Loader2, Pencil } from "lucide-react";
+import { CheckCircle2, XCircle, MessageSquareWarning, Clock, Calendar, Sparkles, Search, Loader2, Pencil, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { POST_STATUS, statusMeta, postNetworks, type Post, type PostStatus } from "@/lib/posts";
+import { POST_STATUS, statusMeta, postNetworks, type Post, type PostComment, type PostStatus } from "@/lib/posts";
 import { sanitizeHtml } from "@/lib/sanitize";
 import type { Database } from "@/integrations/supabase/types";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
@@ -43,7 +43,7 @@ const DECISION_META: Record<Decision, { label: string; tone: string; icon: typeo
   pending: { label: "Pendente", tone: "bg-amber-500/10 text-amber-600 border-amber-500/20", icon: Clock },
   approved: { label: "Aprovado", tone: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", icon: CheckCircle2 },
   rejected: { label: "Rejeitado", tone: "bg-rose-500/10 text-rose-600 border-rose-500/20", icon: XCircle },
-  changes_requested: { label: "Alterações", tone: "bg-violet-500/10 text-violet-600 border-violet-500/20", icon: MessageSquareWarning },
+  changes_requested: { label: "Ajustes", tone: "bg-red-500/10 text-red-600 border-red-500/20", icon: MessageSquareWarning },
 };
 
 function PortalRouter() {
@@ -67,7 +67,7 @@ function StaffApprovals() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("posts").select("*")
-        .in("status", ["review", "approved", "scheduled", "published", "rejected", "archived"])
+        .in("status", ["review", "changes_requested", "approved", "to_schedule", "scheduled", "published", "rejected", "archived"])
         .order("scheduled_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data as Post[];
@@ -127,7 +127,8 @@ function StaffApprovals() {
     const ap = approvalByPost.get(p.id);
     if (ap) return ap.decision;
     // Fallback derived from post status when there's no approval row
-    if (p.status === "approved" || p.status === "scheduled" || p.status === "published") return "approved";
+    if (p.status === "approved" || p.status === "to_schedule" || p.status === "scheduled" || p.status === "published") return "approved";
+    if (p.status === "changes_requested") return "changes_requested";
     if ((p.status as string) === "rejected" || p.status === "archived") return "rejected";
     return "pending";
   }
@@ -289,6 +290,10 @@ function ClientPortal() {
   const [tab, setTab] = useState<Decision | "all">("pending");
   const [openPost, setOpenPost] = useState<Post | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
+  const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
 
   const { data: client } = useQuery({
     queryKey: ["portal-client", user?.id],
@@ -307,7 +312,7 @@ function ClientPortal() {
       const { data, error } = await supabase
         .from("posts").select("*")
         .eq("client_id", client!.id)
-        .in("status", ["review", "approved", "scheduled", "published"])
+        .in("status", ["review", "changes_requested", "approved", "to_schedule", "scheduled", "published"])
         .order("scheduled_date", { ascending: true, nullsFirst: false });
       if (error) throw error;
       return data as Post[];
@@ -321,6 +326,33 @@ function ClientPortal() {
       const { data, error } = await supabase.from("post_approvals").select("*").eq("client_id", client!.id);
       if (error) throw error;
       return data as Approval[];
+    },
+  });
+
+  const { data: comments = [] } = useQuery({
+    queryKey: ["portal-post-comments", openPost?.id],
+    enabled: !!openPost?.id,
+    queryFn: async () => {
+      if (!openPost?.id) return [] as PostComment[];
+      const { data, error } = await supabase
+        .from("post_comments")
+        .select("*")
+        .eq("post_id", openPost.id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data as PostComment[];
+    },
+  });
+
+  const commentAuthorIds = Array.from(new Set(comments.map((c) => c.author_id).filter(Boolean)));
+  const { data: commentAuthors = [] } = useQuery({
+    queryKey: ["portal-comment-authors", openPost?.id, commentAuthorIds.join(",")],
+    enabled: !!openPost?.id && commentAuthorIds.length > 0,
+    queryFn: async () => {
+      if (commentAuthorIds.length === 0) return [] as { id: string; name: string | null; avatar_url: string | null }[];
+      const { data, error } = await supabase.from("profiles").select("id, name, avatar_url").in("id", commentAuthorIds);
+      if (error) throw error;
+      return data ?? [];
     },
   });
 
@@ -339,19 +371,36 @@ function ClientPortal() {
     return m;
   }, [approvals]);
 
+  const commentAuthorMap = useMemo(() => new Map(commentAuthors.map((p) => [p.id, p])), [commentAuthors]);
+
   // Auto-open a post when ?open=<post_id> is in the URL (from a notification)
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const openId = new URLSearchParams(window.location.search).get("open");
-    if (!openId || posts.length === 0) return;
-    const target = posts.find((p) => p.id === openId);
-    if (!target) return;
-    setOpenPost(target);
-    setFeedback(approvalByPost.get(openId)?.feedback ?? "");
-    const url = new URL(window.location.href);
-    url.searchParams.delete("open");
-    window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    if (typeof window === "undefined") return undefined;
+    const openFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const openId = params.get("open");
+      if (!openId || posts.length === 0) return;
+      const target = posts.find((p) => p.id === openId);
+      if (!target) return;
+      setOpenPost(target);
+      setFeedback(approvalByPost.get(openId)?.feedback ?? "");
+      setFocusedCommentId(params.get("comment"));
+      const url = new URL(window.location.href);
+      url.searchParams.delete("open");
+      url.searchParams.delete("comment");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    };
+    openFromUrl();
+    window.addEventListener("notification:navigate", openFromUrl);
+    return () => window.removeEventListener("notification:navigate", openFromUrl);
   }, [posts, approvalByPost]);
+
+  useEffect(() => {
+    if (!openPost || !focusedCommentId || comments.length === 0) return;
+    window.setTimeout(() => {
+      document.getElementById(`portal-comment-${focusedCommentId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+  }, [openPost, focusedCommentId, comments.length]);
 
   const decideMutation = useMutation({
     mutationFn: async (args: { post: Post; decision: Decision; feedback: string }) => {
@@ -378,10 +427,45 @@ function ClientPortal() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const sendComment = async () => {
+    if (!openPost?.id || !user?.id || !newComment.trim()) return;
+    const { error } = await supabase.from("post_comments").insert({
+      post_id: openPost.id,
+      author_id: user.id,
+      content: newComment.trim(),
+    });
+    if (error) return toast.error(error.message);
+    setNewComment("");
+    qc.invalidateQueries({ queryKey: ["portal-post-comments", openPost.id] });
+    toast.success("Comentário enviado");
+  };
+
+  const updateComment = async () => {
+    if (!openPost?.id || !editingCommentId || !editingCommentContent.trim()) return;
+    const { error } = await supabase
+      .from("post_comments")
+      .update({ content: editingCommentContent.trim() })
+      .eq("id", editingCommentId);
+    if (error) return toast.error(error.message);
+    setEditingCommentId(null);
+    setEditingCommentContent("");
+    qc.invalidateQueries({ queryKey: ["portal-post-comments", openPost.id] });
+    toast.success("Comentário atualizado");
+  };
+
+  const deleteComment = async (id: string) => {
+    if (!openPost?.id) return;
+    const { error } = await supabase.from("post_comments").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["portal-post-comments", openPost.id] });
+    toast.success("Comentário excluído");
+  };
+
   function clientDecisionOf(p: Post): Decision {
     const ap = approvalByPost.get(p.id);
     if (ap) return ap.decision;
-    if (p.status === "approved" || p.status === "scheduled" || p.status === "published") return "approved";
+    if (p.status === "approved" || p.status === "to_schedule" || p.status === "scheduled" || p.status === "published") return "approved";
+    if (p.status === "changes_requested") return "changes_requested";
     if ((p.status as string) === "rejected" || p.status === "archived") return "rejected";
     return "pending";
   }
@@ -483,7 +567,7 @@ function ClientPortal() {
 
             return (
               <Card key={p.id} className="group flex flex-col transition-all hover:border-primary/40 hover:shadow-md">
-                <div className="flex-1 cursor-pointer" onClick={() => { setOpenPost(p); setFeedback(ap?.feedback ?? ""); }}>
+                <div className="flex-1 cursor-pointer" onClick={() => { setOpenPost(p); setFeedback(ap?.feedback ?? ""); setFocusedCommentId(null); }}>
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="line-clamp-2 text-base">{p.title}</CardTitle>
@@ -514,8 +598,8 @@ function ClientPortal() {
                   ><XCircle className="mr-1 h-3.5 w-3.5" /> Rejeitar</Button>
                   <Button
                     size="sm" variant="ghost" disabled={isPending}
-                    className="h-8 text-xs text-violet-600 hover:bg-violet-500/10 hover:text-violet-600"
-                    onClick={(e) => { e.stopPropagation(); setOpenPost(p); setFeedback(ap?.feedback ?? ""); }}
+                    className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={(e) => { e.stopPropagation(); setOpenPost(p); setFeedback(ap?.feedback ?? ""); setFocusedCommentId(null); }}
                   ><MessageSquareWarning className="mr-1 h-3.5 w-3.5" /> Ajustes</Button>
                   <Button
                     size="sm" disabled={isPending}
@@ -552,7 +636,7 @@ function ClientPortal() {
                   <div className="space-y-4 text-sm">
                     <section>
                       <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Criativo</p>
-                      <PostCreativeGallery postId={openPost.id} />
+                      <PostCreativeGallery postId={openPost.id} previewOnly />
                     </section>
                     {(() => {
                       const p = openPost as unknown as { subheadline?: string | null; slides?: unknown; script?: string | null };
@@ -611,6 +695,93 @@ function ClientPortal() {
 
                 <Separator className="my-4" />
 
+                <section id="comments" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Comentários ({comments.length})</p>
+                  </div>
+                  <div className="space-y-2">
+                    {comments.length === 0 ? (
+                      <p className="rounded-md border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+                        Nenhum comentário ainda
+                      </p>
+                    ) : (
+                      comments.map((comment) => {
+                        const author = commentAuthorMap.get(comment.author_id);
+                        const isEditing = editingCommentId === comment.id;
+                        const canManage = comment.author_id === user?.id;
+                        return (
+                          <div
+                            key={comment.id}
+                            id={`portal-comment-${comment.id}`}
+                            className={`rounded-md bg-muted/50 px-3 py-2 transition-shadow ${focusedCommentId === comment.id ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""}`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs font-medium">{author?.name ?? "Cliente"}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {new Date(comment.created_at).toLocaleString("pt-BR")}
+                                </span>
+                              </div>
+                              {canManage && (
+                                <div className="flex shrink-0 items-center gap-1">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={() => { setEditingCommentId(comment.id); setEditingCommentContent(comment.content); }}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-destructive hover:text-destructive"
+                                    onClick={() => deleteComment(comment.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                            {isEditing ? (
+                              <div className="mt-2 space-y-2">
+                                <Textarea
+                                  rows={2}
+                                  value={editingCommentContent}
+                                  onChange={(e) => setEditingCommentContent(e.target.value)}
+                                  className="resize-none text-sm"
+                                />
+                                <div className="flex justify-end gap-2">
+                                  <Button type="button" variant="ghost" size="sm" onClick={() => setEditingCommentId(null)}>Cancelar</Button>
+                                  <Button type="button" size="sm" onClick={updateComment} disabled={!editingCommentContent.trim()}>Salvar</Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="mt-1 whitespace-pre-wrap text-sm">{comment.content}</p>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <Textarea
+                      rows={2}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Adicionar comentário..."
+                      className="resize-none text-sm"
+                    />
+                    <Button type="button" size="sm" onClick={sendComment} disabled={!newComment.trim()}>
+                      <Send className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </section>
+
+                <Separator className="my-4" />
+
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs font-medium uppercase text-muted-foreground">Seu feedback</label>
@@ -621,7 +792,7 @@ function ClientPortal() {
                       onClick={() => decideMutation.mutate({ post: openPost, decision: "rejected", feedback })}>
                       <XCircle className="mr-1 h-4 w-4" /> Rejeitar
                     </Button>
-                    <Button variant="outline" className="border-violet-500/30 text-violet-600 hover:bg-violet-500/10" disabled={decideMutation.isPending}
+                    <Button variant="outline" className="border-destructive/30 text-destructive hover:bg-destructive/10" disabled={decideMutation.isPending}
                       onClick={() => decideMutation.mutate({ post: openPost, decision: "changes_requested", feedback })}>
                       <MessageSquareWarning className="mr-1 h-4 w-4" /> Ajustes
                     </Button>
