@@ -103,11 +103,12 @@ function PostsPage() {
       if (!target) return;
       setEditing(target);
       setInitial(undefined);
-      setFocusedCommentId(params.get("comment"));
+      setFocusedCommentId(params.get("comment") ?? (params.get("comments") ? "last" : null));
       setEditorOpen(true);
       const url = new URL(window.location.href);
       url.searchParams.delete("open");
       url.searchParams.delete("comment");
+      url.searchParams.delete("comments");
       window.history.replaceState({}, "", url.pathname + url.search + url.hash);
     };
     openFromUrl();
