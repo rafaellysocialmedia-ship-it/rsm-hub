@@ -25,7 +25,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { statusMeta, type Post } from "@/lib/posts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
