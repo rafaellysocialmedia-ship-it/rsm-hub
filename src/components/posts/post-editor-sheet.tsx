@@ -125,10 +125,17 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
   const clientUserId = post?.client_id ? clients.find((c) => c.id === post.client_id)?.user_id ?? null : null;
 
   useEffect(() => {
-    if (!open || !focusedCommentId || comments.length === 0) return;
+    if (!open || !focusedCommentId) return;
     window.setTimeout(() => {
-      document.getElementById(`comment-${focusedCommentId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 150);
+      const targetId =
+        focusedCommentId === "last"
+          ? comments.length > 0
+            ? `comment-${comments[comments.length - 1].id}`
+            : "post-comments-section"
+          : `comment-${focusedCommentId}`;
+      (document.getElementById(targetId) ?? document.getElementById("post-comments-section"))
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 200);
   }, [open, focusedCommentId, comments.length]);
 
 
@@ -639,7 +646,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
                 </div>
 
                 <Separator />
-                <div>
+                <div id="post-comments-section">
                   <div className="mb-2 text-xs font-medium text-muted-foreground">Comentários ({comments.length})</div>
                   <div className="space-y-2">
                     {comments.map((c) => {
