@@ -646,7 +646,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
                 </div>
 
                 <Separator />
-                <div>
+                <div id="post-comments-section">
                   <div className="mb-2 text-xs font-medium text-muted-foreground">Comentários ({comments.length})</div>
                   <div className="space-y-2">
                     {comments.map((c) => {
