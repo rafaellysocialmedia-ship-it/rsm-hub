@@ -25,7 +25,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { statusMeta, type Post } from "@/lib/posts";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { statusMeta, postNetworks, type Post } from "@/lib/posts";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -166,6 +167,8 @@ function DayCell({
   onOpen: (p: Post) => void; onAdd: () => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: iso });
+  const [dayOpen, setDayOpen] = useState(false);
+  const hasMore = posts.length > 3;
   return (
     <div
       ref={setNodeRef}
@@ -177,13 +180,18 @@ function DayCell({
       )}
     >
       <div className="mb-1 flex items-center justify-between gap-1">
-        <span className={cn(
-          "text-xs font-medium",
-          !inMonth && "text-muted-foreground/50",
-          isToday && "flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground",
-        )}>
+        <button
+          type="button"
+          onClick={() => hasMore && setDayOpen(true)}
+          className={cn(
+            "text-xs font-medium",
+            !inMonth && "text-muted-foreground/50",
+            isToday && "flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground",
+            hasMore && "cursor-pointer hover:underline",
+          )}
+        >
           {format(date, "d")}
-        </span>
+        </button>
         <div className="flex items-center gap-0.5">
           {commemoratives.length > 0 && (
             <TooltipProvider delayDuration={100}>
@@ -218,10 +226,58 @@ function DayCell({
         {posts.slice(0, 3).map((p) => (
           <CalendarEvent key={p.id} post={p} clientMap={clientMap} onOpen={onOpen} />
         ))}
-        {posts.length > 3 && (
-          <p className="px-1 text-[10px] text-muted-foreground">+{posts.length - 3} mais</p>
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setDayOpen(true)}
+            className="w-full rounded px-1 text-left text-[10px] font-medium text-primary hover:bg-primary/10"
+          >
+            +{posts.length - 3} mais
+          </button>
         )}
       </div>
+
+      <Dialog open={dayOpen} onOpenChange={setDayOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="capitalize">
+              {format(date, "EEEE, d 'de' MMMM", { locale: ptBR })} · {posts.length} publicaç{posts.length === 1 ? "ão" : "ões"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+            {posts.map((p) => {
+              const meta = statusMeta(p.status);
+              const client = p.client_id ? clientMap.get(p.client_id) : null;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => { setDayOpen(false); onOpen(p); }}
+                  className="flex w-full items-start gap-3 rounded-lg border border-border bg-card p-3 text-left transition-colors hover:bg-muted/60"
+                >
+                  <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", meta.dot)} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-medium">{p.title}</p>
+                      {p.scheduled_time && (
+                        <span className="shrink-0 text-xs text-muted-foreground">{p.scheduled_time.slice(0, 5)}</span>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                      {client && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">{client}</span>}
+                      <span className={cn("rounded border px-1.5 py-0.5", meta.tone)}>{meta.label}</span>
+                      {p.format && <span className="rounded bg-muted px-1.5 py-0.5">{p.format}</span>}
+                      {postNetworks(p).map((n) => (
+                        <span key={n} className="rounded bg-muted px-1.5 py-0.5">{n}</span>
+                      ))}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

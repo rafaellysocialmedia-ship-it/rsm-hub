@@ -221,7 +221,11 @@ function StaffApprovals() {
             const sMeta = statusMeta(p.status);
             const clientName = p.client_id ? clientMap.get(p.client_id) : null;
             return (
-              <Card key={p.id} className="border-border/60">
+              <Card
+                key={p.id}
+                onClick={() => setEditingPost(p)}
+                className="cursor-pointer border-border/60 transition-colors hover:border-primary/40 hover:bg-muted/30"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle className="line-clamp-2 text-base">{p.title}</CardTitle>
@@ -248,7 +252,7 @@ function StaffApprovals() {
                       <p className="text-muted-foreground">{ap.feedback}</p>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 pt-2">
+                  <div className="flex items-center gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                     <Select
                       value={p.status}
                       onValueChange={(v) => statusMutation.mutate({ postId: p.id, status: v as PostStatus })}
