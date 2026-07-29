@@ -92,18 +92,33 @@ function PostsPage() {
     return () => { supabase.removeChannel(channel); };
   }, [qc]);
 
-  // Auto-open editor when ?open=<post_id> is in URL (e.g. from a notification)
+  // Auto-open editor when ?open=<post_id> is in URL or when a notification
+  // stored a pending post in sessionStorage (survives client-side navigation).
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
     const openFromUrl = () => {
+      if (posts.length === 0) return;
       const params = new URLSearchParams(window.location.search);
-      const openId = params.get("open");
-      if (!openId || posts.length === 0) return;
+      let openId = params.get("open");
+      let commentId = params.get("comment") ?? (params.get("comments") ? "last" : null);
+
+      if (!openId) {
+        const pending = sessionStorage.getItem("pending-open-post");
+        if (pending) {
+          try {
+            const parsed = JSON.parse(pending) as { id: string; comment: string | null };
+            openId = parsed.id;
+            commentId = parsed.comment ?? null;
+          } catch { /* ignore malformed payload */ }
+        }
+      }
+      if (!openId) return;
+      sessionStorage.removeItem("pending-open-post");
       const target = posts.find((p) => p.id === openId);
       if (!target) return;
       setEditing(target);
       setInitial(undefined);
-      setFocusedCommentId(params.get("comment") ?? (params.get("comments") ? "last" : null));
+      setFocusedCommentId(commentId);
       setEditorOpen(true);
       const url = new URL(window.location.href);
       url.searchParams.delete("open");
@@ -115,6 +130,7 @@ function PostsPage() {
     window.addEventListener("notification:navigate", openFromUrl);
     return () => window.removeEventListener("notification:navigate", openFromUrl);
   }, [posts]);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
