@@ -304,13 +304,13 @@ function PostsPage() {
       {clientFilter !== "all" && (() => {
         const activeClient = clients.find((c) => c.id === clientFilter);
         if (!activeClient?.monthly_post_quota) return null;
-        const used = countMonthPosts(posts, clientFilter);
+        const used = countMonthPosts(posts, clientFilter, calendarMonth);
         return (
           <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Cota mensal — {activeClient.name}</p>
-                <p className="text-xs capitalize text-muted-foreground">{formatMonth()}</p>
+                <p className="text-xs capitalize text-muted-foreground">{formatMonth(calendarMonth)}</p>
               </div>
             </div>
             <QuotaBadge used={used} quota={activeClient.monthly_post_quota} />
@@ -353,6 +353,7 @@ function PostsPage() {
             onOpen={openExisting}
             onAddOn={(iso) => openNew({ scheduled_date: iso })}
             onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
+            onMonthChange={handleMonthChange}
           />
         )}
         {view === "list" && (
