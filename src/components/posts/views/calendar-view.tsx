@@ -122,6 +122,9 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove, onMont
           {format(cursor, "MMMM yyyy", { locale: ptBR })}
         </h3>
         <div className="flex items-center gap-1">
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setDatesOpen(true)}>
+            <CalendarHeart className="h-3.5 w-3.5" /> Datas comemorativas
+          </Button>
           <Button size="sm" variant="ghost" onClick={() => setCursor(startOfMonth(new Date()))}>Hoje</Button>
           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setCursor((c) => subMonths(c, 1))}>
             <ChevronLeft className="h-4 w-4" />
@@ -131,6 +134,12 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove, onMont
           </Button>
         </div>
       </div>
+      <CommemorativeDatesDialog
+        open={datesOpen}
+        onOpenChange={setDatesOpen}
+        initialMonth={cursor.getMonth() + 1}
+      />
+
       <DndContext sensors={sensors} onDragEnd={handleEnd}>
         <div className="grid grid-cols-7 border-b border-border bg-muted/30">
           {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (
