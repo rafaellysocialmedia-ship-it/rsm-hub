@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
@@ -12,7 +12,7 @@ import {
   subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CalendarHeart, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { CommemorativeDatesDialog } from "@/components/posts/commemorative-dates-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -45,11 +46,15 @@ type Props = {
   onOpen: (p: Post) => void;
   onAddOn: (dateISO: string) => void;
   onMove: (id: string, dateISO: string) => void;
+  onMonthChange?: (month: Date) => void;
 };
 
-export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Props) {
+export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove, onMonthChange }: Props) {
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
+  const [datesOpen, setDatesOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  useEffect(() => { onMonthChange?.(cursor); }, [cursor, onMonthChange]);
 
   const { data: commemoratives = [] } = useQuery({
     queryKey: ["commemorative-dates"],
@@ -62,6 +67,7 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
     },
     staleTime: 60 * 60 * 1000,
   });
+
 
   const commemorativesByMD = useMemo(() => {
     const m = new Map<string, CommemorativeDate[]>();
