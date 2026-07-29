@@ -60,6 +60,7 @@ import { StatusBadge } from "@/components/clients/status-badge";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts } from "@/lib/post-quota";
+import { JOURNEY_STAGES, journeyMeta, type JourneyStage } from "@/lib/journey";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/clients/")({
@@ -80,6 +81,7 @@ function ClientsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ClientStatus | "all">("all");
   const [segment, setSegment] = useState<string>("all");
+  const [stage, setStage] = useState<JourneyStage | "all">("all");
   const [view, setView] = useState<"cards" | "table">("cards");
   const [sortKey, setSortKey] = useState<SortKey>("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -133,6 +135,7 @@ function ClientsPage() {
     const rows = clients.filter((c) => {
       if (status !== "all" && c.status !== status) return false;
       if (segment !== "all" && c.segment !== segment) return false;
+      if (stage !== "all" && (c as { journey_stage?: string }).journey_stage !== stage) return false;
       if (!q) return true;
       return [c.name, c.legal_name, c.cnpj, c.email, c.responsible, c.segment]
         .filter(Boolean)
@@ -146,7 +149,16 @@ function ClientsPage() {
       return 0;
     });
     return rows;
-  }, [clients, search, status, segment, sortKey, sortDir]);
+  }, [clients, search, status, segment, stage, sortKey, sortDir]);
+
+  const stageCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    clients.forEach((c) => {
+      const st = (c as { journey_stage?: string }).journey_stage ?? "closing";
+      m.set(st, (m.get(st) ?? 0) + 1);
+    });
+    return m;
+  }, [clients]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -218,6 +230,20 @@ function ClientsPage() {
           </SelectContent>
         </Select>
 
+        <Select value={stage} onValueChange={(v) => setStage(v as JourneyStage | "all")}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Etapa da jornada" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as etapas</SelectItem>
+            {JOURNEY_STAGES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label} ({stageCounts.get(s.value) ?? 0})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Select value={segment} onValueChange={setSegment}>
           <SelectTrigger className="w-full sm:w-44">
             <SelectValue placeholder="Segmento" />
@@ -269,6 +295,28 @@ function ClientsPage() {
             <TableIcon className="h-4 w-4" />
           </Button>
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {JOURNEY_STAGES.map((s) => {
+          const count = stageCounts.get(s.value) ?? 0;
+          const active = stage === s.value;
+          return (
+            <button
+              key={s.value}
+              type="button"
+              onClick={() => setStage(active ? "all" : s.value)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
+                active ? s.tone : "border-border text-muted-foreground hover:bg-muted",
+              )}
+            >
+              <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />
+              {s.label}
+              <span className="font-semibold">{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-6">
