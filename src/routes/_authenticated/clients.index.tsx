@@ -465,8 +465,19 @@ function ClientCard({
           )}
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <StatusBadge status={client.status} />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <StatusBadge status={client.status} />
+            {(() => {
+              const jm = journeyMeta((client as { journey_stage?: string }).journey_stage);
+              return (
+                <span className={cn("rounded-full border px-2 py-0.5 text-[10px] font-medium", jm.tone)}>
+                  {jm.label}
+                </span>
+              );
+            })()}
+          </div>
+
           {client.plan && (
             <span className="text-xs text-muted-foreground">{client.plan}</span>
           )}
