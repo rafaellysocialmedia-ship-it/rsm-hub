@@ -51,6 +51,10 @@ function PostsPage() {
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
   const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Mês exibido no calendário — a contagem de cota acompanha esse mês
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => new Date());
+  const handleMonthChange = useCallback((m: Date) => setCalendarMonth(m), []);
+
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
