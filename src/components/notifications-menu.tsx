@@ -86,6 +86,14 @@ export function NotificationsMenu() {
         if (searchStr) {
           for (const [k, v] of new URLSearchParams(searchStr)) search[k] = v;
         }
+        // Persist the target post so the destination page can open it in a
+        // popup even if the search params get dropped during navigation.
+        if (search.open) {
+          sessionStorage.setItem(
+            "pending-open-post",
+            JSON.stringify({ id: search.open, comment: search.comment ?? (search.comments ? "last" : null) }),
+          );
+        }
         await router.navigate({ to: pathname, search, hash });
         window.dispatchEvent(new CustomEvent("notification:navigate", { detail: { pathname, search, hash } }));
       } catch {
@@ -93,6 +101,7 @@ export function NotificationsMenu() {
       }
     }
   };
+
 
   const unread = items.filter((i) => !i.read).length;
 
