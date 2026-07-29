@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
@@ -12,7 +12,7 @@ import {
   subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { CalendarHeart, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { CommemorativeDatesDialog } from "@/components/posts/commemorative-dates-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -45,11 +46,15 @@ type Props = {
   onOpen: (p: Post) => void;
   onAddOn: (dateISO: string) => void;
   onMove: (id: string, dateISO: string) => void;
+  onMonthChange?: (month: Date) => void;
 };
 
-export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Props) {
+export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove, onMonthChange }: Props) {
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
+  const [datesOpen, setDatesOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  useEffect(() => { onMonthChange?.(cursor); }, [cursor, onMonthChange]);
 
   const { data: commemoratives = [] } = useQuery({
     queryKey: ["commemorative-dates"],
@@ -62,6 +67,7 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
     },
     staleTime: 60 * 60 * 1000,
   });
+
 
   const commemorativesByMD = useMemo(() => {
     const m = new Map<string, CommemorativeDate[]>();
@@ -116,6 +122,9 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
           {format(cursor, "MMMM yyyy", { locale: ptBR })}
         </h3>
         <div className="flex items-center gap-1">
+          <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setDatesOpen(true)}>
+            <CalendarHeart className="h-3.5 w-3.5" /> Datas comemorativas
+          </Button>
           <Button size="sm" variant="ghost" onClick={() => setCursor(startOfMonth(new Date()))}>Hoje</Button>
           <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setCursor((c) => subMonths(c, 1))}>
             <ChevronLeft className="h-4 w-4" />
@@ -125,6 +134,12 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove }: Prop
           </Button>
         </div>
       </div>
+      <CommemorativeDatesDialog
+        open={datesOpen}
+        onOpenChange={setDatesOpen}
+        initialMonth={cursor.getMonth() + 1}
+      />
+
       <DndContext sensors={sensors} onDragEnd={handleEnd}>
         <div className="grid grid-cols-7 border-b border-border bg-muted/30">
           {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (

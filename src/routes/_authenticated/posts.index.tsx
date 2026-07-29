@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -51,6 +51,10 @@ function PostsPage() {
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
   const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Mês exibido no calendário — a contagem de cota acompanha esse mês
+  const [calendarMonth, setCalendarMonth] = useState<Date>(() => new Date());
+  const handleMonthChange = useCallback((m: Date) => setCalendarMonth(m), []);
+
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -92,18 +96,33 @@ function PostsPage() {
     return () => { supabase.removeChannel(channel); };
   }, [qc]);
 
-  // Auto-open editor when ?open=<post_id> is in URL (e.g. from a notification)
+  // Auto-open editor when ?open=<post_id> is in URL or when a notification
+  // stored a pending post in sessionStorage (survives client-side navigation).
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
     const openFromUrl = () => {
+      if (posts.length === 0) return;
       const params = new URLSearchParams(window.location.search);
-      const openId = params.get("open");
-      if (!openId || posts.length === 0) return;
+      let openId = params.get("open");
+      let commentId = params.get("comment") ?? (params.get("comments") ? "last" : null);
+
+      if (!openId) {
+        const pending = sessionStorage.getItem("pending-open-post");
+        if (pending) {
+          try {
+            const parsed = JSON.parse(pending) as { id: string; comment: string | null };
+            openId = parsed.id;
+            commentId = parsed.comment ?? null;
+          } catch { /* ignore malformed payload */ }
+        }
+      }
+      if (!openId) return;
+      sessionStorage.removeItem("pending-open-post");
       const target = posts.find((p) => p.id === openId);
       if (!target) return;
       setEditing(target);
       setInitial(undefined);
-      setFocusedCommentId(params.get("comment") ?? (params.get("comments") ? "last" : null));
+      setFocusedCommentId(commentId);
       setEditorOpen(true);
       const url = new URL(window.location.href);
       url.searchParams.delete("open");
@@ -115,6 +134,7 @@ function PostsPage() {
     window.addEventListener("notification:navigate", openFromUrl);
     return () => window.removeEventListener("notification:navigate", openFromUrl);
   }, [posts]);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -284,13 +304,13 @@ function PostsPage() {
       {clientFilter !== "all" && (() => {
         const activeClient = clients.find((c) => c.id === clientFilter);
         if (!activeClient?.monthly_post_quota) return null;
-        const used = countMonthPosts(posts, clientFilter);
+        const used = countMonthPosts(posts, clientFilter, calendarMonth);
         return (
           <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Cota mensal — {activeClient.name}</p>
-                <p className="text-xs capitalize text-muted-foreground">{formatMonth()}</p>
+                <p className="text-xs capitalize text-muted-foreground">{formatMonth(calendarMonth)}</p>
               </div>
             </div>
             <QuotaBadge used={used} quota={activeClient.monthly_post_quota} />
@@ -333,6 +353,7 @@ function PostsPage() {
             onOpen={openExisting}
             onAddOn={(iso) => openNew({ scheduled_date: iso })}
             onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
+            onMonthChange={handleMonthChange}
           />
         )}
         {view === "list" && (
