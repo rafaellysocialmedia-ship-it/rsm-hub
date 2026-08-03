@@ -184,23 +184,24 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Plataforma</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {loading ? renderLoadingItem() : (isStaff ? staffMain : clientItems).map(renderItem)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {!loading && isStaff && (
+        {loading ? (
           <SidebarGroup>
             <SidebarGroupLabel>Workspace</SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>{staffWorkspace.map(renderItem)}</SidebarMenu>
+              <SidebarMenu>{renderLoadingItem()}</SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+        ) : (
+          (isStaff ? staffGroups : clientGroups).map((group) => (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>{group.items.map(renderItem)}</SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))
         )}
+
 
 
         {!loading && hasRole("administrator") && (
