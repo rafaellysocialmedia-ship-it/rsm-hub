@@ -8,19 +8,43 @@ export type PermissionAction = "view" | "create" | "edit" | "delete";
 
 export type PermissionRow = { module_key: string; action: string };
 
+export type ModuleRow = {
+  key: string;
+  label: string;
+  parent_key: string | null;
+  sector_key: string | null;
+  route: string | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
 /**
  * Dynamic module permissions for the current user.
  *
- * Backwards compatible by design: if the permission catalog has no entry for a
- * given module (new/legacy screens), access falls back to the legacy role model
- * so nothing that works today can break.
+ * Backwards compatible by design: modules that do not exist in the catalog
+ * (new or legacy screens) fall back to the legacy role model, so nothing that
+ * works today can break.
  */
 export function usePermissions() {
   const { user, hasRole, loading: authLoading } = useAuth();
   const isAdmin = hasRole("administrator");
   const isStaff = isAdmin || hasRole("team");
 
-  const { data, isLoading } = useQuery({
+  const { data: modules, isLoading: loadingModules } = useQuery({
+    queryKey: ["app-modules"],
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_modules")
+        .select("key,label,parent_key,sector_key,route,sort_order,is_active")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ModuleRow[];
+    },
+  });
+
+  const { data: perms, isLoading: loadingPerms } = useQuery({
     queryKey: ["my-permissions", user?.id],
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
@@ -31,33 +55,36 @@ export function usePermissions() {
     },
   });
 
-  const set = useMemo(() => {
-    const s = new Set<string>();
-    (data ?? []).forEach((p) => s.add(`${p.module_key}:${p.action}`));
-    return s;
-  }, [data]);
+  const loading = authLoading || loadingModules || loadingPerms;
 
-  const knownModules = useMemo(() => {
+  const granted = useMemo(() => {
     const s = new Set<string>();
-    (data ?? []).forEach((p) => s.add(p.module_key));
+    (perms ?? []).forEach((p) => s.add(`${p.module_key}:${p.action}`));
     return s;
-  }, [data]);
+  }, [perms]);
+
+  const catalog = useMemo(() => {
+    const s = new Set<string>();
+    (modules ?? []).forEach((m) => s.add(m.key));
+    return s;
+  }, [modules]);
 
   const can = (moduleKey: string, action: PermissionAction = "view") => {
     if (isAdmin) return true;
-    // no catalog data yet → fall back to legacy behaviour
-    if (isLoading || set.size === 0) return true;
-    if (set.has(`${moduleKey}:${action}`)) return true;
-    // module not present in the catalog at all → legacy fallback
-    if (!knownModules.has(moduleKey)) return isStaff || action === "view";
+    // catalog / permissions not loaded yet → keep legacy behaviour
+    if (loading) return true;
+    if (granted.has(`${moduleKey}:${action}`)) return true;
+    // module unknown to the catalog → legacy fallback
+    if (!catalog.has(moduleKey)) return isStaff || action === "view";
     return false;
   };
 
   return {
     can,
-    permissions: data ?? [],
+    modules: modules ?? [],
+    permissions: perms ?? [],
     isAdmin,
     isStaff,
-    loading: authLoading || isLoading,
+    loading,
   };
 }
