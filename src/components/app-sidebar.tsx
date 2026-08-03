@@ -37,12 +37,15 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { usePermissions } from "@/hooks/use-permissions";
 
 type NavItem = {
   title: string;
   url: string;
   icon: React.ComponentType<{ className?: string }>;
   soon?: boolean;
+  /** module key from the dynamic permission catalog (app_modules) */
+  module?: string;
 };
 
 type NavGroup = { label: string; items: NavItem[] };
@@ -51,43 +54,43 @@ const staffGroups: NavGroup[] = [
   {
     label: "Workspace",
     items: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Clientes", url: "/clients", icon: Briefcase },
-      { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
-      { title: "Reuniões", url: "/meetings", icon: Video },
-      { title: "Biblioteca", url: "/library", icon: FolderOpen },
-      { title: "Acessos", url: "/vault", icon: KeyRound },
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "workspace.dashboard" },
+      { title: "Clientes", url: "/clients", icon: Briefcase, module: "workspace.clients" },
+      { title: "Tarefas", url: "/tasks", icon: KanbanSquare, module: "workspace.tasks" },
+      { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
+      { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
+      { title: "Acessos", url: "/vault", icon: KeyRound, module: "workspace.vault" },
     ],
   },
   {
     label: "Social Media",
     items: [
-      { title: "Calendário", url: "/posts", icon: Calendar },
-      { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
-      { title: "Analytics", url: "/analytics", icon: BarChart3 },
-      { title: "Briefings", url: "/briefings", icon: ClipboardList },
-      { title: "IA", url: "/ai", icon: Bot },
+      { title: "Calendário", url: "/posts", icon: Calendar, module: "social.calendar" },
+      { title: "Aprovações", url: "/portal", icon: CheckCircle2, module: "social.approvals" },
+      { title: "Analytics", url: "/analytics", icon: BarChart3, module: "social.analytics" },
+      { title: "Briefings", url: "/briefings", icon: ClipboardList, module: "social.briefings" },
+      { title: "IA", url: "/ai", icon: Bot, module: "social.ai" },
     ],
   },
   {
     label: "Tráfego Pago",
     items: [
-      { title: "Dashboard", url: "/traffic", icon: Megaphone },
-      { title: "CRM", url: "/traffic/crm", icon: Users2 },
-      { title: "Analytics", url: "/traffic/analytics", icon: LineChart },
+      { title: "Dashboard", url: "/traffic", icon: Megaphone, module: "traffic.dashboard" },
+      { title: "CRM", url: "/traffic/crm", icon: Users2, module: "traffic.crm" },
+      { title: "Analytics", url: "/traffic/analytics", icon: LineChart, module: "traffic.analytics" },
     ],
   },
   {
     label: "Academy",
-    items: [{ title: "Cursos", url: "/courses", icon: GraduationCap }],
+    items: [{ title: "Cursos", url: "/courses", icon: GraduationCap, module: "academy.courses" }],
   },
   {
     label: "Marketplace",
-    items: [{ title: "Serviços", url: "/marketplace", icon: Store }],
+    items: [{ title: "Serviços", url: "/marketplace", icon: Store, module: "marketplace.services" }],
   },
   {
     label: "Financeiro",
-    items: [{ title: "Financeiro", url: "/finance", icon: CircleDollarSign }],
+    items: [{ title: "Financeiro", url: "/finance", icon: CircleDollarSign, module: "finance.dashboard" }],
   },
 ];
 
@@ -95,33 +98,33 @@ const clientGroups: NavGroup[] = [
   {
     label: "Workspace",
     items: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "Biblioteca", url: "/library", icon: FolderOpen },
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "workspace.dashboard" },
+      { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
     ],
   },
   {
     label: "Social Media",
     items: [
-      { title: "Calendário", url: "/portal/calendar", icon: Calendar },
-      { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
-      { title: "Analytics", url: "/analytics", icon: BarChart3 },
+      { title: "Calendário", url: "/portal/calendar", icon: Calendar, module: "social.calendar" },
+      { title: "Aprovações", url: "/portal", icon: CheckCircle2, module: "social.approvals" },
+      { title: "Analytics", url: "/analytics", icon: BarChart3, module: "social.analytics" },
     ],
   },
   {
     label: "Academy",
-    items: [{ title: "Cursos", url: "/courses", icon: GraduationCap }],
+    items: [{ title: "Cursos", url: "/courses", icon: GraduationCap, module: "academy.courses" }],
   },
   {
     label: "Marketplace",
-    items: [{ title: "Serviços", url: "/marketplace", icon: Store }],
+    items: [{ title: "Serviços", url: "/marketplace", icon: Store, module: "marketplace.services" }],
   },
 ];
 
 const adminItems: NavItem[] = [
-  { title: "Equipe", url: "/team", icon: Users },
-  { title: "Permissões", url: "/admin/permissions", icon: Shield },
-  { title: "Gerenciar Cursos", url: "/admin/courses", icon: GraduationCap },
-  { title: "Configurações", url: "/settings", icon: Settings },
+  { title: "Equipe", url: "/team", icon: Users, module: "management.team" },
+  { title: "Permissões", url: "/admin/permissions", icon: Shield, module: "management.permissions" },
+  { title: "Gerenciar Cursos", url: "/admin/courses", icon: GraduationCap, module: "management.courses" },
+  { title: "Configurações", url: "/settings", icon: Settings, module: "management.settings" },
 ];
 
 
@@ -129,8 +132,13 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (r) => r.location.pathname });
-  const { hasRole, loading } = useAuth();
+  const { hasRole, loading: authLoading } = useAuth();
+  const { can, loading: permsLoading } = usePermissions();
+  const loading = authLoading || permsLoading;
   const isStaff = hasRole("administrator") || hasRole("team");
+
+  const visibleItems = (items: NavItem[]) =>
+    items.filter((item) => !item.module || can(item.module, "view"));
 
   const isActive = (path: string) =>
     path === "/dashboard" ? currentPath === path : currentPath.startsWith(path);
@@ -192,14 +200,17 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         ) : (
-          (isStaff ? staffGroups : clientGroups).map((group) => (
-            <SidebarGroup key={group.label}>
-              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>{group.items.map(renderItem)}</SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))
+          (isStaff ? staffGroups : clientGroups)
+            .map((group) => ({ ...group, items: visibleItems(group.items) }))
+            .filter((group) => group.items.length > 0)
+            .map((group) => (
+              <SidebarGroup key={group.label}>
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>{group.items.map(renderItem)}</SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))
         )}
 
 
@@ -208,7 +219,7 @@ export function AppSidebar() {
           <SidebarGroup>
             <SidebarGroupLabel>Administração</SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>{adminItems.map(renderItem)}</SidebarMenu>
+              <SidebarMenu>{visibleItems(adminItems).map(renderItem)}</SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
