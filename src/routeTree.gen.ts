@@ -22,14 +22,18 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
 import { Route as AuthenticatedVaultIndexRouteImport } from './routes/_authenticated/vault.index'
+import { Route as AuthenticatedTrafficIndexRouteImport } from './routes/_authenticated/traffic.index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts.index'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
+import { Route as AuthenticatedMarketplaceIndexRouteImport } from './routes/_authenticated/marketplace.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedBriefingsIndexRouteImport } from './routes/_authenticated/briefings.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
+import { Route as AuthenticatedTrafficCrmRouteImport } from './routes/_authenticated/traffic.crm'
+import { Route as AuthenticatedTrafficAnalyticsRouteImport } from './routes/_authenticated/traffic.analytics'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
 import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
@@ -104,6 +108,12 @@ const AuthenticatedVaultIndexRoute = AuthenticatedVaultIndexRouteImport.update({
   path: '/vault/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTrafficIndexRoute =
+  AuthenticatedTrafficIndexRouteImport.update({
+    id: '/traffic/',
+    path: '/traffic/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
   id: '/tasks/',
   path: '/tasks/',
@@ -118,6 +128,12 @@ const AuthenticatedPortalIndexRoute =
   AuthenticatedPortalIndexRouteImport.update({
     id: '/portal/',
     path: '/portal/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMarketplaceIndexRoute =
+  AuthenticatedMarketplaceIndexRouteImport.update({
+    id: '/marketplace/',
+    path: '/marketplace/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLibraryIndexRoute =
@@ -149,6 +165,17 @@ const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAiRoute,
 } as any)
+const AuthenticatedTrafficCrmRoute = AuthenticatedTrafficCrmRouteImport.update({
+  id: '/traffic/crm',
+  path: '/traffic/crm',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTrafficAnalyticsRoute =
+  AuthenticatedTrafficAnalyticsRouteImport.update({
+    id: '/traffic/analytics',
+    path: '/traffic/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPortalCalendarRoute =
   AuthenticatedPortalCalendarRouteImport.update({
     id: '/portal/calendar',
@@ -222,14 +249,18 @@ export interface FileRoutesByFullPath {
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
+  '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
+  '/marketplace/': typeof AuthenticatedMarketplaceIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
   '/posts/': typeof AuthenticatedPostsIndexRoute
   '/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
 }
@@ -252,14 +283,18 @@ export interface FileRoutesByTo {
   '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
+  '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/briefings': typeof AuthenticatedBriefingsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
+  '/marketplace': typeof AuthenticatedMarketplaceIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
   '/posts': typeof AuthenticatedPostsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
+  '/traffic': typeof AuthenticatedTrafficIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
 }
@@ -285,14 +320,18 @@ export interface FileRoutesById {
   '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/_authenticated/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
+  '/_authenticated/traffic/crm': typeof AuthenticatedTrafficCrmRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
+  '/_authenticated/marketplace/': typeof AuthenticatedMarketplaceIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
   '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
+  '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
 }
@@ -318,14 +357,18 @@ export interface FileRouteTypes {
     | '/clients/$clientId'
     | '/courses/$courseId'
     | '/portal/calendar'
+    | '/traffic/analytics'
+    | '/traffic/crm'
     | '/ai/'
     | '/briefings/'
     | '/clients/'
     | '/courses/'
     | '/library/'
+    | '/marketplace/'
     | '/portal/'
     | '/posts/'
     | '/tasks/'
+    | '/traffic/'
     | '/vault/'
     | '/admin/courses/'
   fileRoutesByTo: FileRoutesByTo
@@ -348,14 +391,18 @@ export interface FileRouteTypes {
     | '/clients/$clientId'
     | '/courses/$courseId'
     | '/portal/calendar'
+    | '/traffic/analytics'
+    | '/traffic/crm'
     | '/ai'
     | '/briefings'
     | '/clients'
     | '/courses'
     | '/library'
+    | '/marketplace'
     | '/portal'
     | '/posts'
     | '/tasks'
+    | '/traffic'
     | '/vault'
     | '/admin/courses'
   id:
@@ -380,14 +427,18 @@ export interface FileRouteTypes {
     | '/_authenticated/clients/$clientId'
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/portal/calendar'
+    | '/_authenticated/traffic/analytics'
+    | '/_authenticated/traffic/crm'
     | '/_authenticated/ai/'
     | '/_authenticated/briefings/'
     | '/_authenticated/clients/'
     | '/_authenticated/courses/'
     | '/_authenticated/library/'
+    | '/_authenticated/marketplace/'
     | '/_authenticated/portal/'
     | '/_authenticated/posts/'
     | '/_authenticated/tasks/'
+    | '/_authenticated/traffic/'
     | '/_authenticated/vault/'
     | '/_authenticated/admin/courses/'
   fileRoutesById: FileRoutesById
@@ -493,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVaultIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/traffic/': {
+      id: '/_authenticated/traffic/'
+      path: '/traffic'
+      fullPath: '/traffic/'
+      preLoaderRoute: typeof AuthenticatedTrafficIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks/': {
       id: '/_authenticated/tasks/'
       path: '/tasks'
@@ -512,6 +570,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal/'
       preLoaderRoute: typeof AuthenticatedPortalIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/marketplace/': {
+      id: '/_authenticated/marketplace/'
+      path: '/marketplace'
+      fullPath: '/marketplace/'
+      preLoaderRoute: typeof AuthenticatedMarketplaceIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/library/': {
@@ -548,6 +613,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/ai/'
       preLoaderRoute: typeof AuthenticatedAiIndexRouteImport
       parentRoute: typeof AuthenticatedAiRoute
+    }
+    '/_authenticated/traffic/crm': {
+      id: '/_authenticated/traffic/crm'
+      path: '/traffic/crm'
+      fullPath: '/traffic/crm'
+      preLoaderRoute: typeof AuthenticatedTrafficCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/traffic/analytics': {
+      id: '/_authenticated/traffic/analytics'
+      path: '/traffic/analytics'
+      fullPath: '/traffic/analytics'
+      preLoaderRoute: typeof AuthenticatedTrafficAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/portal/calendar': {
       id: '/_authenticated/portal/calendar'
@@ -645,13 +724,17 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
+  AuthenticatedTrafficAnalyticsRoute: typeof AuthenticatedTrafficAnalyticsRoute
+  AuthenticatedTrafficCrmRoute: typeof AuthenticatedTrafficCrmRoute
   AuthenticatedBriefingsIndexRoute: typeof AuthenticatedBriefingsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
+  AuthenticatedMarketplaceIndexRoute: typeof AuthenticatedMarketplaceIndexRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
   AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
+  AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
 }
@@ -670,13 +753,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
+  AuthenticatedTrafficAnalyticsRoute: AuthenticatedTrafficAnalyticsRoute,
+  AuthenticatedTrafficCrmRoute: AuthenticatedTrafficCrmRoute,
   AuthenticatedBriefingsIndexRoute: AuthenticatedBriefingsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
+  AuthenticatedMarketplaceIndexRoute: AuthenticatedMarketplaceIndexRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
   AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
+  AuthenticatedTrafficIndexRoute: AuthenticatedTrafficIndexRoute,
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
 }
