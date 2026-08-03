@@ -17,6 +17,10 @@ import {
   BarChart3,
   ClipboardList,
   GraduationCap,
+  Megaphone,
+  Users2,
+  LineChart,
+  Store,
 } from "lucide-react";
 
 import {
@@ -41,32 +45,76 @@ type NavItem = {
   soon?: boolean;
 };
 
-const staffMain: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Clientes", url: "/clients", icon: Briefcase },
-  { title: "Calendário", url: "/posts", icon: Calendar },
-  { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
-  { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
-  { title: "Reuniões", url: "/meetings", icon: Video },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Cursos", url: "/courses", icon: GraduationCap },
+type NavGroup = { label: string; items: NavItem[] };
+
+const staffGroups: NavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Clientes", url: "/clients", icon: Briefcase },
+      { title: "Tarefas", url: "/tasks", icon: KanbanSquare },
+      { title: "Reuniões", url: "/meetings", icon: Video },
+      { title: "Biblioteca", url: "/library", icon: FolderOpen },
+      { title: "Acessos", url: "/vault", icon: KeyRound },
+    ],
+  },
+  {
+    label: "Social Media",
+    items: [
+      { title: "Calendário", url: "/posts", icon: Calendar },
+      { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
+      { title: "Analytics", url: "/analytics", icon: BarChart3 },
+      { title: "Briefings", url: "/briefings", icon: ClipboardList },
+      { title: "IA", url: "/ai", icon: Bot },
+    ],
+  },
+  {
+    label: "Tráfego Pago",
+    items: [
+      { title: "Dashboard", url: "/traffic", icon: Megaphone },
+      { title: "CRM", url: "/traffic/crm", icon: Users2 },
+      { title: "Analytics", url: "/traffic/analytics", icon: LineChart },
+    ],
+  },
+  {
+    label: "Academy",
+    items: [{ title: "Cursos", url: "/courses", icon: GraduationCap }],
+  },
+  {
+    label: "Marketplace",
+    items: [{ title: "Serviços", url: "/marketplace", icon: Store }],
+  },
+  {
+    label: "Financeiro",
+    items: [{ title: "Financeiro", url: "/finance", icon: CircleDollarSign }],
+  },
 ];
 
-const staffWorkspace: NavItem[] = [
-  { title: "Biblioteca", url: "/library", icon: FolderOpen },
-  { title: "Briefings", url: "/briefings", icon: ClipboardList },
-  { title: "Acessos", url: "/vault", icon: KeyRound },
-  { title: "IA", url: "/ai", icon: Bot },
-  { title: "Financeiro", url: "/finance", icon: CircleDollarSign },
-];
-
-const clientItems: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Calendário", url: "/portal/calendar", icon: Calendar },
-  { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Biblioteca", url: "/library", icon: FolderOpen },
-  { title: "Cursos", url: "/courses", icon: GraduationCap },
+const clientGroups: NavGroup[] = [
+  {
+    label: "Workspace",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Biblioteca", url: "/library", icon: FolderOpen },
+    ],
+  },
+  {
+    label: "Social Media",
+    items: [
+      { title: "Calendário", url: "/portal/calendar", icon: Calendar },
+      { title: "Aprovações", url: "/portal", icon: CheckCircle2 },
+      { title: "Analytics", url: "/analytics", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Academy",
+    items: [{ title: "Cursos", url: "/courses", icon: GraduationCap }],
+  },
+  {
+    label: "Marketplace",
+    items: [{ title: "Serviços", url: "/marketplace", icon: Store }],
+  },
 ];
 
 const adminItems: NavItem[] = [
@@ -75,6 +123,7 @@ const adminItems: NavItem[] = [
   { title: "Gerenciar Cursos", url: "/admin/courses", icon: GraduationCap },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
+
 
 export function AppSidebar() {
   const { state } = useSidebar();
