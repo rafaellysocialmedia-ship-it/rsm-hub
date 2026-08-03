@@ -91,6 +91,199 @@ export type Database = {
         }
         Relationships: []
       }
+      app_modules: {
+        Row: {
+          created_at: string
+          icon: string | null
+          is_active: boolean
+          key: string
+          label: string
+          parent_key: string | null
+          route: string | null
+          sector_key: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          is_active?: boolean
+          key: string
+          label: string
+          parent_key?: string | null
+          route?: string | null
+          sector_key?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          is_active?: boolean
+          key?: string
+          label?: string
+          parent_key?: string | null
+          route?: string | null
+          sector_key?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_modules_parent_key_fkey"
+            columns: ["parent_key"]
+            isOneToOne: false
+            referencedRelation: "app_modules"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "app_modules_sector_key_fkey"
+            columns: ["sector_key"]
+            isOneToOne: false
+            referencedRelation: "app_sectors"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      app_permissions: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          label: string | null
+          module_key: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          module_key: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          module_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_permissions_module_key_fkey"
+            columns: ["module_key"]
+            isOneToOne: false
+            referencedRelation: "app_modules"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      app_role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission_id: string
+          role_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission_id: string
+          role_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission_id?: string
+          role_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "app_permissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_role_permissions_role_key_fkey"
+            columns: ["role_key"]
+            isOneToOne: false
+            referencedRelation: "app_roles"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      app_roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          is_system: boolean
+          key: string
+          label: string
+          legacy_role: Database["public"]["Enums"]["app_role"] | null
+          sector_key: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          is_system?: boolean
+          key: string
+          label: string
+          legacy_role?: Database["public"]["Enums"]["app_role"] | null
+          sector_key?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          is_system?: boolean
+          key?: string
+          label?: string
+          legacy_role?: Database["public"]["Enums"]["app_role"] | null
+          sector_key?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_roles_sector_key_fkey"
+            columns: ["sector_key"]
+            isOneToOne: false
+            referencedRelation: "app_sectors"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      app_sectors: {
+        Row: {
+          created_at: string
+          description: string | null
+          key: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          key: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          key?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       briefing_template: {
         Row: {
           created_at: string
@@ -1583,6 +1776,38 @@ export type Database = {
           },
         ]
       }
+      user_app_roles: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          role_key: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role_key: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_app_roles_role_key_fkey"
+            columns: ["role_key"]
+            isOneToOne: false
+            referencedRelation: "app_roles"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1788,10 +2013,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      my_permissions: {
+        Args: never
+        Returns: {
+          action: string
+          module_key: string
+        }[]
+      }
       notify_client_deadlines: { Args: never; Returns: undefined }
       notify_overdue_and_upcoming: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      user_has_permission: {
+        Args: { _action?: string; _module: string; _user_id: string }
+        Returns: boolean
+      }
       user_owns_course: {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
