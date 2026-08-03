@@ -75,6 +75,8 @@ export function usePermissions() {
     if (loading) return true;
     // user has no dynamic role assignment yet → keep legacy behaviour
     if (granted.size === 0) return isStaff || action === "view";
+    if (granted.has(`${moduleKey}:${action}`)) return true;
+
 
     // module unknown to the catalog → legacy fallback
     if (!catalog.has(moduleKey)) return isStaff || action === "view";
