@@ -73,6 +73,108 @@ function initials(name: string | null, email: string | null) {
     .join("");
 }
 
+type AppRoleRow = {
+  key: string;
+  label: string;
+  description: string | null;
+  sector_key: string | null;
+  sort_order: number;
+};
+
+function RolesCatalogCard() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["app-roles-catalog"],
+    queryFn: async () => {
+      const [roles, assignments, rolePerms] = await Promise.all([
+        supabase
+          .from("app_roles")
+          .select("key,label,description,sector_key,sort_order")
+          .order("sort_order", { ascending: true }),
+        supabase.from("user_app_roles").select("role_key"),
+        supabase.from("app_role_permissions").select("role_key"),
+      ]);
+      if (roles.error) throw roles.error;
+      if (assignments.error) throw assignments.error;
+      if (rolePerms.error) throw rolePerms.error;
+
+      const users = new Map<string, number>();
+      (assignments.data ?? []).forEach((r) =>
+        users.set(r.role_key, (users.get(r.role_key) ?? 0) + 1),
+      );
+      const perms = new Map<string, number>();
+      (rolePerms.data ?? []).forEach((r) =>
+        perms.set(r.role_key, (perms.get(r.role_key) ?? 0) + 1),
+      );
+
+      return (roles.data ?? []).map((r) => ({
+        ...(r as AppRoleRow),
+        users: users.get(r.key) ?? 0,
+        permissions: perms.get(r.key) ?? 0,
+      }));
+    },
+  });
+
+  return (
+    <Card className="shadow-soft">
+      <CardHeader className="flex flex-col gap-1">
+        <CardTitle className="text-base">Papéis e permissões</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Perfis de acesso cadastrados no sistema. A edição das permissões por módulo será
+          liberada em breve.
+        </p>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-[220px]">Papel</TableHead>
+                <TableHead className="hidden md:table-cell">Descrição</TableHead>
+                <TableHead className="text-center">Usuários</TableHead>
+                <TableHead className="text-center">Permissões</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={4}>
+                      <Skeleton className="h-8 w-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              {!isLoading &&
+                (data ?? []).map((r) => (
+                  <TableRow key={r.key}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{r.label}</span>
+                        <span className="text-[11px] text-muted-foreground">{r.key}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden max-w-[420px] md:table-cell">
+                      <span className="text-xs text-muted-foreground">{r.description}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary" className="font-mono text-xs">
+                        {r.users}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {r.permissions}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function PermissionsPage() {
   const { user, hasRole, loading: authLoading } = useAuth();
   const isAdmin = hasRole("administrator");
@@ -225,6 +327,8 @@ function PermissionsPage() {
           value={totals.client}
         />
       </div>
+
+      <RolesCatalogCard />
 
       <Card className="shadow-soft">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
