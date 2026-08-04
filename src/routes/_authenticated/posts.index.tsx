@@ -350,37 +350,48 @@ function PostsPage() {
 
       {/* Views */}
       <div>
-        {view === "calendar" && (
-          <CalendarView
-            posts={filtered}
-            clientMap={clientMap}
-            onOpen={openExisting}
-            onAddOn={(iso) => openNew({ scheduled_date: iso })}
-            onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
-            onMonthChange={handleMonthChange}
-          />
+        {isLoading ? (
+          view === "calendar" ? <CalendarSkeleton /> : view === "table" ? <TableSkeleton /> : <ListSkeleton rows={7} />
+        ) : (
+          <Suspense
+            fallback={
+              view === "calendar" ? <CalendarSkeleton /> : view === "table" ? <TableSkeleton /> : <ListSkeleton rows={7} />
+            }
+          >
+            {view === "calendar" && (
+              <CalendarView
+                posts={filtered}
+                clientMap={clientMap}
+                onOpen={openExisting}
+                onAddOn={(iso) => openNew({ scheduled_date: iso })}
+                onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
+                onMonthChange={handleMonthChange}
+              />
+            )}
+            {view === "list" && (
+              <ListView
+                posts={filtered}
+                clientMap={clientMap}
+                onOpen={openExisting}
+                selected={selected}
+                onToggleSelect={toggleSelect}
+              />
+            )}
+            {view === "kanban" && (
+              <KanbanView
+                posts={filtered}
+                clientMap={clientMap}
+                onOpen={openExisting}
+                onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+                onAdd={(status) => openNew({ status })}
+              />
+            )}
+            {view === "timeline" && <TimelineView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
+            {view === "table" && <TableView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
+          </Suspense>
         )}
-        {view === "list" && (
-          <ListView
-            posts={filtered}
-            clientMap={clientMap}
-            onOpen={openExisting}
-            selected={selected}
-            onToggleSelect={toggleSelect}
-          />
-        )}
-        {view === "kanban" && (
-          <KanbanView
-            posts={filtered}
-            clientMap={clientMap}
-            onOpen={openExisting}
-            onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
-            onAdd={(status) => openNew({ status })}
-          />
-        )}
-        {view === "timeline" && <TimelineView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
-        {view === "table" && <TableView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
       </div>
+
 
       <PostEditorSheet
         open={editorOpen}
