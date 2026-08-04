@@ -476,10 +476,13 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
             <Radio className="h-3.5 w-3.5 text-emerald-500" />
           </CardHeader>
           <CardContent className="px-0">
-            {activity.length === 0 ? (
+            {activityLoading ? (
+              <ListSkeleton rows={5} className="px-6" />
+            ) : activity.length === 0 ? (
               <div className="px-6">
                 <EmptyState icon={Activity} title="Sem atividades" description="Ações recentes aparecerão aqui." />
               </div>
+
             ) : (
               <ul className="divide-y divide-border">
                 {activity.map((a) => {
