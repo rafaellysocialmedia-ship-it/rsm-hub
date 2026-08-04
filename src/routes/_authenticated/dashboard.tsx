@@ -137,8 +137,9 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     },
   });
 
-  const { data: activity = [] } = useQuery({
+  const { data: activity = [], isLoading: activityLoading } = useQuery({
     queryKey: ["dash-activity"],
+
     queryFn: async () => {
       const { data, error } = await supabase
         .from("post_activity_log")
