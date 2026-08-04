@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { lazy, Suspense, useEffect, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,18 +17,14 @@ import {
   Sparkles,
   Radio,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+// Gráficos (recharts) carregam sob demanda, depois dos cartões principais.
+const GrowthAreaChart = lazy(() =>
+  import("@/components/dashboard/charts").then((m) => ({ default: m.GrowthAreaChart })),
+);
+const StatusPieChart = lazy(() =>
+  import("@/components/dashboard/charts").then((m) => ({ default: m.StatusPieChart })),
+);
+
 import {
   format,
   startOfWeek,
