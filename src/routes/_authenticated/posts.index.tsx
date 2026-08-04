@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,15 +17,19 @@ import {
 } from "@/lib/posts";
 import type { Client } from "@/lib/clients";
 
-import { KanbanView } from "@/components/posts/views/kanban-view";
-import { CalendarView } from "@/components/posts/views/calendar-view";
-import { ListView } from "@/components/posts/views/list-view";
-import { TableView } from "@/components/posts/views/table-view";
-import { TimelineView } from "@/components/posts/views/timeline-view";
+// Visualizações carregam sob demanda — só a que o usuário abre entra no bundle.
+const KanbanView = lazy(() => import("@/components/posts/views/kanban-view").then((m) => ({ default: m.KanbanView })));
+const CalendarView = lazy(() => import("@/components/posts/views/calendar-view").then((m) => ({ default: m.CalendarView })));
+const ListView = lazy(() => import("@/components/posts/views/list-view").then((m) => ({ default: m.ListView })));
+const TableView = lazy(() => import("@/components/posts/views/table-view").then((m) => ({ default: m.TableView })));
+const TimelineView = lazy(() => import("@/components/posts/views/timeline-view").then((m) => ({ default: m.TimelineView })));
+
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
+import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
+
 
 export const Route = createFileRoute("/_authenticated/posts/")({
   head: () => ({
