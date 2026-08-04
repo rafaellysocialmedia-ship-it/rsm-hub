@@ -322,28 +322,9 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trend} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                  />
-                  <Area type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#g1)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <Suspense fallback={<ChartSkeleton />}>
+                <GrowthAreaChart data={trend} />
+              </Suspense>
             </div>
           </CardContent>
         </Card>
@@ -358,25 +339,12 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
               {metrics.total === 0 ? (
                 <EmptyMini label="Sem clientes ainda" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={distribution} dataKey="value" innerRadius={48} outerRadius={72} paddingAngle={2} stroke="none">
-                      {distribution.map((d) => (
-                        <Cell key={d.name} fill={d.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: "hsl(var(--popover))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: 8,
-                        fontSize: 12,
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                <Suspense fallback={<ChartSkeleton />}>
+                  <StatusPieChart data={distribution} />
+                </Suspense>
               )}
             </div>
+
             <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
               {distribution.map((d) => (
                 <div key={d.name} className="flex items-center gap-2">
