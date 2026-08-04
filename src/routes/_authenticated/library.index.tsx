@@ -28,6 +28,8 @@ import { FileThumbnail } from "@/components/library/file-thumbnail";
 import { FilePreviewDialog } from "@/components/library/file-preview-dialog";
 import { UploadDialog } from "@/components/library/upload-dialog";
 import { FolderDialog } from "@/components/library/folder-dialog";
+import { GridSkeleton } from "@/components/skeletons";
+
 
 export const Route = createFileRoute("/_authenticated/library/")({
   head: () => ({
