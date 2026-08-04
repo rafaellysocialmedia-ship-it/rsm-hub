@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
@@ -174,7 +174,7 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove, onMont
   );
 }
 
-function DayCell({
+const DayCell = memo(function DayCell({
   date, iso, inMonth, isToday, posts, commemoratives, clientMap, onOpen, onAdd,
 }: {
   date: Date; iso: string; inMonth: boolean; isToday: boolean;
@@ -295,9 +295,9 @@ function DayCell({
       </Dialog>
     </div>
   );
-}
+});
 
-function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map<string, string>; onOpen: (p: Post) => void }) {
+const CalendarEvent = memo(function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map<string, string>; onOpen: (p: Post) => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: post.id });
   const meta = statusMeta(post.status);
   const isRejected = post.status === ("rejected" as typeof post.status);
@@ -327,4 +327,4 @@ function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map
       </div>
     </div>
   );
-}
+});
