@@ -44,6 +44,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, type Client } from "@/lib/clients";
 import { cn } from "@/lib/utils";
+import { ChartSkeleton, ListSkeleton } from "@/components/skeletons";
+
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
