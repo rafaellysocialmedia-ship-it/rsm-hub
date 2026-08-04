@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,15 +17,20 @@ import {
 } from "@/lib/posts";
 import type { Client } from "@/lib/clients";
 
-import { KanbanView } from "@/components/posts/views/kanban-view";
-import { CalendarView } from "@/components/posts/views/calendar-view";
-import { ListView } from "@/components/posts/views/list-view";
-import { TableView } from "@/components/posts/views/table-view";
-import { TimelineView } from "@/components/posts/views/timeline-view";
+// Visualizações carregam sob demanda — só a que o usuário abre entra no bundle.
+const KanbanView = lazy(() => import("@/components/posts/views/kanban-view").then((m) => ({ default: m.KanbanView })));
+const CalendarView = lazy(() => import("@/components/posts/views/calendar-view").then((m) => ({ default: m.CalendarView })));
+const ListView = lazy(() => import("@/components/posts/views/list-view").then((m) => ({ default: m.ListView })));
+const TableView = lazy(() => import("@/components/posts/views/table-view").then((m) => ({ default: m.TableView })));
+const TimelineView = lazy(() => import("@/components/posts/views/timeline-view").then((m) => ({ default: m.TimelineView })));
+
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
+import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
+import { useStickyState } from "@/hooks/use-sticky-state";
+
 
 export const Route = createFileRoute("/_authenticated/posts/")({
   head: () => ({
@@ -41,11 +46,12 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
-  const [view, setView] = useState<ViewMode>("calendar");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<PostStatus | "all">("all");
-  const [clientFilter, setClientFilter] = useState<string>("all");
-  const [networkFilter, setNetworkFilter] = useState<string>("all");
+  // Filtros e visualização são preservados ao sair e voltar para a tela.
+  const [view, setView] = useStickyState<ViewMode>("posts:view", "calendar");
+  const [search, setSearch] = useStickyState<string>("posts:search", "");
+  const [statusFilter, setStatusFilter] = useStickyState<PostStatus | "all">("posts:status", "all");
+  const [clientFilter, setClientFilter] = useStickyState<string>("posts:client", "all");
+  const [networkFilter, setNetworkFilter] = useStickyState<string>("posts:network", "all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
@@ -346,37 +352,48 @@ function PostsPage() {
 
       {/* Views */}
       <div>
-        {view === "calendar" && (
-          <CalendarView
-            posts={filtered}
-            clientMap={clientMap}
-            onOpen={openExisting}
-            onAddOn={(iso) => openNew({ scheduled_date: iso })}
-            onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
-            onMonthChange={handleMonthChange}
-          />
+        {isLoading ? (
+          view === "calendar" ? <CalendarSkeleton /> : view === "table" ? <TableSkeleton /> : <ListSkeleton rows={7} />
+        ) : (
+          <Suspense
+            fallback={
+              view === "calendar" ? <CalendarSkeleton /> : view === "table" ? <TableSkeleton /> : <ListSkeleton rows={7} />
+            }
+          >
+            {view === "calendar" && (
+              <CalendarView
+                posts={filtered}
+                clientMap={clientMap}
+                onOpen={openExisting}
+                onAddOn={(iso) => openNew({ scheduled_date: iso })}
+                onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
+                onMonthChange={handleMonthChange}
+              />
+            )}
+            {view === "list" && (
+              <ListView
+                posts={filtered}
+                clientMap={clientMap}
+                onOpen={openExisting}
+                selected={selected}
+                onToggleSelect={toggleSelect}
+              />
+            )}
+            {view === "kanban" && (
+              <KanbanView
+                posts={filtered}
+                clientMap={clientMap}
+                onOpen={openExisting}
+                onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+                onAdd={(status) => openNew({ status })}
+              />
+            )}
+            {view === "timeline" && <TimelineView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
+            {view === "table" && <TableView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
+          </Suspense>
         )}
-        {view === "list" && (
-          <ListView
-            posts={filtered}
-            clientMap={clientMap}
-            onOpen={openExisting}
-            selected={selected}
-            onToggleSelect={toggleSelect}
-          />
-        )}
-        {view === "kanban" && (
-          <KanbanView
-            posts={filtered}
-            clientMap={clientMap}
-            onOpen={openExisting}
-            onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
-            onAdd={(status) => openNew({ status })}
-          />
-        )}
-        {view === "timeline" && <TimelineView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
-        {view === "table" && <TableView posts={filtered} clientMap={clientMap} onOpen={openExisting} />}
       </div>
+
 
       <PostEditorSheet
         open={editorOpen}

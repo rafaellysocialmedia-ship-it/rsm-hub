@@ -28,6 +28,8 @@ import { FileThumbnail } from "@/components/library/file-thumbnail";
 import { FilePreviewDialog } from "@/components/library/file-preview-dialog";
 import { UploadDialog } from "@/components/library/upload-dialog";
 import { FolderDialog } from "@/components/library/folder-dialog";
+import { GridSkeleton } from "@/components/skeletons";
+
 
 export const Route = createFileRoute("/_authenticated/library/")({
   head: () => ({
@@ -339,7 +341,7 @@ function LibraryPage() {
 
         {/* Files */}
         {isLoading ? (
-          <div className="rounded-xl border border-dashed border-border py-16 text-center text-sm text-muted-foreground">Carregando…</div>
+          <GridSkeleton count={6} />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">

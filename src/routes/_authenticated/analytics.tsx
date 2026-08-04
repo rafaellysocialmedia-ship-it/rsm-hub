@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { ListSkeleton } from "@/components/skeletons";
 import { MetricsDialog } from "@/components/analytics/metrics-dialog";
 import { BaselineDialog, type Baseline } from "@/components/analytics/baseline-dialog";
 import type { Database } from "@/integrations/supabase/types";
@@ -33,12 +34,18 @@ function AnalyticsPage() {
   const [editingPost, setEditingPost] = useState<{ postId: string; metric: Metric | null } | null>(null);
   const [baselineOpen, setBaselineOpen] = useState(false);
 
-  const { data: posts = [] } = useQuery({
+  const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ["analytics-posts"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("posts").select("*").in("status", ["published"]).order("scheduled_date", { ascending: false });
+      // Apenas os campos usados nesta tela — payload muito menor.
+      const { data, error } = await supabase
+        .from("posts")
+        .select("id,title,status,scheduled_date,client_id,social_network,social_networks")
+        .in("status", ["published"])
+        .order("scheduled_date", { ascending: false })
+        .limit(300);
       if (error) throw error;
-      return data as Post[];
+      return (data ?? []) as unknown as Post[];
     },
   });
 
@@ -175,7 +182,9 @@ function AnalyticsPage() {
           <CardTitle className="text-base">Publicações ({filteredPosts.length})</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {filteredPosts.length === 0 ? (
+          {postsLoading ? (
+            <ListSkeleton rows={6} />
+          ) : filteredPosts.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma publicação publicada ainda.</p>
           ) : (
             filteredPosts.map((p) => {

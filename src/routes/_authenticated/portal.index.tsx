@@ -24,6 +24,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import type { Client as ClientData } from "@/lib/clients";
 import { PostCreativeThumb, PostCreativeGallery } from "@/components/posts/post-creative-viewer";
+import { GridSkeleton } from "@/components/skeletons";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
@@ -62,7 +63,7 @@ function StaffApprovals() {
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [editingPost, setEditingPost] = useState<Post | null>(null);
 
-  const { data: posts = [] } = useQuery({
+  const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ["staff-approvals-posts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -205,7 +206,9 @@ function StaffApprovals() {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {postsLoading ? (
+        <GridSkeleton count={6} />
+      ) : filtered.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center gap-2 p-10 text-center">
             <CheckCircle2 className="h-8 w-8 text-muted-foreground" />

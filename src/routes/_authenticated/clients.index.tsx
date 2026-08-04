@@ -58,6 +58,7 @@ import {
 import { ClientLogo } from "@/components/clients/client-logo";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
+import { GridSkeleton } from "@/components/skeletons";
 import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts } from "@/lib/post-quota";
 import { JOURNEY_STAGES, journeyMeta, type JourneyStage } from "@/lib/journey";
@@ -321,7 +322,7 @@ function ClientsPage() {
 
       <div className="mt-6">
         {isLoading ? (
-          <EmptyState title="Carregando clientes…" />
+          <GridSkeleton count={6} />
         ) : filtered.length === 0 ? (
           <EmptyState
             title={clients.length === 0 ? "Nenhum cliente ainda" : "Nenhum resultado"}
