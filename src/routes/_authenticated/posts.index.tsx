@@ -29,6 +29,7 @@ import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
+import { useStickyState } from "@/hooks/use-sticky-state";
 
 
 export const Route = createFileRoute("/_authenticated/posts/")({
@@ -45,11 +46,12 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
-  const [view, setView] = useState<ViewMode>("calendar");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<PostStatus | "all">("all");
-  const [clientFilter, setClientFilter] = useState<string>("all");
-  const [networkFilter, setNetworkFilter] = useState<string>("all");
+  // Filtros e visualização são preservados ao sair e voltar para a tela.
+  const [view, setView] = useStickyState<ViewMode>("posts:view", "calendar");
+  const [search, setSearch] = useStickyState<string>("posts:search", "");
+  const [statusFilter, setStatusFilter] = useStickyState<PostStatus | "all">("posts:status", "all");
+  const [clientFilter, setClientFilter] = useStickyState<string>("posts:client", "all");
+  const [networkFilter, setNetworkFilter] = useStickyState<string>("posts:network", "all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
