@@ -130,10 +130,9 @@ function PostsPage() {
       sessionStorage.removeItem("pending-open-post");
       const target = posts.find((p) => p.id === openId);
       if (!target) return;
-      setEditing(target);
-      setInitial(undefined);
+      setDetailPost(target);
       setFocusedCommentId(commentId);
-      setEditorOpen(true);
+      setDetailOpen(true);
       const url = new URL(window.location.href);
       url.searchParams.delete("open");
       url.searchParams.delete("comment");
