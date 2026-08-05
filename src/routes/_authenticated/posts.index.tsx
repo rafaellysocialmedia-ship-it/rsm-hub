@@ -214,9 +214,14 @@ function PostsPage() {
     setEditorOpen(true);
   };
   const openExisting = (p: Post) => {
+    setDetailPost(p);
+    setFocusedCommentId(null);
+    setDetailOpen(true);
+  };
+  const editFromDetail = (p: Post) => {
+    setDetailOpen(false);
     setEditing(p);
     setInitial(undefined);
-    setFocusedCommentId(null);
     setEditorOpen(true);
   };
 
