@@ -280,6 +280,14 @@ function StaffApprovals() {
         </div>
       )}
 
+      <PostDetailSheet
+        post={detailPost}
+        open={!!detailPost}
+        onOpenChange={(o) => { if (!o) setDetailPost(null); }}
+        clientName={detailPost?.client_id ? clientMap.get(detailPost.client_id) ?? null : null}
+        onEdit={(p) => { setDetailPost(null); setEditingPost(p); }}
+      />
+
       <PostEditorSheet
         open={!!editingPost}
         onOpenChange={(o) => { if (!o) setEditingPost(null); }}
