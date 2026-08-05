@@ -63,6 +63,7 @@ function StaffApprovals() {
   const [tab, setTab] = useState<Decision | "all">("pending");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [detailPost, setDetailPost] = useState<Post | null>(null);
 
   const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ["staff-approvals-posts"],
