@@ -403,13 +403,26 @@ function PostsPage() {
       </div>
 
 
+      <Suspense fallback={null}>
+        {detailPost && (
+          <PostDetailSheet
+            post={detailPost}
+            open={detailOpen}
+            onOpenChange={(o) => { setDetailOpen(o); if (!o) setFocusedCommentId(null); }}
+            clientName={detailPost.client_id ? clientMap.get(detailPost.client_id) ?? null : null}
+            onEdit={editFromDetail}
+            focusedCommentId={focusedCommentId}
+          />
+        )}
+      </Suspense>
+
       <PostEditorSheet
         open={editorOpen}
         onOpenChange={setEditorOpen}
         post={editing}
         initial={initial}
         clients={clients}
-        focusedCommentId={focusedCommentId}
+        focusedCommentId={null}
       />
     </div>
   );
