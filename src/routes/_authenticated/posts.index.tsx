@@ -57,6 +57,9 @@ function PostsPage() {
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
   const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
+  // Visualização completa (leitura) — abre antes do editor
+  const [detailPost, setDetailPost] = useState<Post | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // Mês exibido no calendário — a contagem de cota acompanha esse mês
   const [calendarMonth, setCalendarMonth] = useState<Date>(() => new Date());
