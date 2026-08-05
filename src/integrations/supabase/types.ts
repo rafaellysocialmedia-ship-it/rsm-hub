@@ -1301,6 +1301,8 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_internal: boolean
+          parent_id: string | null
           post_id: string
         }
         Insert: {
@@ -1308,6 +1310,8 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_internal?: boolean
+          parent_id?: string | null
           post_id: string
         }
         Update: {
@@ -1315,9 +1319,18 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_internal?: boolean
+          parent_id?: string | null
           post_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "post_comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "post_comments_post_id_fkey"
             columns: ["post_id"]
@@ -1488,6 +1501,7 @@ export type Database = {
           hashtags: string | null
           headline: string | null
           id: string
+          internal_notes: string | null
           objective: string | null
           pillar: string | null
           position: number
@@ -1514,6 +1528,7 @@ export type Database = {
           hashtags?: string | null
           headline?: string | null
           id?: string
+          internal_notes?: string | null
           objective?: string | null
           pillar?: string | null
           position?: number
@@ -1540,6 +1555,7 @@ export type Database = {
           hashtags?: string | null
           headline?: string | null
           id?: string
+          internal_notes?: string | null
           objective?: string | null
           pillar?: string | null
           position?: number
