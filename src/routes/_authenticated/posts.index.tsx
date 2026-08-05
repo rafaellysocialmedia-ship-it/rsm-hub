@@ -25,6 +25,7 @@ const TableView = lazy(() => import("@/components/posts/views/table-view").then(
 const TimelineView = lazy(() => import("@/components/posts/views/timeline-view").then((m) => ({ default: m.TimelineView })));
 
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
+const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
 import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
@@ -56,6 +57,9 @@ function PostsPage() {
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
   const [focusedCommentId, setFocusedCommentId] = useState<string | null>(null);
+  // Visualização completa (leitura) — abre antes do editor
+  const [detailPost, setDetailPost] = useState<Post | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // Mês exibido no calendário — a contagem de cota acompanha esse mês
   const [calendarMonth, setCalendarMonth] = useState<Date>(() => new Date());
@@ -126,10 +130,9 @@ function PostsPage() {
       sessionStorage.removeItem("pending-open-post");
       const target = posts.find((p) => p.id === openId);
       if (!target) return;
-      setEditing(target);
-      setInitial(undefined);
+      setDetailPost(target);
       setFocusedCommentId(commentId);
-      setEditorOpen(true);
+      setDetailOpen(true);
       const url = new URL(window.location.href);
       url.searchParams.delete("open");
       url.searchParams.delete("comment");
@@ -211,9 +214,14 @@ function PostsPage() {
     setEditorOpen(true);
   };
   const openExisting = (p: Post) => {
+    setDetailPost(p);
+    setFocusedCommentId(null);
+    setDetailOpen(true);
+  };
+  const editFromDetail = (p: Post) => {
+    setDetailOpen(false);
     setEditing(p);
     setInitial(undefined);
-    setFocusedCommentId(null);
     setEditorOpen(true);
   };
 
@@ -395,13 +403,26 @@ function PostsPage() {
       </div>
 
 
+      <Suspense fallback={null}>
+        {detailPost && (
+          <PostDetailSheet
+            post={detailPost}
+            open={detailOpen}
+            onOpenChange={(o) => { setDetailOpen(o); if (!o) setFocusedCommentId(null); }}
+            clientName={detailPost.client_id ? clientMap.get(detailPost.client_id) ?? null : null}
+            onEdit={editFromDetail}
+            focusedCommentId={focusedCommentId}
+          />
+        )}
+      </Suspense>
+
       <PostEditorSheet
         open={editorOpen}
         onOpenChange={setEditorOpen}
         post={editing}
         initial={initial}
         clients={clients}
-        focusedCommentId={focusedCommentId}
+        focusedCommentId={null}
       />
     </div>
   );

@@ -25,6 +25,7 @@ import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import type { Client as ClientData } from "@/lib/clients";
 import { PostCreativeThumb, PostCreativeGallery } from "@/components/posts/post-creative-viewer";
 import { GridSkeleton } from "@/components/skeletons";
+import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
@@ -62,6 +63,7 @@ function StaffApprovals() {
   const [tab, setTab] = useState<Decision | "all">("pending");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [detailPost, setDetailPost] = useState<Post | null>(null);
 
   const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ["staff-approvals-posts"],
@@ -226,7 +228,7 @@ function StaffApprovals() {
             return (
               <Card
                 key={p.id}
-                onClick={() => setEditingPost(p)}
+                onClick={() => setDetailPost(p)}
                 className="cursor-pointer border-border/60 transition-colors hover:border-primary/40 hover:bg-muted/30"
               >
                 <CardHeader className="pb-3">
@@ -277,6 +279,14 @@ function StaffApprovals() {
           })}
         </div>
       )}
+
+      <PostDetailSheet
+        post={detailPost}
+        open={!!detailPost}
+        onOpenChange={(o) => { if (!o) setDetailPost(null); }}
+        clientName={detailPost?.client_id ? clientMap.get(detailPost.client_id) ?? null : null}
+        onEdit={(p) => { setDetailPost(null); setEditingPost(p); }}
+      />
 
       <PostEditorSheet
         open={!!editingPost}
