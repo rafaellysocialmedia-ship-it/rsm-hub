@@ -25,6 +25,7 @@ import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import type { Client as ClientData } from "@/lib/clients";
 import { PostCreativeThumb, PostCreativeGallery } from "@/components/posts/post-creative-viewer";
 import { GridSkeleton } from "@/components/skeletons";
+import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
