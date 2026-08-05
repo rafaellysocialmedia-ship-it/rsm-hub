@@ -228,7 +228,7 @@ function StaffApprovals() {
             return (
               <Card
                 key={p.id}
-                onClick={() => setEditingPost(p)}
+                onClick={() => setDetailPost(p)}
                 className="cursor-pointer border-border/60 transition-colors hover:border-primary/40 hover:bg-muted/30"
               >
                 <CardHeader className="pb-3">
