@@ -42,7 +42,9 @@ import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
+import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
+import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -222,10 +224,22 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedManagementClientsIndexRoute =
+  AuthenticatedManagementClientsIndexRouteImport.update({
+    id: '/management/clients/',
+    path: '/management/clients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminCoursesIndexRoute =
   AuthenticatedAdminCoursesIndexRouteImport.update({
     id: '/admin/courses/',
     path: '/admin/courses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedManagementClientsClientIdRoute =
+  AuthenticatedManagementClientsClientIdRouteImport.update({
+    id: '/management/clients/$clientId',
+    path: '/management/clients/$clientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -262,7 +276,9 @@ export interface FileRoutesByFullPath {
   '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
+  '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
+  '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -296,7 +312,9 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/traffic': typeof AuthenticatedTrafficIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
+  '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
+  '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -333,7 +351,9 @@ export interface FileRoutesById {
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
+  '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
+  '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -370,7 +390,9 @@ export interface FileRouteTypes {
     | '/tasks/'
     | '/traffic/'
     | '/vault/'
+    | '/management/clients/$clientId'
     | '/admin/courses/'
+    | '/management/clients/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -404,7 +426,9 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/traffic'
     | '/vault'
+    | '/management/clients/$clientId'
     | '/admin/courses'
+    | '/management/clients'
   id:
     | '__root__'
     | '/'
@@ -440,7 +464,9 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks/'
     | '/_authenticated/traffic/'
     | '/_authenticated/vault/'
+    | '/_authenticated/management/clients/$clientId'
     | '/_authenticated/admin/courses/'
+    | '/_authenticated/management/clients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -684,11 +710,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/management/clients/': {
+      id: '/_authenticated/management/clients/'
+      path: '/management/clients'
+      fullPath: '/management/clients/'
+      preLoaderRoute: typeof AuthenticatedManagementClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/courses/': {
       id: '/_authenticated/admin/courses/'
       path: '/admin/courses'
       fullPath: '/admin/courses/'
       preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/management/clients/$clientId': {
+      id: '/_authenticated/management/clients/$clientId'
+      path: '/management/clients/$clientId'
+      fullPath: '/management/clients/$clientId'
+      preLoaderRoute: typeof AuthenticatedManagementClientsClientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
@@ -736,7 +776,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
+  AuthenticatedManagementClientsClientIdRoute: typeof AuthenticatedManagementClientsClientIdRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
+  AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -765,7 +807,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedTrafficIndexRoute: AuthenticatedTrafficIndexRoute,
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
+  AuthenticatedManagementClientsClientIdRoute:
+    AuthenticatedManagementClientsClientIdRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
+  AuthenticatedManagementClientsIndexRoute:
+    AuthenticatedManagementClientsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

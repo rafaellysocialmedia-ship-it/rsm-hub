@@ -358,6 +358,53 @@ export type Database = {
           },
         ]
       }
+      client_accounts: {
+        Row: {
+          category: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          identifier: string | null
+          notes: string | null
+          platform: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          identifier?: string | null
+          notes?: string | null
+          platform: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          identifier?: string | null
+          notes?: string | null
+          platform?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_baselines: {
         Row: {
           avg_comments: number
@@ -485,6 +532,88 @@ export type Database = {
           },
         ]
       }
+      client_integrations: {
+        Row: {
+          client_id: string
+          config: Json
+          created_at: string
+          id: string
+          notes: string | null
+          provider: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          config?: Json
+          created_at?: string
+          id?: string
+          notes?: string | null
+          provider: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          notes?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_integrations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_internal_messages: {
+        Row: {
+          attachments: Json
+          author_id: string
+          client_id: string
+          content: string
+          created_at: string
+          id: string
+          mentions: string[]
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json
+          author_id: string
+          client_id: string
+          content: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json
+          author_id?: string
+          client_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          mentions?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_internal_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_journey_events: {
         Row: {
           changed_by: string | null
@@ -573,9 +702,180 @@ export type Database = {
           },
         ]
       }
+      client_section_visibility: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          id: string
+          section_key: string
+          sectors: string[]
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          section_key: string
+          sectors?: string[]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          section_key?: string
+          sectors?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_section_visibility_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_services: {
+        Row: {
+          amount: number | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          notes: string | null
+          service_key: string
+          situation: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          notes?: string | null
+          service_key: string
+          situation?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          notes?: string | null
+          service_key?: string
+          situation?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_team_members: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          role_label: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          role_label: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          role_label?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_team_members_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_timeline: {
+        Row: {
+          actor_id: string | null
+          client_id: string
+          created_at: string
+          detail: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          title: string
+        }
+        Insert: {
+          actor_id?: string | null
+          client_id: string
+          created_at?: string
+          detail?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          title: string
+        }
+        Update: {
+          actor_id?: string | null
+          client_id?: string
+          created_at?: string
+          detail?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_timeline_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
+          account_manager_id: string | null
+          address: string | null
+          city: string | null
           cnpj: string | null
+          company_size: string | null
           created_at: string
           created_by: string | null
           editorial_deadline: string | null
@@ -592,15 +892,26 @@ export type Database = {
           plan: string | null
           profile_project_deadline: string | null
           responsible: string | null
+          responsible_role: string | null
           segment: string | null
+          social_manager_id: string | null
           start_date: string | null
+          state: string | null
+          state_registration: string | null
           status: Database["public"]["Enums"]["client_status"]
+          trade_name: string | null
+          traffic_manager_id: string | null
           updated_at: string
           user_id: string | null
           whatsapp: string | null
+          zip_code: string | null
         }
         Insert: {
+          account_manager_id?: string | null
+          address?: string | null
+          city?: string | null
           cnpj?: string | null
+          company_size?: string | null
           created_at?: string
           created_by?: string | null
           editorial_deadline?: string | null
@@ -617,15 +928,26 @@ export type Database = {
           plan?: string | null
           profile_project_deadline?: string | null
           responsible?: string | null
+          responsible_role?: string | null
           segment?: string | null
+          social_manager_id?: string | null
           start_date?: string | null
+          state?: string | null
+          state_registration?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          trade_name?: string | null
+          traffic_manager_id?: string | null
           updated_at?: string
           user_id?: string | null
           whatsapp?: string | null
+          zip_code?: string | null
         }
         Update: {
+          account_manager_id?: string | null
+          address?: string | null
+          city?: string | null
           cnpj?: string | null
+          company_size?: string | null
           created_at?: string
           created_by?: string | null
           editorial_deadline?: string | null
@@ -642,12 +964,19 @@ export type Database = {
           plan?: string | null
           profile_project_deadline?: string | null
           responsible?: string | null
+          responsible_role?: string | null
           segment?: string | null
+          social_manager_id?: string | null
           start_date?: string | null
+          state?: string | null
+          state_registration?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          trade_name?: string | null
+          traffic_manager_id?: string | null
           updated_at?: string
           user_id?: string | null
           whatsapp?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }
