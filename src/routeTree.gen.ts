@@ -42,6 +42,7 @@ import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
+import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -222,6 +223,12 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedManagementClientsIndexRoute =
+  AuthenticatedManagementClientsIndexRouteImport.update({
+    id: '/management/clients/',
+    path: '/management/clients/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminCoursesIndexRoute =
   AuthenticatedAdminCoursesIndexRouteImport.update({
     id: '/admin/courses/',
@@ -263,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
+  '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -297,6 +305,7 @@ export interface FileRoutesByTo {
   '/traffic': typeof AuthenticatedTrafficIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
+  '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -334,6 +343,7 @@ export interface FileRoutesById {
   '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
+  '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/traffic/'
     | '/vault/'
     | '/admin/courses/'
+    | '/management/clients/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/traffic'
     | '/vault'
     | '/admin/courses'
+    | '/management/clients'
   id:
     | '__root__'
     | '/'
@@ -441,6 +453,7 @@ export interface FileRouteTypes {
     | '/_authenticated/traffic/'
     | '/_authenticated/vault/'
     | '/_authenticated/admin/courses/'
+    | '/_authenticated/management/clients/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -684,6 +697,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/management/clients/': {
+      id: '/_authenticated/management/clients/'
+      path: '/management/clients'
+      fullPath: '/management/clients/'
+      preLoaderRoute: typeof AuthenticatedManagementClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/courses/': {
       id: '/_authenticated/admin/courses/'
       path: '/admin/courses'
@@ -737,6 +757,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
+  AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -766,6 +787,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTrafficIndexRoute: AuthenticatedTrafficIndexRoute,
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
+  AuthenticatedManagementClientsIndexRoute:
+    AuthenticatedManagementClientsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -781,13 +804,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
