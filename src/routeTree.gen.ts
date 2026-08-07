@@ -44,6 +44,7 @@ import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
+import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -235,6 +236,12 @@ const AuthenticatedAdminCoursesIndexRoute =
     path: '/admin/courses/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedManagementClientsClientIdRoute =
+  AuthenticatedManagementClientsClientIdRouteImport.update({
+    id: '/management/clients/$clientId',
+    path: '/management/clients/$clientId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
+  '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
 }
@@ -304,6 +312,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksIndexRoute
   '/traffic': typeof AuthenticatedTrafficIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
+  '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
 }
@@ -342,6 +351,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
+  '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
 }
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/tasks/'
     | '/traffic/'
     | '/vault/'
+    | '/management/clients/$clientId'
     | '/admin/courses/'
     | '/management/clients/'
   fileRoutesByTo: FileRoutesByTo
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/traffic'
     | '/vault'
+    | '/management/clients/$clientId'
     | '/admin/courses'
     | '/management/clients'
   id:
@@ -452,6 +464,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks/'
     | '/_authenticated/traffic/'
     | '/_authenticated/vault/'
+    | '/_authenticated/management/clients/$clientId'
     | '/_authenticated/admin/courses/'
     | '/_authenticated/management/clients/'
   fileRoutesById: FileRoutesById
@@ -711,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/management/clients/$clientId': {
+      id: '/_authenticated/management/clients/$clientId'
+      path: '/management/clients/$clientId'
+      fullPath: '/management/clients/$clientId'
+      preLoaderRoute: typeof AuthenticatedManagementClientsClientIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -756,6 +776,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
+  AuthenticatedManagementClientsClientIdRoute: typeof AuthenticatedManagementClientsClientIdRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
   AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
 }
@@ -786,6 +807,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedTrafficIndexRoute: AuthenticatedTrafficIndexRoute,
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
+  AuthenticatedManagementClientsClientIdRoute:
+    AuthenticatedManagementClientsClientIdRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
   AuthenticatedManagementClientsIndexRoute:
     AuthenticatedManagementClientsIndexRoute,
