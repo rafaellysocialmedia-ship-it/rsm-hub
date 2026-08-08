@@ -130,7 +130,7 @@ const clientGroups: NavGroup[] = [
 ];
 
 const adminItems: NavItem[] = [
-  { title: "Clientes (Gerência)", url: "/management/clients", icon: Building2, module: "management.clients" },
+
   { title: "Equipe", url: "/team", icon: Users, module: "management.team" },
   { title: "Permissões", url: "/admin/permissions", icon: Shield, module: "management.permissions" },
   { title: "Gerenciar Cursos", url: "/admin/courses", icon: GraduationCap, module: "management.courses" },
