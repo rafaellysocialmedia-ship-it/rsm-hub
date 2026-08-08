@@ -45,6 +45,7 @@ import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
+import { Route as AuthenticatedTrafficCampaignsCampaignIdRouteImport } from './routes/_authenticated/traffic.campaigns.$campaignId'
 import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -243,6 +244,12 @@ const AuthenticatedAdminCoursesIndexRoute =
     path: '/admin/courses/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTrafficCampaignsCampaignIdRoute =
+  AuthenticatedTrafficCampaignsCampaignIdRouteImport.update({
+    id: '/traffic/campaigns/$campaignId',
+    path: '/traffic/campaigns/$campaignId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedManagementClientsClientIdRoute =
   AuthenticatedManagementClientsClientIdRouteImport.update({
     id: '/management/clients/$clientId',
@@ -284,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
+  '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
   '/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -321,6 +329,7 @@ export interface FileRoutesByTo {
   '/traffic': typeof AuthenticatedTrafficIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
+  '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
   '/traffic/campaigns': typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -361,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
   '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
+  '/_authenticated/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
   '/_authenticated/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/traffic/'
     | '/vault/'
     | '/management/clients/$clientId'
+    | '/traffic/campaigns/$campaignId'
     | '/admin/courses/'
     | '/management/clients/'
     | '/traffic/campaigns/'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/traffic'
     | '/vault'
     | '/management/clients/$clientId'
+    | '/traffic/campaigns/$campaignId'
     | '/admin/courses'
     | '/management/clients'
     | '/traffic/campaigns'
@@ -477,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/traffic/'
     | '/_authenticated/vault/'
     | '/_authenticated/management/clients/$clientId'
+    | '/_authenticated/traffic/campaigns/$campaignId'
     | '/_authenticated/admin/courses/'
     | '/_authenticated/management/clients/'
     | '/_authenticated/traffic/campaigns/'
@@ -744,6 +757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/traffic/campaigns/$campaignId': {
+      id: '/_authenticated/traffic/campaigns/$campaignId'
+      path: '/traffic/campaigns/$campaignId'
+      fullPath: '/traffic/campaigns/$campaignId'
+      preLoaderRoute: typeof AuthenticatedTrafficCampaignsCampaignIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/management/clients/$clientId': {
       id: '/_authenticated/management/clients/$clientId'
       path: '/management/clients/$clientId'
@@ -797,6 +817,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
   AuthenticatedManagementClientsClientIdRoute: typeof AuthenticatedManagementClientsClientIdRoute
+  AuthenticatedTrafficCampaignsCampaignIdRoute: typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
   AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
   AuthenticatedTrafficCampaignsIndexRoute: typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -830,6 +851,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
   AuthenticatedManagementClientsClientIdRoute:
     AuthenticatedManagementClientsClientIdRoute,
+  AuthenticatedTrafficCampaignsCampaignIdRoute:
+    AuthenticatedTrafficCampaignsCampaignIdRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
   AuthenticatedManagementClientsIndexRoute:
     AuthenticatedManagementClientsIndexRoute,
