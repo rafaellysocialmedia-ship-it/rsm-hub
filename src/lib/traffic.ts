@@ -107,7 +107,16 @@ export type MetricTotals = {
 };
 
 export function sumMetrics(rows: Pick<TrafficMetric, "spend" | "clicks" | "impressions" | "reach" | "leads" | "conversions" | "revenue">[]): MetricTotals {
-  const t = rows.reduce(
+  const t = rows.reduce<{
+    spend: number;
+    clicks: number;
+    impressions: number;
+    reach: number;
+    leads: number;
+    conversions: number;
+    revenue: number;
+  }>(
+
     (acc, r) => ({
       spend: acc.spend + Number(r.spend ?? 0),
       clicks: acc.clicks + (r.clicks ?? 0),
