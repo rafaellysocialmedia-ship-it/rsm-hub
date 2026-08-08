@@ -532,6 +532,62 @@ export type Database = {
           },
         ]
       }
+      client_digital_assets: {
+        Row: {
+          asset_type: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          identifier: string | null
+          label: string | null
+          notes: string | null
+          provider: string | null
+          status: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          asset_type: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          identifier?: string | null
+          label?: string | null
+          notes?: string | null
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          asset_type?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          identifier?: string | null
+          label?: string | null
+          notes?: string | null
+          provider?: string | null
+          status?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_digital_assets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_integrations: {
         Row: {
           client_id: string
@@ -1409,6 +1465,65 @@ export type Database = {
           },
         ]
       }
+      landing_pages: {
+        Row: {
+          builder: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          domain: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string | null
+          production_url: string | null
+          published_at: string | null
+          staging_url: string | null
+          status: Database["public"]["Enums"]["landing_page_status"]
+          updated_at: string
+        }
+        Insert: {
+          builder?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          domain?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id?: string | null
+          production_url?: string | null
+          published_at?: string | null
+          staging_url?: string | null
+          status?: Database["public"]["Enums"]["landing_page_status"]
+          updated_at?: string
+        }
+        Update: {
+          builder?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          domain?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string | null
+          production_url?: string | null
+          published_at?: string | null
+          staging_url?: string | null
+          status?: Database["public"]["Enums"]["landing_page_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "landing_pages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           client_id: string | null
@@ -2121,6 +2236,205 @@ export type Database = {
           },
         ]
       }
+      traffic_campaigns: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          daily_budget: number | null
+          end_date: string | null
+          external_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          objective: Database["public"]["Enums"]["traffic_objective"]
+          owner_id: string | null
+          platform: Database["public"]["Enums"]["traffic_platform"]
+          start_date: string | null
+          status: Database["public"]["Enums"]["traffic_campaign_status"]
+          total_budget: number | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          daily_budget?: number | null
+          end_date?: string | null
+          external_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          objective?: Database["public"]["Enums"]["traffic_objective"]
+          owner_id?: string | null
+          platform?: Database["public"]["Enums"]["traffic_platform"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["traffic_campaign_status"]
+          total_budget?: number | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          daily_budget?: number | null
+          end_date?: string | null
+          external_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          objective?: Database["public"]["Enums"]["traffic_objective"]
+          owner_id?: string | null
+          platform?: Database["public"]["Enums"]["traffic_platform"]
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["traffic_campaign_status"]
+          total_budget?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_campaigns_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      traffic_leads: {
+        Row: {
+          campaign_id: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          platform: Database["public"]["Enums"]["traffic_platform"] | null
+          position: number
+          source: string | null
+          stage: Database["public"]["Enums"]["traffic_lead_stage"]
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          platform?: Database["public"]["Enums"]["traffic_platform"] | null
+          position?: number
+          source?: string | null
+          stage?: Database["public"]["Enums"]["traffic_lead_stage"]
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          campaign_id?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          platform?: Database["public"]["Enums"]["traffic_platform"] | null
+          position?: number
+          source?: string | null
+          stage?: Database["public"]["Enums"]["traffic_lead_stage"]
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_leads_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "traffic_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traffic_leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      traffic_metrics: {
+        Row: {
+          campaign_id: string
+          clicks: number
+          collected_at: string
+          conversions: number
+          created_at: string
+          created_by: string | null
+          id: string
+          impressions: number
+          leads: number
+          notes: string | null
+          reach: number
+          revenue: number | null
+          roas: number | null
+          spend: number
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          clicks?: number
+          collected_at?: string
+          conversions?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          impressions?: number
+          leads?: number
+          notes?: string | null
+          reach?: number
+          revenue?: number | null
+          roas?: number | null
+          spend?: number
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          clicks?: number
+          collected_at?: string
+          conversions?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          impressions?: number
+          leads?: number
+          notes?: string | null
+          reach?: number
+          revenue?: number | null
+          roas?: number | null
+          spend?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_metrics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "traffic_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_app_roles: {
         Row: {
           assigned_by: string | null
@@ -2460,6 +2774,7 @@ export type Database = {
         | "projeto_perfil"
       finance_status: "pending" | "paid" | "overdue" | "cancelled"
       finance_type: "income" | "expense"
+      landing_page_status: "development" | "review" | "published" | "paused"
       post_status:
         | "idea"
         | "production"
@@ -2475,6 +2790,28 @@ export type Database = {
         | "editing"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "production" | "waiting_client" | "review" | "done"
+      traffic_campaign_status: "setup" | "active" | "paused" | "ended"
+      traffic_lead_stage:
+        | "new"
+        | "first_contact"
+        | "in_service"
+        | "proposal"
+        | "client"
+        | "lost"
+      traffic_objective:
+        | "leads"
+        | "conversions"
+        | "whatsapp"
+        | "messages"
+        | "traffic"
+        | "awareness"
+        | "sales"
+      traffic_platform:
+        | "meta_ads"
+        | "google_ads"
+        | "tiktok_ads"
+        | "linkedin_ads"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2632,6 +2969,7 @@ export const Constants = {
       ],
       finance_status: ["pending", "paid", "overdue", "cancelled"],
       finance_type: ["income", "expense"],
+      landing_page_status: ["development", "review", "published", "paused"],
       post_status: [
         "idea",
         "production",
@@ -2648,6 +2986,31 @@ export const Constants = {
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "production", "waiting_client", "review", "done"],
+      traffic_campaign_status: ["setup", "active", "paused", "ended"],
+      traffic_lead_stage: [
+        "new",
+        "first_contact",
+        "in_service",
+        "proposal",
+        "client",
+        "lost",
+      ],
+      traffic_objective: [
+        "leads",
+        "conversions",
+        "whatsapp",
+        "messages",
+        "traffic",
+        "awareness",
+        "sales",
+      ],
+      traffic_platform: [
+        "meta_ads",
+        "google_ads",
+        "tiktok_ads",
+        "linkedin_ads",
+        "other",
+      ],
     },
   },
 } as const

@@ -32,6 +32,7 @@ import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedBriefingsIndexRouteImport } from './routes/_authenticated/briefings.index'
 import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
+import { Route as AuthenticatedTrafficLandingPagesRouteImport } from './routes/_authenticated/traffic.landing-pages'
 import { Route as AuthenticatedTrafficCrmRouteImport } from './routes/_authenticated/traffic.crm'
 import { Route as AuthenticatedTrafficAnalyticsRouteImport } from './routes/_authenticated/traffic.analytics'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
@@ -42,8 +43,10 @@ import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
+import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
+import { Route as AuthenticatedTrafficCampaignsCampaignIdRouteImport } from './routes/_authenticated/traffic.campaigns.$campaignId'
 import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -167,6 +170,12 @@ const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAiRoute,
 } as any)
+const AuthenticatedTrafficLandingPagesRoute =
+  AuthenticatedTrafficLandingPagesRouteImport.update({
+    id: '/traffic/landing-pages',
+    path: '/traffic/landing-pages',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTrafficCrmRoute = AuthenticatedTrafficCrmRouteImport.update({
   id: '/traffic/crm',
   path: '/traffic/crm',
@@ -224,6 +233,12 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTrafficCampaignsIndexRoute =
+  AuthenticatedTrafficCampaignsIndexRouteImport.update({
+    id: '/traffic/campaigns/',
+    path: '/traffic/campaigns/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedManagementClientsIndexRoute =
   AuthenticatedManagementClientsIndexRouteImport.update({
     id: '/management/clients/',
@@ -234,6 +249,12 @@ const AuthenticatedAdminCoursesIndexRoute =
   AuthenticatedAdminCoursesIndexRouteImport.update({
     id: '/admin/courses/',
     path: '/admin/courses/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrafficCampaignsCampaignIdRoute =
+  AuthenticatedTrafficCampaignsCampaignIdRouteImport.update({
+    id: '/traffic/campaigns/$campaignId',
+    path: '/traffic/campaigns/$campaignId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedManagementClientsClientIdRoute =
@@ -265,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
+  '/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
   '/ai/': typeof AuthenticatedAiIndexRoute
   '/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
@@ -277,8 +299,10 @@ export interface FileRoutesByFullPath {
   '/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/vault/': typeof AuthenticatedVaultIndexRoute
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
+  '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
+  '/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -301,6 +325,7 @@ export interface FileRoutesByTo {
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
+  '/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
   '/ai': typeof AuthenticatedAiIndexRoute
   '/briefings': typeof AuthenticatedBriefingsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
@@ -313,8 +338,10 @@ export interface FileRoutesByTo {
   '/traffic': typeof AuthenticatedTrafficIndexRoute
   '/vault': typeof AuthenticatedVaultIndexRoute
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
+  '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
+  '/traffic/campaigns': typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -340,6 +367,7 @@ export interface FileRoutesById {
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/_authenticated/traffic/crm': typeof AuthenticatedTrafficCrmRoute
+  '/_authenticated/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
   '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
   '/_authenticated/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
@@ -352,8 +380,10 @@ export interface FileRoutesById {
   '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
   '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
+  '/_authenticated/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
+  '/_authenticated/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -379,6 +409,7 @@ export interface FileRouteTypes {
     | '/portal/calendar'
     | '/traffic/analytics'
     | '/traffic/crm'
+    | '/traffic/landing-pages'
     | '/ai/'
     | '/briefings/'
     | '/clients/'
@@ -391,8 +422,10 @@ export interface FileRouteTypes {
     | '/traffic/'
     | '/vault/'
     | '/management/clients/$clientId'
+    | '/traffic/campaigns/$campaignId'
     | '/admin/courses/'
     | '/management/clients/'
+    | '/traffic/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -415,6 +448,7 @@ export interface FileRouteTypes {
     | '/portal/calendar'
     | '/traffic/analytics'
     | '/traffic/crm'
+    | '/traffic/landing-pages'
     | '/ai'
     | '/briefings'
     | '/clients'
@@ -427,8 +461,10 @@ export interface FileRouteTypes {
     | '/traffic'
     | '/vault'
     | '/management/clients/$clientId'
+    | '/traffic/campaigns/$campaignId'
     | '/admin/courses'
     | '/management/clients'
+    | '/traffic/campaigns'
   id:
     | '__root__'
     | '/'
@@ -453,6 +489,7 @@ export interface FileRouteTypes {
     | '/_authenticated/portal/calendar'
     | '/_authenticated/traffic/analytics'
     | '/_authenticated/traffic/crm'
+    | '/_authenticated/traffic/landing-pages'
     | '/_authenticated/ai/'
     | '/_authenticated/briefings/'
     | '/_authenticated/clients/'
@@ -465,8 +502,10 @@ export interface FileRouteTypes {
     | '/_authenticated/traffic/'
     | '/_authenticated/vault/'
     | '/_authenticated/management/clients/$clientId'
+    | '/_authenticated/traffic/campaigns/$campaignId'
     | '/_authenticated/admin/courses/'
     | '/_authenticated/management/clients/'
+    | '/_authenticated/traffic/campaigns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -640,6 +679,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiIndexRouteImport
       parentRoute: typeof AuthenticatedAiRoute
     }
+    '/_authenticated/traffic/landing-pages': {
+      id: '/_authenticated/traffic/landing-pages'
+      path: '/traffic/landing-pages'
+      fullPath: '/traffic/landing-pages'
+      preLoaderRoute: typeof AuthenticatedTrafficLandingPagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/traffic/crm': {
       id: '/_authenticated/traffic/crm'
       path: '/traffic/crm'
@@ -710,6 +756,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/traffic/campaigns/': {
+      id: '/_authenticated/traffic/campaigns/'
+      path: '/traffic/campaigns'
+      fullPath: '/traffic/campaigns/'
+      preLoaderRoute: typeof AuthenticatedTrafficCampaignsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/management/clients/': {
       id: '/_authenticated/management/clients/'
       path: '/management/clients'
@@ -722,6 +775,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/courses'
       fullPath: '/admin/courses/'
       preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/traffic/campaigns/$campaignId': {
+      id: '/_authenticated/traffic/campaigns/$campaignId'
+      path: '/traffic/campaigns/$campaignId'
+      fullPath: '/traffic/campaigns/$campaignId'
+      preLoaderRoute: typeof AuthenticatedTrafficCampaignsCampaignIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/management/clients/$clientId': {
@@ -766,6 +826,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
   AuthenticatedTrafficAnalyticsRoute: typeof AuthenticatedTrafficAnalyticsRoute
   AuthenticatedTrafficCrmRoute: typeof AuthenticatedTrafficCrmRoute
+  AuthenticatedTrafficLandingPagesRoute: typeof AuthenticatedTrafficLandingPagesRoute
   AuthenticatedBriefingsIndexRoute: typeof AuthenticatedBriefingsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
@@ -777,8 +838,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
   AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
   AuthenticatedManagementClientsClientIdRoute: typeof AuthenticatedManagementClientsClientIdRoute
+  AuthenticatedTrafficCampaignsCampaignIdRoute: typeof AuthenticatedTrafficCampaignsCampaignIdRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
   AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
+  AuthenticatedTrafficCampaignsIndexRoute: typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -797,6 +860,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
   AuthenticatedTrafficAnalyticsRoute: AuthenticatedTrafficAnalyticsRoute,
   AuthenticatedTrafficCrmRoute: AuthenticatedTrafficCrmRoute,
+  AuthenticatedTrafficLandingPagesRoute: AuthenticatedTrafficLandingPagesRoute,
   AuthenticatedBriefingsIndexRoute: AuthenticatedBriefingsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
@@ -809,9 +873,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
   AuthenticatedManagementClientsClientIdRoute:
     AuthenticatedManagementClientsClientIdRoute,
+  AuthenticatedTrafficCampaignsCampaignIdRoute:
+    AuthenticatedTrafficCampaignsCampaignIdRoute,
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
   AuthenticatedManagementClientsIndexRoute:
     AuthenticatedManagementClientsIndexRoute,
+  AuthenticatedTrafficCampaignsIndexRoute:
+    AuthenticatedTrafficCampaignsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -827,13 +895,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
