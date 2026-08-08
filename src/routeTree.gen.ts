@@ -42,6 +42,7 @@ import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
+import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
 import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
@@ -224,6 +225,12 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTrafficCampaignsIndexRoute =
+  AuthenticatedTrafficCampaignsIndexRouteImport.update({
+    id: '/traffic/campaigns/',
+    path: '/traffic/campaigns/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedManagementClientsIndexRoute =
   AuthenticatedManagementClientsIndexRouteImport.update({
     id: '/management/clients/',
@@ -279,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
+  '/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -315,6 +323,7 @@ export interface FileRoutesByTo {
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
+  '/traffic/campaigns': typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -354,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
+  '/_authenticated/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/management/clients/$clientId'
     | '/admin/courses/'
     | '/management/clients/'
+    | '/traffic/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/management/clients/$clientId'
     | '/admin/courses'
     | '/management/clients'
+    | '/traffic/campaigns'
   id:
     | '__root__'
     | '/'
@@ -467,6 +479,7 @@ export interface FileRouteTypes {
     | '/_authenticated/management/clients/$clientId'
     | '/_authenticated/admin/courses/'
     | '/_authenticated/management/clients/'
+    | '/_authenticated/traffic/campaigns/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -710,6 +723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/traffic/campaigns/': {
+      id: '/_authenticated/traffic/campaigns/'
+      path: '/traffic/campaigns'
+      fullPath: '/traffic/campaigns/'
+      preLoaderRoute: typeof AuthenticatedTrafficCampaignsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/management/clients/': {
       id: '/_authenticated/management/clients/'
       path: '/management/clients'
@@ -779,6 +799,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedManagementClientsClientIdRoute: typeof AuthenticatedManagementClientsClientIdRoute
   AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
   AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
+  AuthenticatedTrafficCampaignsIndexRoute: typeof AuthenticatedTrafficCampaignsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -812,6 +833,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
   AuthenticatedManagementClientsIndexRoute:
     AuthenticatedManagementClientsIndexRoute,
+  AuthenticatedTrafficCampaignsIndexRoute:
+    AuthenticatedTrafficCampaignsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
