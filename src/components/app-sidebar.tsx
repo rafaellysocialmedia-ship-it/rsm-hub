@@ -91,10 +91,17 @@ const staffGroups: NavGroup[] = [
     items: [{ title: "Serviços", url: "/marketplace", icon: Store, module: "marketplace.services" }],
   },
   {
+    label: "Gerência",
+    items: [
+      { title: "Clientes", url: "/management/clients", icon: Building2, module: "management.clients" },
+    ],
+  },
+  {
     label: "Financeiro",
     items: [{ title: "Financeiro", url: "/finance", icon: CircleDollarSign, module: "finance.dashboard" }],
   },
 ];
+
 
 const clientGroups: NavGroup[] = [
   {
