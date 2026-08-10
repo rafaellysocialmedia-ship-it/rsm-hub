@@ -1400,6 +1400,256 @@ export type Database = {
           },
         ]
       }
+      finance_charges: {
+        Row: {
+          amount: number
+          amount_received: number | null
+          client_id: string
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          paid_date: string | null
+          payment_method_id: string | null
+          responsible_id: string | null
+          service_key: string | null
+          service_label: string | null
+          status: Database["public"]["Enums"]["finance_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          amount_received?: number | null
+          client_id: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method_id?: string | null
+          responsible_id?: string | null
+          service_key?: string | null
+          service_label?: string | null
+          status?: Database["public"]["Enums"]["finance_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_received?: number | null
+          client_id?: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method_id?: string | null
+          responsible_id?: string | null
+          service_key?: string | null
+          service_label?: string | null
+          status?: Database["public"]["Enums"]["finance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_charges_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_charges_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "finance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_charges_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "finance_payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_contracts: {
+        Row: {
+          amount: number
+          client_id: string
+          contract_number: string | null
+          created_at: string
+          created_by: string | null
+          due_day: number | null
+          end_date: string | null
+          file_name: string | null
+          id: string
+          notes: string | null
+          periodicity: Database["public"]["Enums"]["finance_periodicity"]
+          service_key: string | null
+          service_label: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["finance_contract_status"]
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          contract_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_day?: number | null
+          end_date?: string | null
+          file_name?: string | null
+          id?: string
+          notes?: string | null
+          periodicity?: Database["public"]["Enums"]["finance_periodicity"]
+          service_key?: string | null
+          service_label?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["finance_contract_status"]
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          contract_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_day?: number | null
+          end_date?: string | null
+          file_name?: string | null
+          id?: string
+          notes?: string | null
+          periodicity?: Database["public"]["Enums"]["finance_periodicity"]
+          service_key?: string | null
+          service_label?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["finance_contract_status"]
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_history: {
+        Row: {
+          actor_id: string | null
+          amount: number | null
+          charge_id: string | null
+          client_id: string | null
+          contract_id: string | null
+          created_at: string
+          detail: string | null
+          event_type: string
+          id: string
+          title: string
+        }
+        Insert: {
+          actor_id?: string | null
+          amount?: number | null
+          charge_id?: string | null
+          client_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          detail?: string | null
+          event_type: string
+          id?: string
+          title: string
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number | null
+          charge_id?: string | null
+          client_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          detail?: string | null
+          event_type?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_history_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "finance_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_history_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "finance_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_payment_methods: {
+        Row: {
+          created_at: string
+          gateway: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          key: string
+          label: string
+          notes: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gateway?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          key: string
+          label: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gateway?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          key?: string
+          label?: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       finance_transactions: {
         Row: {
           amount: number
@@ -2665,6 +2915,7 @@ export type Database = {
     }
     Functions: {
       auto_publish_scheduled_posts: { Args: never; Returns: undefined }
+      can_finance: { Args: { _action?: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2772,6 +3023,13 @@ export type Database = {
         | "contrato"
         | "relatorios"
         | "projeto_perfil"
+      finance_contract_status: "active" | "pending" | "ended" | "cancelled"
+      finance_periodicity:
+        | "once"
+        | "monthly"
+        | "quarterly"
+        | "semiannual"
+        | "annual"
       finance_status: "pending" | "paid" | "overdue" | "cancelled"
       finance_type: "income" | "expense"
       landing_page_status: "development" | "review" | "published" | "paused"
@@ -2966,6 +3224,14 @@ export const Constants = {
         "contrato",
         "relatorios",
         "projeto_perfil",
+      ],
+      finance_contract_status: ["active", "pending", "ended", "cancelled"],
+      finance_periodicity: [
+        "once",
+        "monthly",
+        "quarterly",
+        "semiannual",
+        "annual",
       ],
       finance_status: ["pending", "paid", "overdue", "cancelled"],
       finance_type: ["income", "expense"],
