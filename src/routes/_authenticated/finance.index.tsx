@@ -39,6 +39,7 @@ import {
   type FinanceType,
 } from "@/lib/finance";
 import { FinanceDialog } from "@/components/finance/finance-dialog";
+import { ReceivablesKpis } from "@/components/finance/receivables-kpis";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/finance")({
+export const Route = createFileRoute("/_authenticated/finance/")({
   component: FinancePage,
 });
 
@@ -354,6 +355,10 @@ function FinancePage() {
           hint={`${brl(kpis.overdueTotal)} vencidos`}
         />
       </section>
+
+      <ReceivablesKpis />
+
+
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2 shadow-soft">
