@@ -78,7 +78,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/finance")({
+export const Route = createFileRoute("/_authenticated/finance/")({
   component: FinancePage,
 });
 

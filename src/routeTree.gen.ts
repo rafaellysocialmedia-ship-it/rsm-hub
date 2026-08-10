@@ -17,7 +17,6 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
-import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
@@ -28,6 +27,7 @@ import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
 import { Route as AuthenticatedMarketplaceIndexRouteImport } from './routes/_authenticated/marketplace.index'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
+import { Route as AuthenticatedFinanceIndexRouteImport } from './routes/_authenticated/finance.index'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
 import { Route as AuthenticatedBriefingsIndexRouteImport } from './routes/_authenticated/briefings.index'
@@ -88,11 +88,6 @@ const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
   path: '/meetings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
-  id: '/finance',
-  path: '/finance',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -145,6 +140,12 @@ const AuthenticatedLibraryIndexRoute =
   AuthenticatedLibraryIndexRouteImport.update({
     id: '/library/',
     path: '/library/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFinanceIndexRoute =
+  AuthenticatedFinanceIndexRouteImport.update({
+    id: '/finance/',
+    path: '/finance/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCoursesIndexRoute =
@@ -271,7 +272,6 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AuthenticatedAiRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/finance': typeof AuthenticatedFinanceRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -291,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/clients/': typeof AuthenticatedClientsIndexRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
+  '/finance/': typeof AuthenticatedFinanceIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/marketplace/': typeof AuthenticatedMarketplaceIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
@@ -310,7 +311,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/finance': typeof AuthenticatedFinanceRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -330,6 +330,7 @@ export interface FileRoutesByTo {
   '/briefings': typeof AuthenticatedBriefingsIndexRoute
   '/clients': typeof AuthenticatedClientsIndexRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
+  '/finance': typeof AuthenticatedFinanceIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/marketplace': typeof AuthenticatedMarketplaceIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
@@ -352,7 +353,6 @@ export interface FileRoutesById {
   '/_authenticated/ai': typeof AuthenticatedAiRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
@@ -372,6 +372,7 @@ export interface FileRoutesById {
   '/_authenticated/briefings/': typeof AuthenticatedBriefingsIndexRoute
   '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
+  '/_authenticated/finance/': typeof AuthenticatedFinanceIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/marketplace/': typeof AuthenticatedMarketplaceIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
@@ -394,7 +395,6 @@ export interface FileRouteTypes {
     | '/ai'
     | '/analytics'
     | '/dashboard'
-    | '/finance'
     | '/meetings'
     | '/settings'
     | '/team'
@@ -414,6 +414,7 @@ export interface FileRouteTypes {
     | '/briefings/'
     | '/clients/'
     | '/courses/'
+    | '/finance/'
     | '/library/'
     | '/marketplace/'
     | '/portal/'
@@ -433,7 +434,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/analytics'
     | '/dashboard'
-    | '/finance'
     | '/meetings'
     | '/settings'
     | '/team'
@@ -453,6 +453,7 @@ export interface FileRouteTypes {
     | '/briefings'
     | '/clients'
     | '/courses'
+    | '/finance'
     | '/library'
     | '/marketplace'
     | '/portal'
@@ -474,7 +475,6 @@ export interface FileRouteTypes {
     | '/_authenticated/ai'
     | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
-    | '/_authenticated/finance'
     | '/_authenticated/meetings'
     | '/_authenticated/settings'
     | '/_authenticated/team'
@@ -494,6 +494,7 @@ export interface FileRouteTypes {
     | '/_authenticated/briefings/'
     | '/_authenticated/clients/'
     | '/_authenticated/courses/'
+    | '/_authenticated/finance/'
     | '/_authenticated/library/'
     | '/_authenticated/marketplace/'
     | '/_authenticated/portal/'
@@ -574,13 +575,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance': {
-      id: '/_authenticated/finance'
-      path: '/finance'
-      fullPath: '/finance'
-      preLoaderRoute: typeof AuthenticatedFinanceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -649,6 +643,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library/'
       preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/finance/': {
+      id: '/_authenticated/finance/'
+      path: '/finance'
+      fullPath: '/finance/'
+      preLoaderRoute: typeof AuthenticatedFinanceIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/courses/': {
@@ -814,7 +815,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiRoute: typeof AuthenticatedAiRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
@@ -830,6 +830,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBriefingsIndexRoute: typeof AuthenticatedBriefingsIndexRoute
   AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
+  AuthenticatedFinanceIndexRoute: typeof AuthenticatedFinanceIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedMarketplaceIndexRoute: typeof AuthenticatedMarketplaceIndexRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
@@ -848,7 +849,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiRoute: AuthenticatedAiRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
@@ -864,6 +864,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBriefingsIndexRoute: AuthenticatedBriefingsIndexRoute,
   AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
+  AuthenticatedFinanceIndexRoute: AuthenticatedFinanceIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedMarketplaceIndexRoute: AuthenticatedMarketplaceIndexRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
@@ -895,13 +896,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
