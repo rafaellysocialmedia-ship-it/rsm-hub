@@ -925,25 +925,31 @@ function MonthlyQuotaCard({
   clients: Client[];
   posts: { client_id: string | null; status: string | null; scheduled_date: string | null }[];
 }) {
+  const { data: ledger = [] } = usePostLedger();
   const withQuota = clients.filter((c) => (c.monthly_post_quota ?? 0) > 0);
   if (withQuota.length === 0) return null;
   const ref = new Date();
-  const y = ref.getFullYear();
-  const m = ref.getMonth();
   const rows = withQuota
     .map((c) => {
-      const used = posts.filter((p) => {
-        if (p.client_id !== c.id) return false;
-        if (!p.scheduled_date) return false;
-        const s = p.status ?? "";
-        if (s === "archived" || s === "rejected") return false;
-        const d = new Date(p.scheduled_date + "T00:00:00");
-        return d.getFullYear() === y && d.getMonth() === m;
-      }).length;
-      const quota = c.monthly_post_quota ?? 0;
-      return { client: c, used, quota, remaining: Math.max(0, quota - used) };
+      const summary = openMonthSummary({
+        clientId: c.id,
+        contracted: c.monthly_post_quota ?? 0,
+        ledger,
+        posts,
+        ref,
+      });
+      const quota = summary.available || (c.monthly_post_quota ?? 0);
+      return {
+        client: c,
+        used: summary.used,
+        quota,
+        previous: summary.previous,
+        balance: summary.balance,
+        remaining: Math.max(0, quota - summary.used),
+      };
     })
     .sort((a, b) => (a.remaining === b.remaining ? b.quota - a.quota : b.remaining - a.remaining));
+
 
   return (
     <Card className="shadow-soft">
