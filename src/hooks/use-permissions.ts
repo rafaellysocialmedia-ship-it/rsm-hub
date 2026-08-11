@@ -94,8 +94,28 @@ export function usePermissions() {
     return s;
   }, [modules]);
 
+  const parentOf = useMemo(() => {
+    const m = new Map<string, string | null>();
+    (modules ?? []).forEach((x) => m.set(x.key, x.parent_key));
+    return m;
+  }, [modules]);
+
+  /** true when the admin turned this module (or its parent) off for the user */
+  const isHidden = (moduleKey: string) => {
+    if (hidden.size === 0) return false;
+    let key: string | null | undefined = moduleKey;
+    let guard = 0;
+    while (key && guard++ < 5) {
+      if (hidden.has(key)) return true;
+      key = parentOf.get(key) ?? null;
+    }
+    return false;
+  };
+
   const can = (moduleKey: string, action: PermissionAction = "view") => {
     if (isAdmin) return true;
+    // visibility rules apply to everyone except the administrator
+    if (isHidden(moduleKey)) return false;
     // catalog / permissions not loaded yet → keep legacy behaviour
     if (loading) return true;
     // user has no dynamic role assignment yet → keep legacy behaviour
@@ -107,6 +127,7 @@ export function usePermissions() {
     if (!catalog.has(moduleKey)) return isStaff || action === "view";
     return false;
   };
+
 
   return {
     can,
