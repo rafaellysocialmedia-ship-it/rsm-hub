@@ -20,6 +20,7 @@ import { AccountsTab } from "@/components/management/accounts-tab";
 import { IntegrationsTab } from "@/components/management/integrations-tab";
 import { TimelineTab } from "@/components/management/timeline-tab";
 import { InternalChatTab } from "@/components/management/internal-chat-tab";
+import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
 
 export const Route = createFileRoute("/_authenticated/management/clients/$clientId")({
   head: () => ({
@@ -115,6 +116,7 @@ function ClientMasterPage() {
           <TabsTrigger value="documents">Documentos</TabsTrigger>
           <TabsTrigger value="accounts">Acessos</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
+          <TabsTrigger value="finance">Financeiro</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
           <TabsTrigger value="chat">Chat Interno</TabsTrigger>
         </TabsList>
@@ -140,6 +142,9 @@ function ClientMasterPage() {
         </TabsContent>
         <TabsContent value="integrations" className="mt-6">
           <IntegrationsTab clientId={client.id} />
+        </TabsContent>
+        <TabsContent value="finance" className="mt-6">
+          <ClientFinanceTab clientId={client.id} />
         </TabsContent>
         <TabsContent value="history" className="mt-6">
           <TimelineTab clientId={client.id} />

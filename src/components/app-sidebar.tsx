@@ -22,6 +22,10 @@ import {
   LineChart,
   Store,
   Building2,
+  Receipt,
+  FileText,
+  CreditCard,
+  Settings2,
 
 } from "lucide-react";
 
@@ -98,7 +102,14 @@ const staffGroups: NavGroup[] = [
   },
   {
     label: "Financeiro",
-    items: [{ title: "Financeiro", url: "/finance", icon: CircleDollarSign, module: "finance.dashboard" }],
+    items: [
+      { title: "Dashboard", url: "/finance", icon: CircleDollarSign, module: "finance.dashboard" },
+      { title: "Contas a Receber", url: "/finance/receivables", icon: Receipt, module: "finance.receivables" },
+      { title: "Contratos", url: "/finance/contracts", icon: FileText, module: "finance.contracts" },
+      { title: "Clientes", url: "/finance/clients", icon: Building2, module: "finance.clients" },
+      { title: "Formas de Pagamento", url: "/finance/payment-methods", icon: CreditCard, module: "finance.payment_methods" },
+      { title: "Configurações", url: "/finance/settings", icon: Settings2, module: "finance.settings" },
+    ],
   },
 ];
 
