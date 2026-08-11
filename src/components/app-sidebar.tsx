@@ -22,6 +22,10 @@ import {
   LineChart,
   Store,
   Building2,
+  Receipt,
+  FileText,
+  CreditCard,
+  Settings2,
 
 } from "lucide-react";
 
