@@ -633,7 +633,7 @@ function ClientPortal() {
       )}
 
       <Sheet open={!!openPost} onOpenChange={(o) => !o && setOpenPost(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
+        <SheetContent className="w-full overflow-y-auto overscroll-contain pb-10 sm:max-w-2xl">
           {openPost && (() => {
             const ap = approvalByPost.get(openPost.id);
             const decision: Decision = clientDecisionOf(openPost);
@@ -649,8 +649,8 @@ function ClientPortal() {
                   {openPost.headline && <SheetDescription>{openPost.headline}</SheetDescription>}
                 </SheetHeader>
 
-                <ScrollArea className="mt-4 max-h-[65vh] pr-3">
-                  <div className="space-y-4 text-sm">
+                <div className="mt-4">
+                  <div className="space-y-4 break-words text-sm">
                     <section>
                       <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Criativo</p>
                       <PostCreativeGallery postId={openPost.id} previewOnly />
@@ -708,7 +708,7 @@ function ClientPortal() {
                       )}
                     </div>
                   </div>
-                </ScrollArea>
+                </div>
 
                 <Separator className="my-4" />
 
