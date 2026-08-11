@@ -41,6 +41,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { usePostLedger, usePostUsage } from "@/hooks/use-post-ledger";
+import { balanceLabel, balanceTone, labelMonth, openMonthSummary } from "@/lib/post-ledger";
 import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, type Client } from "@/lib/clients";
 import { cn } from "@/lib/utils";
@@ -755,6 +757,8 @@ function ClientDashboard({ name }: { name: string }) {
         </Button>
       </div>
 
+      <ClientMonthPostsCard clientId={client.id} contracted={client.monthly_post_quota ?? 0} />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <CMiniStat icon={Send} label="Publicações totais" value={total} tint="bg-primary/10 text-primary" />
         <CMiniStat icon={CalendarCheck} label="Agendadas" value={scheduled} tint="bg-sky-500/10 text-sky-500" />
@@ -925,25 +929,31 @@ function MonthlyQuotaCard({
   clients: Client[];
   posts: { client_id: string | null; status: string | null; scheduled_date: string | null }[];
 }) {
+  const { data: ledger = [] } = usePostLedger();
   const withQuota = clients.filter((c) => (c.monthly_post_quota ?? 0) > 0);
   if (withQuota.length === 0) return null;
   const ref = new Date();
-  const y = ref.getFullYear();
-  const m = ref.getMonth();
   const rows = withQuota
     .map((c) => {
-      const used = posts.filter((p) => {
-        if (p.client_id !== c.id) return false;
-        if (!p.scheduled_date) return false;
-        const s = p.status ?? "";
-        if (s === "archived" || s === "rejected") return false;
-        const d = new Date(p.scheduled_date + "T00:00:00");
-        return d.getFullYear() === y && d.getMonth() === m;
-      }).length;
-      const quota = c.monthly_post_quota ?? 0;
-      return { client: c, used, quota, remaining: Math.max(0, quota - used) };
+      const summary = openMonthSummary({
+        clientId: c.id,
+        contracted: c.monthly_post_quota ?? 0,
+        ledger,
+        posts,
+        ref,
+      });
+      const quota = summary.available || (c.monthly_post_quota ?? 0);
+      return {
+        client: c,
+        used: summary.used,
+        quota,
+        previous: summary.previous,
+        balance: summary.balance,
+        remaining: Math.max(0, quota - summary.used),
+      };
     })
     .sort((a, b) => (a.remaining === b.remaining ? b.quota - a.quota : b.remaining - a.remaining));
+
 
   return (
     <Card className="shadow-soft">
@@ -960,7 +970,7 @@ function MonthlyQuotaCard({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map(({ client, used, quota, remaining }) => {
+          {rows.map(({ client, used, quota, remaining, previous, balance }) => {
             const pct = Math.min(100, Math.round((used / quota) * 100));
             const done = used >= quota;
             const closing = !done && used / quota >= 0.8;
@@ -997,7 +1007,17 @@ function MonthlyQuotaCard({
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div className={cn("h-full rounded-full transition-all", barCls)} style={{ width: `${pct}%` }} />
                 </div>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">{label}</p>
+                <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-muted-foreground">{label}</span>
+                  {previous !== 0 && (
+                    <span className={cn("font-medium", balanceTone(previous))}>
+                      saldo anterior {balanceLabel(previous)}
+                    </span>
+                  )}
+                  {previous === 0 && balance < 0 && (
+                    <span className={cn("font-medium", balanceTone(balance))}>débito {balanceLabel(balance)}</span>
+                  )}
+                </div>
               </Link>
             );
           })}
@@ -1007,3 +1027,60 @@ function MonthlyQuotaCard({
   );
 }
 
+
+function ClientMonthPostsCard({ clientId, contracted }: { clientId: string; contracted: number }) {
+  const { data: ledger = [] } = usePostLedger(clientId);
+  const { data: usage = [] } = usePostUsage(clientId);
+  if (contracted <= 0) return null;
+
+  const summary = openMonthSummary({ clientId, contracted, ledger, posts: usage });
+  const pct = summary.available > 0 ? Math.min(100, Math.round((summary.used / summary.available) * 100)) : 0;
+
+  return (
+    <Card className="shadow-soft">
+      <CardHeader className="flex-row items-center justify-between space-y-0">
+        <div className="min-w-0">
+          <CardTitle className="text-base">Posts do mês</CardTitle>
+          <p className="mt-1 text-xs capitalize text-muted-foreground">
+            {labelMonth(summary.year, summary.month)}
+          </p>
+        </div>
+        <Badge variant="secondary" className="shrink-0 text-[10px]">
+          {summary.used}/{summary.available}
+        </Badge>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="rounded-lg border border-border bg-card/50 p-3">
+            <p className="text-[11px] text-muted-foreground">Contratados</p>
+            <p className="mt-0.5 text-lg font-semibold">{summary.contracted}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card/50 p-3">
+            <p className="text-[11px] text-muted-foreground">Utilizados</p>
+            <p className="mt-0.5 text-lg font-semibold">{summary.used}</p>
+          </div>
+          <div className="rounded-lg border border-border bg-card/50 p-3">
+            <p className="text-[11px] text-muted-foreground">
+              {summary.balance < 0 ? "Débito" : "Saldo"}
+            </p>
+            <p className={cn("mt-0.5 text-lg font-semibold", balanceTone(summary.balance))}>
+              {balanceLabel(summary.balance)}
+            </p>
+          </div>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn("h-full rounded-full transition-all", summary.balance < 0 ? "bg-rose-500" : "bg-primary")}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        {summary.previous !== 0 && (
+          <p className="text-xs text-muted-foreground">
+            Inclui saldo do mês anterior:{" "}
+            <span className={cn("font-medium", balanceTone(summary.previous))}>{balanceLabel(summary.previous)}</span>
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

@@ -55,7 +55,32 @@ export function usePermissions() {
     },
   });
 
+  /**
+   * Visibility overrides configured by the administrator
+   * ("Gerenciar Visualizações"). RLS only returns the rows that apply to the
+   * current user (own role, own user id, own client).
+   */
+  const { data: visibility } = useQuery({
+    queryKey: ["module-visibility-mine", user?.id],
+    enabled: !!user?.id,
+    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("module_visibility")
+        .select("module_key,visible");
+      if (error) throw error;
+      return (data ?? []) as { module_key: string; visible: boolean }[];
+    },
+  });
+
+  const hidden = useMemo(() => {
+    const s = new Set<string>();
+    (visibility ?? []).forEach((v) => { if (!v.visible) s.add(v.module_key); });
+    return s;
+  }, [visibility]);
+
   const loading = authLoading || loadingModules || loadingPerms;
+
 
   const granted = useMemo(() => {
     const s = new Set<string>();
@@ -69,8 +94,28 @@ export function usePermissions() {
     return s;
   }, [modules]);
 
+  const parentOf = useMemo(() => {
+    const m = new Map<string, string | null>();
+    (modules ?? []).forEach((x) => m.set(x.key, x.parent_key));
+    return m;
+  }, [modules]);
+
+  /** true when the admin turned this module (or its parent) off for the user */
+  const isHidden = (moduleKey: string) => {
+    if (hidden.size === 0) return false;
+    let key: string | null | undefined = moduleKey;
+    let guard = 0;
+    while (key && guard++ < 5) {
+      if (hidden.has(key)) return true;
+      key = parentOf.get(key) ?? null;
+    }
+    return false;
+  };
+
   const can = (moduleKey: string, action: PermissionAction = "view") => {
     if (isAdmin) return true;
+    // visibility rules apply to everyone except the administrator
+    if (isHidden(moduleKey)) return false;
     // catalog / permissions not loaded yet → keep legacy behaviour
     if (loading) return true;
     // user has no dynamic role assignment yet → keep legacy behaviour
@@ -82,6 +127,7 @@ export function usePermissions() {
     if (!catalog.has(moduleKey)) return isStaff || action === "view";
     return false;
   };
+
 
   return {
     can,

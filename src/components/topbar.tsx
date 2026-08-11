@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { LogOut, Search, User as UserIcon } from "lucide-react";
+import { Eye, Gauge, LogOut, Search, User as UserIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ const roleLabel: Record<string, string> = {
 };
 
 export function Topbar() {
-  const { profile, roles, signOut, user } = useAuth();
+  const { profile, roles, signOut, user, hasRole } = useAuth();
+  const isAdmin = hasRole("administrator");
   const navigate = useNavigate();
   const initials = (profile?.name ?? user?.email ?? "?")
     .split(" ")
@@ -75,7 +76,19 @@ export function Topbar() {
             <DropdownMenuItem>
               <UserIcon className="mr-2 h-4 w-4" /> Perfil
             </DropdownMenuItem>
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate({ to: "/admin/visibility" })}>
+                  <Eye className="mr-2 h-4 w-4" /> Gerenciar Visualizações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate({ to: "/admin/posts-control" })}>
+                  <Gauge className="mr-2 h-4 w-4" /> Controle de Posts
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </DropdownMenuItem>

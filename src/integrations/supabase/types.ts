@@ -758,6 +758,59 @@ export type Database = {
           },
         ]
       }
+      client_post_ledger: {
+        Row: {
+          balance: number
+          client_id: string
+          closed_at: string | null
+          contracted: number
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          previous_balance: number
+          updated_at: string
+          used: number
+          year: number
+        }
+        Insert: {
+          balance?: number
+          client_id: string
+          closed_at?: string | null
+          contracted?: number
+          created_at?: string
+          id?: string
+          month: number
+          notes?: string | null
+          previous_balance?: number
+          updated_at?: string
+          used?: number
+          year: number
+        }
+        Update: {
+          balance?: number
+          client_id?: string
+          closed_at?: string | null
+          contracted?: number
+          created_at?: string
+          id?: string
+          month?: number
+          notes?: string | null
+          previous_balance?: number
+          updated_at?: string
+          used?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_post_ledger_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_section_visibility: {
         Row: {
           client_id: string | null
@@ -1827,6 +1880,47 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "clients"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_visibility: {
+        Row: {
+          created_at: string
+          id: string
+          module_key: string
+          scope: string
+          scope_id: string
+          updated_at: string
+          updated_by: string | null
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_key: string
+          scope: string
+          scope_id: string
+          updated_at?: string
+          updated_by?: string | null
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_key?: string
+          scope?: string
+          scope_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_visibility_module_key_fkey"
+            columns: ["module_key"]
+            isOneToOne: false
+            referencedRelation: "app_modules"
+            referencedColumns: ["key"]
           },
         ]
       }
@@ -2916,6 +3010,30 @@ export type Database = {
     Functions: {
       auto_publish_scheduled_posts: { Args: never; Returns: undefined }
       can_finance: { Args: { _action?: string }; Returns: boolean }
+      close_post_month: {
+        Args: { _client_id: string; _month: number; _year: number }
+        Returns: {
+          balance: number
+          client_id: string
+          closed_at: string | null
+          contracted: number
+          created_at: string
+          id: string
+          month: number
+          notes: string | null
+          previous_balance: number
+          updated_at: string
+          used: number
+          year: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "client_post_ledger"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      close_previous_post_month: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2932,6 +3050,14 @@ export type Database = {
       }
       notify_client_deadlines: { Args: never; Returns: undefined }
       notify_overdue_and_upcoming: { Args: never; Returns: undefined }
+      post_month_usage: {
+        Args: { _client_id: string; _month: number; _year: number }
+        Returns: number
+      }
+      post_previous_balance: {
+        Args: { _client_id: string; _month: number; _year: number }
+        Returns: number
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       user_has_permission: {
