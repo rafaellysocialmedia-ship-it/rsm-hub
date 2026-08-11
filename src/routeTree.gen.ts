@@ -36,6 +36,7 @@ import { Route as AuthenticatedTrafficLandingPagesRouteImport } from './routes/_
 import { Route as AuthenticatedTrafficCrmRouteImport } from './routes/_authenticated/traffic.crm'
 import { Route as AuthenticatedTrafficAnalyticsRouteImport } from './routes/_authenticated/traffic.analytics'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
+import { Route as AuthenticatedFinanceSettingsRouteImport } from './routes/_authenticated/finance.settings'
 import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
 import { Route as AuthenticatedFinancePaymentMethodsRouteImport } from './routes/_authenticated/finance.payment-methods'
 import { Route as AuthenticatedFinanceContractsRouteImport } from './routes/_authenticated/finance.contracts'
@@ -200,6 +201,12 @@ const AuthenticatedPortalCalendarRoute =
     path: '/portal/calendar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFinanceSettingsRoute =
+  AuthenticatedFinanceSettingsRouteImport.update({
+    id: '/finance/settings',
+    path: '/finance/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFinanceReceivablesRoute =
   AuthenticatedFinanceReceivablesRouteImport.update({
     id: '/finance/receivables',
@@ -331,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/finance/contracts': typeof AuthenticatedFinanceContractsRoute
   '/finance/payment-methods': typeof AuthenticatedFinancePaymentMethodsRoute
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
@@ -376,6 +384,7 @@ export interface FileRoutesByTo {
   '/finance/contracts': typeof AuthenticatedFinanceContractsRoute
   '/finance/payment-methods': typeof AuthenticatedFinancePaymentMethodsRoute
   '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
@@ -424,6 +433,7 @@ export interface FileRoutesById {
   '/_authenticated/finance/contracts': typeof AuthenticatedFinanceContractsRoute
   '/_authenticated/finance/payment-methods': typeof AuthenticatedFinancePaymentMethodsRoute
   '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
+  '/_authenticated/finance/settings': typeof AuthenticatedFinanceSettingsRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
   '/_authenticated/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/_authenticated/traffic/crm': typeof AuthenticatedTrafficCrmRoute
@@ -472,6 +482,7 @@ export interface FileRouteTypes {
     | '/finance/contracts'
     | '/finance/payment-methods'
     | '/finance/receivables'
+    | '/finance/settings'
     | '/portal/calendar'
     | '/traffic/analytics'
     | '/traffic/crm'
@@ -517,6 +528,7 @@ export interface FileRouteTypes {
     | '/finance/contracts'
     | '/finance/payment-methods'
     | '/finance/receivables'
+    | '/finance/settings'
     | '/portal/calendar'
     | '/traffic/analytics'
     | '/traffic/crm'
@@ -564,6 +576,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance/contracts'
     | '/_authenticated/finance/payment-methods'
     | '/_authenticated/finance/receivables'
+    | '/_authenticated/finance/settings'
     | '/_authenticated/portal/calendar'
     | '/_authenticated/traffic/analytics'
     | '/_authenticated/traffic/crm'
@@ -786,6 +799,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/finance/settings': {
+      id: '/_authenticated/finance/settings'
+      path: '/finance/settings'
+      fullPath: '/finance/settings'
+      preLoaderRoute: typeof AuthenticatedFinanceSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/finance/receivables': {
       id: '/_authenticated/finance/receivables'
       path: '/finance/receivables'
@@ -949,6 +969,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceContractsRoute: typeof AuthenticatedFinanceContractsRoute
   AuthenticatedFinancePaymentMethodsRoute: typeof AuthenticatedFinancePaymentMethodsRoute
   AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
+  AuthenticatedFinanceSettingsRoute: typeof AuthenticatedFinanceSettingsRoute
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
   AuthenticatedTrafficAnalyticsRoute: typeof AuthenticatedTrafficAnalyticsRoute
   AuthenticatedTrafficCrmRoute: typeof AuthenticatedTrafficCrmRoute
@@ -990,6 +1011,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinancePaymentMethodsRoute:
     AuthenticatedFinancePaymentMethodsRoute,
   AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
+  AuthenticatedFinanceSettingsRoute: AuthenticatedFinanceSettingsRoute,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
   AuthenticatedTrafficAnalyticsRoute: AuthenticatedTrafficAnalyticsRoute,
   AuthenticatedTrafficCrmRoute: AuthenticatedTrafficCrmRoute,
