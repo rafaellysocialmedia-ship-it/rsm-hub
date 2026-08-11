@@ -55,7 +55,32 @@ export function usePermissions() {
     },
   });
 
+  /**
+   * Visibility overrides configured by the administrator
+   * ("Gerenciar Visualizações"). RLS only returns the rows that apply to the
+   * current user (own role, own user id, own client).
+   */
+  const { data: visibility } = useQuery({
+    queryKey: ["module-visibility-mine", user?.id],
+    enabled: !!user?.id,
+    staleTime: 2 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("module_visibility")
+        .select("module_key,visible");
+      if (error) throw error;
+      return (data ?? []) as { module_key: string; visible: boolean }[];
+    },
+  });
+
+  const hidden = useMemo(() => {
+    const s = new Set<string>();
+    (visibility ?? []).forEach((v) => { if (!v.visible) s.add(v.module_key); });
+    return s;
+  }, [visibility]);
+
   const loading = authLoading || loadingModules || loadingPerms;
+
 
   const granted = useMemo(() => {
     const s = new Set<string>();
