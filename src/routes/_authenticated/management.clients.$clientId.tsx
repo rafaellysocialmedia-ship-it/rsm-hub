@@ -20,6 +20,7 @@ import { AccountsTab } from "@/components/management/accounts-tab";
 import { IntegrationsTab } from "@/components/management/integrations-tab";
 import { TimelineTab } from "@/components/management/timeline-tab";
 import { InternalChatTab } from "@/components/management/internal-chat-tab";
+import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
 
 export const Route = createFileRoute("/_authenticated/management/clients/$clientId")({
   head: () => ({
