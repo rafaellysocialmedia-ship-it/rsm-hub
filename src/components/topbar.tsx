@@ -75,7 +75,19 @@ export function Topbar() {
             <DropdownMenuItem>
               <UserIcon className="mr-2 h-4 w-4" /> Perfil
             </DropdownMenuItem>
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate({ to: "/admin/visibility" })}>
+                  <Eye className="mr-2 h-4 w-4" /> Gerenciar Visualizações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate({ to: "/admin/posts-control" })}>
+                  <Gauge className="mr-2 h-4 w-4" /> Controle de Posts
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
+
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" /> Sair
             </DropdownMenuItem>
