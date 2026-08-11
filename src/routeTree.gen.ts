@@ -44,6 +44,7 @@ import { Route as AuthenticatedBriefingsTemplateRouteImport } from './routes/_au
 import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_authenticated/briefings.$briefingId'
 import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
 import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
+import { Route as AuthenticatedAdminVisibilityRouteImport } from './routes/_authenticated/admin.visibility'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
 import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
@@ -242,6 +243,12 @@ const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
   path: '/$threadId',
   getParentRoute: () => AuthenticatedAiRoute,
 } as any)
+const AuthenticatedAdminVisibilityRoute =
+  AuthenticatedAdminVisibilityRouteImport.update({
+    id: '/admin/visibility',
+    path: '/admin/visibility',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminPermissionsRoute =
   AuthenticatedAdminPermissionsRouteImport.update({
     id: '/admin/permissions',
@@ -291,6 +298,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof AuthenticatedTeamRoute
   '/api/chat': typeof ApiChatRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
+  '/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/ai/tools': typeof AuthenticatedAiToolsRoute
   '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
@@ -332,6 +340,7 @@ export interface FileRoutesByTo {
   '/team': typeof AuthenticatedTeamRoute
   '/api/chat': typeof ApiChatRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
+  '/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
   '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/ai/tools': typeof AuthenticatedAiToolsRoute
   '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
@@ -376,6 +385,7 @@ export interface FileRoutesById {
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
+  '/_authenticated/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
   '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
   '/_authenticated/ai/tools': typeof AuthenticatedAiToolsRoute
   '/_authenticated/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/api/chat'
     | '/admin/permissions'
+    | '/admin/visibility'
     | '/ai/$threadId'
     | '/ai/tools'
     | '/briefings/$briefingId'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/api/chat'
     | '/admin/permissions'
+    | '/admin/visibility'
     | '/ai/$threadId'
     | '/ai/tools'
     | '/briefings/$briefingId'
@@ -504,6 +516,7 @@ export interface FileRouteTypes {
     | '/_authenticated/team'
     | '/api/chat'
     | '/_authenticated/admin/permissions'
+    | '/_authenticated/admin/visibility'
     | '/_authenticated/ai/$threadId'
     | '/_authenticated/ai/tools'
     | '/_authenticated/briefings/$briefingId'
@@ -790,6 +803,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiThreadIdRouteImport
       parentRoute: typeof AuthenticatedAiRoute
     }
+    '/_authenticated/admin/visibility': {
+      id: '/_authenticated/admin/visibility'
+      path: '/admin/visibility'
+      fullPath: '/admin/visibility'
+      preLoaderRoute: typeof AuthenticatedAdminVisibilityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/permissions': {
       id: '/_authenticated/admin/permissions'
       path: '/admin/permissions'
@@ -859,6 +879,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
+  AuthenticatedAdminVisibilityRoute: typeof AuthenticatedAdminVisibilityRoute
   AuthenticatedBriefingsBriefingIdRoute: typeof AuthenticatedBriefingsBriefingIdRoute
   AuthenticatedBriefingsTemplateRoute: typeof AuthenticatedBriefingsTemplateRoute
   AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
@@ -895,6 +916,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
+  AuthenticatedAdminVisibilityRoute: AuthenticatedAdminVisibilityRoute,
   AuthenticatedBriefingsBriefingIdRoute: AuthenticatedBriefingsBriefingIdRoute,
   AuthenticatedBriefingsTemplateRoute: AuthenticatedBriefingsTemplateRoute,
   AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
