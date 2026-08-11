@@ -142,6 +142,9 @@ function ClientMasterPage() {
         <TabsContent value="integrations" className="mt-6">
           <IntegrationsTab clientId={client.id} />
         </TabsContent>
+        <TabsContent value="finance" className="mt-6">
+          <ClientFinanceTab clientId={client.id} />
+        </TabsContent>
         <TabsContent value="history" className="mt-6">
           <TimelineTab clientId={client.id} />
         </TabsContent>
