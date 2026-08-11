@@ -41,6 +41,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { usePostLedger } from "@/hooks/use-post-ledger";
+import { balanceLabel, balanceTone, openMonthSummary } from "@/lib/post-ledger";
 import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, type Client } from "@/lib/clients";
 import { cn } from "@/lib/utils";
@@ -966,7 +968,7 @@ function MonthlyQuotaCard({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map(({ client, used, quota, remaining }) => {
+          {rows.map(({ client, used, quota, remaining, previous, balance }) => {
             const pct = Math.min(100, Math.round((used / quota) * 100));
             const done = used >= quota;
             const closing = !done && used / quota >= 0.8;
@@ -1003,7 +1005,17 @@ function MonthlyQuotaCard({
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div className={cn("h-full rounded-full transition-all", barCls)} style={{ width: `${pct}%` }} />
                 </div>
-                <p className="mt-1.5 text-[11px] text-muted-foreground">{label}</p>
+                <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-muted-foreground">{label}</span>
+                  {previous !== 0 && (
+                    <span className={cn("font-medium", balanceTone(previous))}>
+                      saldo anterior {balanceLabel(previous)}
+                    </span>
+                  )}
+                  {previous === 0 && balance < 0 && (
+                    <span className={cn("font-medium", balanceTone(balance))}>débito {balanceLabel(balance)}</span>
+                  )}
+                </div>
               </Link>
             );
           })}
