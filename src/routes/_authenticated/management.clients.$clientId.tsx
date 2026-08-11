@@ -115,6 +115,7 @@ function ClientMasterPage() {
           <TabsTrigger value="documents">Documentos</TabsTrigger>
           <TabsTrigger value="accounts">Acessos</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
+          <TabsTrigger value="finance">Financeiro</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
           <TabsTrigger value="chat">Chat Interno</TabsTrigger>
         </TabsList>
