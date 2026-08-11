@@ -87,7 +87,7 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
                 <li key={s.id} className="flex items-center justify-between py-2 text-sm">
                   <span>{s.label ?? s.service_key}</span>
                   <span className="text-muted-foreground">
-                    {s.monthly_value != null ? money(Number(s.monthly_value)) : "—"} · {s.situation}
+                    {s.amount != null ? money(Number(s.amount)) : "—"} · {s.situation}
                   </span>
                 </li>
               ))}
