@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTrafficAccess, useTrafficClients } from "@/hooks/use-traffic";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
-  CAMPAIGN_STATUS,
   campaignStatusMeta,
   money,
   num,
@@ -714,5 +713,3 @@ function MiniStat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-void CAMPAIGN_STATUS;
