@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { LogOut, Search, User as UserIcon } from "lucide-react";
+import { Eye, Gauge, LogOut, Search, User as UserIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,8 @@ const roleLabel: Record<string, string> = {
 };
 
 export function Topbar() {
-  const { profile, roles, signOut, user } = useAuth();
+  const { profile, roles, signOut, user, hasRole } = useAuth();
+  const isAdmin = hasRole("administrator");
   const navigate = useNavigate();
   const initials = (profile?.name ?? user?.email ?? "?")
     .split(" ")
