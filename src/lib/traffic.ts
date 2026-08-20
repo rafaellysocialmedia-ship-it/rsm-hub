@@ -47,13 +47,15 @@ export const LEAD_STAGES: { value: TrafficLeadStage; label: string; tone: string
 ];
 
 export const LP_STATUS: { value: LandingPageStatus; label: string; tone: string }[] = [
+  { value: "planning", label: "Em planejamento", tone: "bg-violet-500/10 text-violet-500 border-violet-500/20" },
   { value: "development", label: "Em desenvolvimento", tone: "bg-sky-500/10 text-sky-500 border-sky-500/20" },
   { value: "review", label: "Revisão", tone: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
   { value: "published", label: "Publicada", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
   { value: "paused", label: "Pausada", tone: "bg-muted text-muted-foreground border-border" },
+  { value: "ended", label: "Encerrada", tone: "bg-destructive/10 text-destructive border-destructive/20" },
 ];
 
-export const LP_BUILDERS = ["WordPress", "Lovable", "HTML", "Webflow", "Outra"];
+export const LP_BUILDERS = ["Lovable", "WordPress", "HTML", "Wix", "Webflow", "Outra"];
 
 /** Catálogo de ativos digitais do cliente (aba "Ativos Digitais"). */
 export const DIGITAL_ASSET_TYPES: { key: string; label: string }[] = [
