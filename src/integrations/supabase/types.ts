@@ -535,6 +535,7 @@ export type Database = {
       client_digital_assets: {
         Row: {
           asset_type: string
+          category: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -543,13 +544,17 @@ export type Database = {
           identifier: string | null
           label: string | null
           notes: string | null
+          owner_id: string | null
           provider: string | null
           status: string
           updated_at: string
           url: string | null
+          username: string | null
+          visible_to_client: boolean
         }
         Insert: {
           asset_type: string
+          category?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -558,13 +563,17 @@ export type Database = {
           identifier?: string | null
           label?: string | null
           notes?: string | null
+          owner_id?: string | null
           provider?: string | null
           status?: string
           updated_at?: string
           url?: string | null
+          username?: string | null
+          visible_to_client?: boolean
         }
         Update: {
           asset_type?: string
+          category?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -573,10 +582,13 @@ export type Database = {
           identifier?: string | null
           label?: string | null
           notes?: string | null
+          owner_id?: string | null
           provider?: string | null
           status?: string
           updated_at?: string
           url?: string | null
+          username?: string | null
+          visible_to_client?: boolean
         }
         Relationships: [
           {
@@ -1775,6 +1787,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           domain: string | null
+          edit_url: string | null
           id: string
           name: string
           notes: string | null
@@ -1784,6 +1797,7 @@ export type Database = {
           staging_url: string | null
           status: Database["public"]["Enums"]["landing_page_status"]
           updated_at: string
+          visible_to_client: boolean
         }
         Insert: {
           builder?: string | null
@@ -1791,6 +1805,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           domain?: string | null
+          edit_url?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -1800,6 +1815,7 @@ export type Database = {
           staging_url?: string | null
           status?: Database["public"]["Enums"]["landing_page_status"]
           updated_at?: string
+          visible_to_client?: boolean
         }
         Update: {
           builder?: string | null
@@ -1807,6 +1823,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           domain?: string | null
+          edit_url?: string | null
           id?: string
           name?: string
           notes?: string | null
@@ -1816,6 +1833,7 @@ export type Database = {
           staging_url?: string | null
           status?: Database["public"]["Enums"]["landing_page_status"]
           updated_at?: string
+          visible_to_client?: boolean
         }
         Relationships: [
           {
@@ -2589,6 +2607,7 @@ export type Database = {
           end_date: string | null
           external_id: string | null
           id: string
+          landing_page_id: string | null
           name: string
           notes: string | null
           objective: Database["public"]["Enums"]["traffic_objective"]
@@ -2607,6 +2626,7 @@ export type Database = {
           end_date?: string | null
           external_id?: string | null
           id?: string
+          landing_page_id?: string | null
           name: string
           notes?: string | null
           objective?: Database["public"]["Enums"]["traffic_objective"]
@@ -2625,6 +2645,7 @@ export type Database = {
           end_date?: string | null
           external_id?: string | null
           id?: string
+          landing_page_id?: string | null
           name?: string
           notes?: string | null
           objective?: Database["public"]["Enums"]["traffic_objective"]
@@ -2641,6 +2662,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "traffic_campaigns_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "landing_pages"
             referencedColumns: ["id"]
           },
         ]
@@ -3158,7 +3186,13 @@ export type Database = {
         | "annual"
       finance_status: "pending" | "paid" | "overdue" | "cancelled"
       finance_type: "income" | "expense"
-      landing_page_status: "development" | "review" | "published" | "paused"
+      landing_page_status:
+        | "development"
+        | "review"
+        | "published"
+        | "paused"
+        | "planning"
+        | "ended"
       post_status:
         | "idea"
         | "production"
@@ -3361,7 +3395,14 @@ export const Constants = {
       ],
       finance_status: ["pending", "paid", "overdue", "cancelled"],
       finance_type: ["income", "expense"],
-      landing_page_status: ["development", "review", "published", "paused"],
+      landing_page_status: [
+        "development",
+        "review",
+        "published",
+        "paused",
+        "planning",
+        "ended",
+      ],
       post_status: [
         "idea",
         "production",
