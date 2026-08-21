@@ -18,6 +18,7 @@ import { TeamTab } from "@/components/management/team-tab";
 import { DocumentsTab } from "@/components/management/documents-tab";
 import { AccountsTab } from "@/components/management/accounts-tab";
 import { IntegrationsTab } from "@/components/management/integrations-tab";
+import { DigitalAssetsTab } from "@/components/management/digital-assets-tab";
 import { TimelineTab } from "@/components/management/timeline-tab";
 import { InternalChatTab } from "@/components/management/internal-chat-tab";
 import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
@@ -115,6 +116,7 @@ function ClientMasterPage() {
           <TabsTrigger value="team">Equipe</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
           <TabsTrigger value="accounts">Acessos</TabsTrigger>
+          <TabsTrigger value="assets">Ativos Digitais</TabsTrigger>
           <TabsTrigger value="integrations">Integrações</TabsTrigger>
           <TabsTrigger value="finance">Financeiro</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
@@ -139,6 +141,9 @@ function ClientMasterPage() {
         </TabsContent>
         <TabsContent value="accounts" className="mt-6">
           <AccountsTab clientId={client.id} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="assets" className="mt-6">
+          <DigitalAssetsTab clientId={client.id} canEdit={canEdit} />
         </TabsContent>
         <TabsContent value="integrations" className="mt-6">
           <IntegrationsTab clientId={client.id} />
