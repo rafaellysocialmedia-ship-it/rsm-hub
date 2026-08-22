@@ -59,6 +59,7 @@ export function CampaignDialog({ open, onOpenChange, campaign, defaultClientId }
   const [end, setEnd] = useState("");
   const [owner, setOwner] = useState("none");
   const [notes, setNotes] = useState("");
+  const [landingPageId, setLandingPageId] = useState("none");
 
   useEffect(() => {
     if (!open) return;
@@ -73,6 +74,9 @@ export function CampaignDialog({ open, onOpenChange, campaign, defaultClientId }
     setEnd(campaign?.end_date ?? "");
     setOwner(campaign?.owner_id ?? "none");
     setNotes(campaign?.notes ?? "");
+    setLandingPageId(
+      (campaign as { landing_page_id?: string | null } | null | undefined)?.landing_page_id ?? "none",
+    );
   }, [open, campaign, defaultClientId]);
 
   const save = useMutation({
@@ -89,6 +93,7 @@ export function CampaignDialog({ open, onOpenChange, campaign, defaultClientId }
         end_date: end || null,
         owner_id: owner === "none" ? null : owner,
         notes: notes.trim() || null,
+        landing_page_id: landingPageId === "none" ? null : landingPageId,
       };
       if (campaign) {
         const { error } = await supabase

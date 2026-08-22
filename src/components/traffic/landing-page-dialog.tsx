@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -50,6 +51,8 @@ export function LandingPageDialog({ open, onOpenChange, page, fixedClientId }: P
   const [owner, setOwner] = useState("none");
   const [publishedAt, setPublishedAt] = useState("");
   const [notes, setNotes] = useState("");
+  const [editUrl, setEditUrl] = useState("");
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -63,6 +66,10 @@ export function LandingPageDialog({ open, onOpenChange, page, fixedClientId }: P
     setOwner(page?.owner_id ?? "none");
     setPublishedAt(page?.published_at ?? "");
     setNotes(page?.notes ?? "");
+    setEditUrl((page as { edit_url?: string | null } | null | undefined)?.edit_url ?? "");
+    setVisible(
+      (page as { visible_to_client?: boolean | null } | null | undefined)?.visible_to_client ?? false,
+    );
   }, [open, page, fixedClientId]);
 
   const save = useMutation({
@@ -78,6 +85,8 @@ export function LandingPageDialog({ open, onOpenChange, page, fixedClientId }: P
         owner_id: owner === "none" ? null : owner,
         published_at: publishedAt || null,
         notes: notes.trim() || null,
+        edit_url: editUrl.trim() || null,
+        visible_to_client: visible,
       };
       if (page) {
         const { error } = await supabase.from("landing_pages").update(payload).eq("id", page.id);
@@ -129,6 +138,10 @@ export function LandingPageDialog({ open, onOpenChange, page, fixedClientId }: P
           <div>
             <Label>URL de produção</Label>
             <Input value={prod} onChange={(e) => setProd(e.target.value)} placeholder="https://" />
+          </div>
+          <div>
+            <Label>URL de edição (painel do builder)</Label>
+            <Input value={editUrl} onChange={(e) => setEditUrl(e.target.value)} placeholder="https://" />
           </div>
           <div>
             <Label>URL de homologação (opcional)</Label>
@@ -189,6 +202,15 @@ export function LandingPageDialog({ open, onOpenChange, page, fixedClientId }: P
               <Label>Data de publicação</Label>
               <Input type="date" value={publishedAt} onChange={(e) => setPublishedAt(e.target.value)} />
             </div>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+            <div>
+              <Label>Visível para o cliente</Label>
+              <p className="text-xs text-muted-foreground">
+                Quando ativo, o cliente vê esta Landing Page nos Ativos Digitais.
+              </p>
+            </div>
+            <Switch checked={visible} onCheckedChange={setVisible} />
           </div>
           <div>
             <Label>Observações</Label>
