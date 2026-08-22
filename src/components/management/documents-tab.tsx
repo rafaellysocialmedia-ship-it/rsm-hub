@@ -36,6 +36,7 @@ export function DocumentsTab({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-4">
       <SectionCard
+      collapsible
         title="Documentos do cliente"
         description="Contratos, briefings, identidade visual, logos e materiais enviados"
         actions={
