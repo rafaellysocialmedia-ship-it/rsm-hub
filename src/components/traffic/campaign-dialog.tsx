@@ -61,6 +61,20 @@ export function CampaignDialog({ open, onOpenChange, campaign, defaultClientId }
   const [notes, setNotes] = useState("");
   const [landingPageId, setLandingPageId] = useState("none");
 
+  const { data: landingPages = [] } = useQuery({
+    queryKey: ["landing-pages", "select", clientId],
+    enabled: !!clientId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("landing_pages")
+        .select("id,name")
+        .eq("client_id", clientId)
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   useEffect(() => {
     if (!open) return;
     setName(campaign?.name ?? "");
@@ -222,6 +236,22 @@ export function CampaignDialog({ open, onOpenChange, campaign, defaultClientId }
             <div>
               <Label>Encerramento</Label>
               <Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Landing Page vinculada</Label>
+              <Select value={landingPageId} onValueChange={setLandingPageId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem Landing Page" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem Landing Page</SelectItem>
+                  {landingPages.map((lp) => (
+                    <SelectItem key={lp.id} value={lp.id}>
+                      {lp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div>
