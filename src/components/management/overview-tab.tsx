@@ -42,7 +42,7 @@ export function OverviewTab({ client }: { client: Client }) {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <SectionCard title="Resumo executivo" description="Visão rápida do cadastro mestre">
+      <SectionCard title="Resumo executivo" description="Visão rápida do cadastro mestre" collapsible>
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <InfoRow icon={User} label="Cliente" value={client.name} />
           <InfoRow icon={Building2} label="Empresa" value={c.trade_name || client.legal_name} />
@@ -57,7 +57,7 @@ export function OverviewTab({ client }: { client: Client }) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Responsáveis" description="Time interno à frente da conta">
+      <SectionCard title="Responsáveis" description="Time interno à frente da conta" collapsible>
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <InfoRow icon={Users2} label="Atendimento" value={nameOf(c.account_manager_id)} />
           <InfoRow icon={Users2} label="Social Media" value={nameOf(c.social_manager_id)} />

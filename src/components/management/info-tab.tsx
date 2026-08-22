@@ -114,7 +114,7 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
 
   return (
     <div className="space-y-4">
-      <SectionCard title="Dados da empresa">
+      <SectionCard title="Dados da empresa" collapsible>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <F label="Razão Social">
             <Input
@@ -174,7 +174,7 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
         </div>
       </SectionCard>
 
-      <SectionCard title="Contato">
+      <SectionCard title="Contato" collapsible>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <F label="Responsável">
             <Input
@@ -215,7 +215,7 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
         </div>
       </SectionCard>
 
-      <SectionCard title="Endereço">
+      <SectionCard title="Endereço" collapsible>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <F label="CEP">
             <Input
@@ -261,7 +261,7 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
         </div>
       </SectionCard>
 
-      <SectionCard title="Responsáveis internos" description="Time principal da conta">
+      <SectionCard title="Responsáveis internos" description="Time principal da conta" collapsible>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <F label="Atendimento">
             <Select
@@ -302,7 +302,7 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
         </div>
       </SectionCard>
 
-      <SectionCard title="Observações" description="Anotações internas da equipe">
+      <SectionCard title="Observações" description="Anotações internas da equipe" collapsible>
         <Textarea
           disabled={!canEdit}
           rows={5}

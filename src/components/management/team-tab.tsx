@@ -85,6 +85,7 @@ export function TeamTab({ clientId, canEdit }: { clientId: string; canEdit: bool
 
   return (
     <SectionCard
+      collapsible
       title="Equipe responsável"
       description="Colaboradores vinculados a este cliente"
       actions={

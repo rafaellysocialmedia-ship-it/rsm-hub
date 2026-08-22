@@ -97,6 +97,7 @@ export function AccountsTab({ clientId, canEdit }: { clientId: string; canEdit: 
 
   return (
     <SectionCard
+      collapsible
       title="Acessos e contas"
       description="Apenas identificadores e links. Senhas continuam protegidas no cofre de Acessos."
       actions={

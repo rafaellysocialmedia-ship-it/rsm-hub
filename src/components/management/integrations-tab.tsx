@@ -22,6 +22,7 @@ export function IntegrationsTab({ clientId }: { clientId: string }) {
 
   return (
     <SectionCard
+      collapsible
       title="Integrações"
       description="Espaço preparado para futuras conexões. Nenhuma sincronização está ativa nesta etapa."
     >

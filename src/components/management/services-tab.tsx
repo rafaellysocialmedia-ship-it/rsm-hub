@@ -147,6 +147,7 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
 
   return (
     <SectionCard
+      collapsible
       title="Serviços contratados"
       description="Valores ficam registrados aqui e serão integrados ao financeiro futuramente."
       actions={
