@@ -33,6 +33,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState, SectionCard } from "./master-shared";
+import { monthsActive, monthsActiveLabel, deliveryState } from "@/lib/digital-assets";
+import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 
 export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: boolean }) {
   const qc = useQueryClient();
@@ -55,6 +57,38 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
       return (data ?? []) as ClientService[];
     },
   });
+
+  const { data: quota } = useQuery({
+    queryKey: ["client-quota", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("monthly_post_quota")
+        .eq("id", clientId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data?.monthly_post_quota ?? 0) as number;
+    },
+  });
+
+  const { data: monthPosts = [] } = useQuery({
+    queryKey: ["client-month-posts", clientId],
+    queryFn: async () => {
+      const ref = new Date();
+      const first = new Date(ref.getFullYear(), ref.getMonth(), 1).toISOString().slice(0, 10);
+      const last = new Date(ref.getFullYear(), ref.getMonth() + 1, 0).toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("posts")
+        .select("client_id,status,scheduled_date")
+        .eq("client_id", clientId)
+        .gte("scheduled_date", first)
+        .lte("scheduled_date", last);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const usedThisMonth = countMonthPosts(monthPosts as never, clientId);
 
   const upsert = useMutation({
     mutationFn: async () => {
@@ -130,11 +164,24 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
         <ul className="divide-y divide-border">
           {services.map((s) => {
             const meta = situationMeta(s.situation);
+            const months = monthsActive(s.start_date);
+            const isPostService = s.service_key === "social_media";
+            const delivery = isPostService ? deliveryState(usedThisMonth, quota ?? 0) : null;
             return (
               <li key={s.id} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{s.label || s.service_key}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">{s.label || s.service_key}</p>
+                    <Badge variant="outline" className="bg-muted/50 text-[11px] font-normal">
+                      {monthsActiveLabel(months)}
+                    </Badge>
+                    {delivery && (
+                      <Badge variant="outline" className={`text-[11px] font-normal ${delivery.tone}`}>
+                        {delivery.label} · {formatMonth()}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Início: {formatDate(s.start_date)} · Valor: {formatMoney(s.amount)}
                   </p>
                 </div>
