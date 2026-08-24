@@ -105,6 +105,11 @@ function LandingPagesPage() {
                 <p className="mt-1 text-xs text-muted-foreground">
                   {p.builder || "—"} · Publicada em {formatDate(p.published_at)}
                 </p>
+                {isStaff && (p as { visible_to_client?: boolean }).visible_to_client && (
+                  <Badge variant="outline" className="mt-2 text-[10px]">
+                    Visível ao cliente
+                  </Badge>
+                )}
                 <div className="mt-4 flex gap-2">
                   <Button
                     asChild={!!p.production_url}
