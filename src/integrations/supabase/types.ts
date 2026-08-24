@@ -1615,6 +1615,39 @@ export type Database = {
           },
         ]
       }
+      finance_expense_categories: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          group_key: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          group_key?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          group_key?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       finance_history: {
         Row: {
           actor_id: string | null
@@ -1626,6 +1659,8 @@ export type Database = {
           detail: string | null
           event_type: string
           id: string
+          payable_id: string | null
+          supplier_id: string | null
           title: string
         }
         Insert: {
@@ -1638,6 +1673,8 @@ export type Database = {
           detail?: string | null
           event_type: string
           id?: string
+          payable_id?: string | null
+          supplier_id?: string | null
           title: string
         }
         Update: {
@@ -1650,6 +1687,8 @@ export type Database = {
           detail?: string | null
           event_type?: string
           id?: string
+          payable_id?: string | null
+          supplier_id?: string | null
           title?: string
         }
         Relationships: [
@@ -1672,6 +1711,156 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "finance_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_history_payable_id_fkey"
+            columns: ["payable_id"]
+            isOneToOne: false
+            referencedRelation: "finance_payables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_history_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_payable_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          kind: string
+          mime_type: string | null
+          payable_id: string
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          payable_id: string
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          payable_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_payable_attachments_payable_id_fkey"
+            columns: ["payable_id"]
+            isOneToOne: false
+            referencedRelation: "finance_payables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_payables: {
+        Row: {
+          amount: number
+          amount_paid: number | null
+          category_id: string | null
+          competence: string | null
+          cost_center: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string
+          id: string
+          notes: string | null
+          paid_date: string | null
+          payment_method_id: string | null
+          recurring_id: string | null
+          responsible_id: string | null
+          status: Database["public"]["Enums"]["finance_status"]
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          amount_paid?: number | null
+          category_id?: string | null
+          competence?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method_id?: string | null
+          recurring_id?: string | null
+          responsible_id?: string | null
+          status?: Database["public"]["Enums"]["finance_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number | null
+          category_id?: string | null
+          competence?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          paid_date?: string | null
+          payment_method_id?: string | null
+          recurring_id?: string | null
+          responsible_id?: string | null
+          status?: Database["public"]["Enums"]["finance_status"]
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_payables_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_payables_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "finance_payment_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_payables_recurring_id_fkey"
+            columns: ["recurring_id"]
+            isOneToOne: false
+            referencedRelation: "finance_recurring_expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_payables_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -1714,6 +1903,144 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      finance_recurring_expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          cost_center: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_day: number
+          end_date: string | null
+          id: string
+          notes: string | null
+          payment_method_id: string | null
+          periodicity: Database["public"]["Enums"]["finance_periodicity"]
+          start_date: string
+          status: string
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_day?: number
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method_id?: string | null
+          periodicity?: Database["public"]["Enums"]["finance_periodicity"]
+          start_date?: string
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_day?: number
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          payment_method_id?: string | null
+          periodicity?: Database["public"]["Enums"]["finance_periodicity"]
+          start_date?: string
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_recurring_expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_recurring_expenses_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "finance_payment_methods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_recurring_expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "finance_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_suppliers: {
+        Row: {
+          category_id: string | null
+          cost_center: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          is_active: boolean
+          legal_name: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          tax_id: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          legal_name?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          cost_center?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          legal_name?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_suppliers_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       finance_transactions: {
         Row: {
