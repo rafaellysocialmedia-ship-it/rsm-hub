@@ -105,6 +105,11 @@ function LandingPagesPage() {
                 <p className="mt-1 text-xs text-muted-foreground">
                   {p.builder || "—"} · Publicada em {formatDate(p.published_at)}
                 </p>
+                {isStaff && (p as { visible_to_client?: boolean }).visible_to_client && (
+                  <Badge variant="outline" className="mt-2 text-[10px]">
+                    Visível ao cliente
+                  </Badge>
+                )}
                 <div className="mt-4 flex gap-2">
                   <Button
                     asChild={!!p.production_url}
@@ -121,6 +126,18 @@ function LandingPagesPage() {
                       <span>Abrir LP</span>
                     )}
                   </Button>
+                  {isStaff && (p as { edit_url?: string | null }).edit_url && (
+                    <Button asChild variant="outline" size="sm">
+                      <a
+                        href={(p as { edit_url?: string | null }).edit_url!}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                        Painel
+                      </a>
+                    </Button>
+                  )}
                   {isStaff && (
                     <Button
                       variant="ghost"
