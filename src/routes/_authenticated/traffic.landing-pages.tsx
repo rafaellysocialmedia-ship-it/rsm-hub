@@ -126,6 +126,18 @@ function LandingPagesPage() {
                       <span>Abrir LP</span>
                     )}
                   </Button>
+                  {isStaff && (p as { edit_url?: string | null }).edit_url && (
+                    <Button asChild variant="outline" size="sm">
+                      <a
+                        href={(p as { edit_url?: string | null }).edit_url!}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                        Painel
+                      </a>
+                    </Button>
+                  )}
                   {isStaff && (
                     <Button
                       variant="ghost"
