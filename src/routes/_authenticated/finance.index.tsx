@@ -493,7 +493,14 @@ function FinancePage() {
                 {!isLoading && filtered.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell>
-                      <div className="text-sm font-medium">{t.description}</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-medium">{t.description}</span>
+                        {t.source_charge_id && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground">
+                            Via cobrança
+                          </Badge>
+                        )}
+                      </div>
                       <div className="text-xs text-muted-foreground">{t.category || "—"}</div>
                     </TableCell>
                     <TableCell className="text-sm">
@@ -515,25 +522,39 @@ function FinancePage() {
                       {t.type === "expense" ? "−" : "+"} {brl(Number(t.amount), t.currency)}
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setEditing(t); setDialogOpen(true); }}>
-                            <Pencil className="mr-2 h-4 w-4" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteId(t.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      {t.source_charge_id ? (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          title="Editar em Contas a Receber"
+                          asChild
+                        >
+                          <a href="/finance/receivables">
+                            <Pencil className="h-4 w-4 text-muted-foreground" />
+                          </a>
+                        </Button>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => { setEditing(t); setDialogOpen(true); }}>
+                              <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteId(t.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

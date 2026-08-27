@@ -18,6 +18,10 @@ export type FinanceTransaction = {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  /** Preenchido quando o lançamento é espelhado automaticamente de uma
+   * cobrança em Contas a Receber (finance_charges). Somente leitura aqui —
+   * editar/excluir deve ser feito na tela de origem. */
+  source_charge_id: string | null;
 };
 
 export const STATUS_META: Record<

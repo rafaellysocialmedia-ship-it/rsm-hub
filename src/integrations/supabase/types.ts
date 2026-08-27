@@ -2057,6 +2057,7 @@ export type Database = {
           notes: string | null
           paid_date: string | null
           payment_method: string | null
+          source_charge_id: string | null
           status: Database["public"]["Enums"]["finance_status"]
           type: Database["public"]["Enums"]["finance_type"]
           updated_at: string
@@ -2075,6 +2076,7 @@ export type Database = {
           notes?: string | null
           paid_date?: string | null
           payment_method?: string | null
+          source_charge_id?: string | null
           status?: Database["public"]["Enums"]["finance_status"]
           type?: Database["public"]["Enums"]["finance_type"]
           updated_at?: string
@@ -2093,6 +2095,7 @@ export type Database = {
           notes?: string | null
           paid_date?: string | null
           payment_method?: string | null
+          source_charge_id?: string | null
           status?: Database["public"]["Enums"]["finance_status"]
           type?: Database["public"]["Enums"]["finance_type"]
           updated_at?: string
@@ -2103,6 +2106,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_transactions_source_charge_id_fkey"
+            columns: ["source_charge_id"]
+            isOneToOne: true
+            referencedRelation: "finance_charges"
             referencedColumns: ["id"]
           },
         ]
