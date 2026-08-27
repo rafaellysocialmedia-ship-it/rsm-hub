@@ -1,0 +1,329 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://kpttdcangwzrezekjzhi.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "rsm",
+      "version": "0.1.0",
+      "title": "RSM"
+    },
+    "tools": [
+      {
+        "name": "list_clients",
+        "title": "Listar clientes",
+        "description": "Lista os clientes visíveis para o usuário autenticado, com status e etapa da jornada.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "active",
+                "paused",
+                "prospect",
+                "inactive"
+              ],
+              "description": "Filtra por status do cliente."
+            },
+            "search": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Busca por nome do cliente."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25,
+              "description": "Máximo de clientes retornados."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_posts",
+        "title": "Listar publicações",
+        "description": "Lista publicações do calendário editorial, com filtros por cliente, status e intervalo de datas agendadas.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID do cliente."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "idea",
+                "production",
+                "recording",
+                "editing",
+                "review",
+                "changes_requested",
+                "approved",
+                "to_schedule",
+                "scheduled",
+                "published",
+                "rejected",
+                "archived"
+              ],
+              "description": "Status da publicação."
+            },
+            "from": {
+              "type": "string",
+              "description": "Data inicial agendada (YYYY-MM-DD)."
+            },
+            "to": {
+              "type": "string",
+              "description": "Data final agendada (YYYY-MM-DD)."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 30,
+              "description": "Máximo de publicações retornadas."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_post",
+        "title": "Criar publicação",
+        "description": "Cria uma publicação no calendário editorial de um cliente (status inicial 'idea' por padrão).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID do cliente dono da publicação."
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Título interno da publicação."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "idea",
+                "production",
+                "review",
+                "approved",
+                "to_schedule",
+                "scheduled"
+              ],
+              "default": "idea",
+              "description": "Status inicial."
+            },
+            "scheduled_date": {
+              "type": "string",
+              "description": "Data agendada (YYYY-MM-DD)."
+            },
+            "scheduled_time": {
+              "type": "string",
+              "description": "Hora agendada (HH:MM)."
+            },
+            "social_networks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Redes sociais de destino."
+            },
+            "format": {
+              "type": "string",
+              "description": "Formato (ex.: Reels, Carrossel)."
+            },
+            "headline": {
+              "type": "string",
+              "description": "Headline principal."
+            },
+            "caption": {
+              "type": "string",
+              "description": "Legenda."
+            },
+            "cta": {
+              "type": "string",
+              "description": "Chamada para ação."
+            },
+            "hashtags": {
+              "type": "string",
+              "description": "Hashtags."
+            }
+          },
+          "required": [
+            "client_id",
+            "title"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_post_status",
+        "title": "Atualizar status da publicação",
+        "description": "Altera o status de uma publicação existente no calendário editorial.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "post_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID da publicação."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "idea",
+                "production",
+                "recording",
+                "editing",
+                "review",
+                "changes_requested",
+                "approved",
+                "to_schedule",
+                "scheduled",
+                "published",
+                "rejected",
+                "archived"
+              ],
+              "description": "Novo status."
+            }
+          },
+          "required": [
+            "post_id",
+            "status"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_tasks",
+        "title": "Listar tarefas",
+        "description": "Lista tarefas da operação, com filtros por cliente, status e prazo.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "client_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID do cliente."
+            },
+            "status": {
+              "type": "string",
+              "description": "Status da tarefa (ex.: todo, doing, done)."
+            },
+            "due_before": {
+              "type": "string",
+              "description": "Somente tarefas com prazo até esta data (YYYY-MM-DD)."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 30,
+              "description": "Máximo de tarefas retornadas."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_task",
+        "title": "Criar tarefa",
+        "description": "Cria uma tarefa na operação, opcionalmente vinculada a um cliente.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Título da tarefa."
+            },
+            "description": {
+              "type": "string",
+              "description": "Descrição/detalhes."
+            },
+            "client_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID do cliente relacionado."
+            },
+            "priority": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "urgent"
+              ],
+              "description": "Prioridade."
+            },
+            "due_date": {
+              "type": "string",
+              "description": "Prazo (YYYY-MM-DD)."
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
