@@ -10,8 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 
+/** Only same-origin relative paths are accepted as post-login redirects. */
+export function safeNext(next: string | undefined): string | null {
+  if (!next) return null;
+  if (!next.startsWith("/") || next.startsWith("//")) return null;
+  return next;
+}
+
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Entrar · Social Media Hub" },
@@ -23,15 +33,21 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const { user, loading, hasRole } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
 
   useEffect(() => {
     if (!loading && user) {
+      const target = safeNext(next);
+      if (target) {
+        window.location.href = target;
+        return;
+      }
       const isStaff = hasRole("administrator") || hasRole("team");
       navigate({ to: isStaff ? "/dashboard" : "/portal" });
     }
-  }, [user, loading, hasRole, navigate]);
+  }, [user, loading, hasRole, navigate, next]);
 
   return (
     <div className="relative grid min-h-screen lg:grid-cols-2">
