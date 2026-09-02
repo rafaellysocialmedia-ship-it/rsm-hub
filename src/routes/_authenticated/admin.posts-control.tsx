@@ -68,7 +68,7 @@ function PostsControl() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id,name,status,monthly_post_quota")
+        .select("id,name,status,monthly_post_quota,start_date")
         .order("name");
       if (error) throw error;
       return data ?? [];
