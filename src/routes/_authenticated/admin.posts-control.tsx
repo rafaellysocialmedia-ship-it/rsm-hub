@@ -68,7 +68,7 @@ function PostsControl() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id,name,status,monthly_post_quota")
+        .select("id,name,status,monthly_post_quota,start_date")
         .order("name");
       if (error) throw error;
       return data ?? [];
@@ -88,7 +88,9 @@ function PostsControl() {
           contracted: c.monthly_post_quota ?? 0,
           ledger: ledger as PostLedgerRow[],
           posts: usage,
+          since: (c as { start_date?: string | null }).start_date ?? null,
         }),
+
       }));
   }, [clients, ledger, usage, q]);
 

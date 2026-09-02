@@ -58,19 +58,65 @@ export function usedInMonth(
   }).length;
 }
 
-/** Balance carried from the most recent closed month before (year, month). */
+/** Earliest month (index) with a scheduled post for the client. */
+function firstPostMonth(posts: UsagePost[], clientId: string): number | null {
+  let min: number | null = null;
+  for (const p of posts) {
+    if (p.client_id !== clientId || !p.scheduled_date) continue;
+    const d = new Date(p.scheduled_date + "T00:00:00");
+    const idx = monthIndex(d.getFullYear(), d.getMonth() + 1);
+    if (min === null || idx < min) min = idx;
+  }
+  return min;
+}
+
+/**
+ * Balance carried into (year, month).
+ *
+ * Starts from the most recent CLOSED month and, for every month after it that
+ * was never closed by the monthly routine, accumulates `contracted - used`
+ * from the live posts. Without this, months that were never closed silently
+ * dropped their leftover posts.
+ */
 export function previousBalanceOf(
   rows: PostLedgerRow[],
   clientId: string,
   year: number,
   month: number,
+  opts?: { posts?: UsagePost[]; contracted?: number; since?: string | null },
 ): number {
   const target = monthIndex(year, month);
   const prior = rows
     .filter((r) => r.client_id === clientId && monthIndex(r.year, r.month) < target)
     .sort((a, b) => monthIndex(b.year, b.month) - monthIndex(a.year, a.month));
-  return prior[0]?.balance ?? 0;
+
+  let balance = prior[0]?.balance ?? 0;
+  const posts = opts?.posts;
+  const contracted = opts?.contracted ?? 0;
+  if (!posts || contracted <= 0) return balance;
+
+  // First month that still needs to be accounted for from live data.
+  let from: number | null = prior[0] ? monthIndex(prior[0].year, prior[0].month) + 1 : null;
+  if (from === null && opts?.since) {
+    const d = new Date(opts.since + "T00:00:00");
+    if (!Number.isNaN(d.getTime())) from = monthIndex(d.getFullYear(), d.getMonth() + 1);
+  }
+  if (from === null) from = firstPostMonth(posts, clientId);
+  if (from === null || from >= target) return balance;
+
+  // Guard against absurd ranges (max 24 months back).
+  from = Math.max(from, target - 24);
+
+  for (let idx = from; idx < target; idx++) {
+    const y = Math.floor((idx - 1) / 12);
+    const m = idx - y * 12;
+    const closed = rows.find((r) => r.client_id === clientId && r.year === y && r.month === m && r.closed_at);
+    if (closed) continue; // already reflected in the closed balance chain
+    balance += contracted - usedInMonth(posts, clientId, y, m);
+  }
+  return balance;
 }
+
 
 export type MonthSummary = {
   year: number;
@@ -113,6 +159,8 @@ export function openMonthSummary(args: {
   ledger: PostLedgerRow[];
   posts: UsagePost[];
   ref?: Date;
+  /** Client start date (ISO). Limits how far back the carry-over is computed. */
+  since?: string | null;
 }): MonthSummary {
   const { year, month } = ymOf(args.ref ?? new Date());
   const closedRow = args.ledger.find(
@@ -132,10 +180,15 @@ export function openMonthSummary(args: {
     year,
     month,
     contracted: args.contracted,
-    previous: previousBalanceOf(args.ledger, args.clientId, year, month),
+    previous: previousBalanceOf(args.ledger, args.clientId, year, month, {
+      posts: args.posts,
+      contracted: args.contracted,
+      since: args.since,
+    }),
     used: usedInMonth(args.posts, args.clientId, year, month),
   });
 }
+
 
 export function balanceLabel(balance: number): string {
   if (balance > 0) return `+${balance}`;
