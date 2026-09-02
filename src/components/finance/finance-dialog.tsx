@@ -116,8 +116,8 @@ export function FinanceDialog({
         paid_date: null,
         payment_method: "",
         notes: "",
-        recurrence_frequency: "none",
-        recurrence_count: 1,
+        recurrence_monthly: false,
+
       });
     }
   }, [open, transaction, form]);
