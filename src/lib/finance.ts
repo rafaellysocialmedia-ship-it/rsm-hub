@@ -21,8 +21,13 @@ export type FinanceTransaction = {
   /** Preenchido quando o lançamento é espelhado automaticamente de uma
    * cobrança em Contas a Receber (finance_charges). Somente leitura aqui —
    * editar/excluir deve ser feito na tela de origem. */
-  source_charge_id: string | null;
+  source_charge_id?: string | null;
+  /** "monthly" quando o lançamento é o modelo de uma mensalidade recorrente. */
+  recurrence?: string | null;
+  recurrence_active?: boolean;
+  recurrence_parent_id?: string | null;
 };
+
 
 export const STATUS_META: Record<
   FinanceStatus,
