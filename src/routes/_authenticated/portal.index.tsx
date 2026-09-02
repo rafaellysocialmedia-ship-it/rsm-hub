@@ -345,6 +345,23 @@ function ClientPortal() {
     },
   });
 
+  /** Atualizações que a equipe marcou como visíveis ao cliente. */
+  const { data: updates = [] } = useQuery({
+    queryKey: ["portal-timeline", client?.id],
+    enabled: !!client?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_timeline")
+        .select("id,title,detail,created_at")
+        .eq("client_id", client!.id)
+        .eq("visibility", "client")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const { data: comments = [] } = useQuery({
     queryKey: ["portal-post-comments", openPost?.id],
     enabled: !!openPost?.id,
