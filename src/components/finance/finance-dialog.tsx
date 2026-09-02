@@ -80,8 +80,7 @@ export function FinanceDialog({
       paid_date: null,
       payment_method: "",
       notes: "",
-      recurrence_frequency: "none",
-      recurrence_count: 1,
+      recurrence_monthly: false,
     },
   });
 
@@ -100,8 +99,7 @@ export function FinanceDialog({
         paid_date: transaction.paid_date,
         payment_method: transaction.payment_method ?? "",
         notes: transaction.notes ?? "",
-        recurrence_frequency: "none",
-        recurrence_count: 1,
+        recurrence_monthly: transaction.recurrence === "monthly" && transaction.recurrence_active !== false,
       });
     } else {
       form.reset({
