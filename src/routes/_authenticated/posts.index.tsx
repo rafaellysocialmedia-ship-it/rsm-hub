@@ -28,6 +28,8 @@ import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
 import { QuotaBadge } from "@/components/clients/quota-badge";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
+import { usePostLedger } from "@/hooks/use-post-ledger";
+import { balanceLabel, balanceTone, previousBalanceOf, summarizeMonth } from "@/lib/post-ledger";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -94,6 +96,9 @@ function PostsPage() {
   });
 
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
+
+  // Saldo mensal (inclui o que ficou faltando do mês anterior)
+  const { data: ledger = [] } = usePostLedger(clientFilter !== "all" ? clientFilter : null);
 
   // Realtime
   useEffect(() => {
