@@ -959,6 +959,7 @@ export type Database = {
           id: string
           metadata: Json | null
           title: string
+          visibility: string
         }
         Insert: {
           actor_id?: string | null
@@ -969,6 +970,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           title: string
+          visibility?: string
         }
         Update: {
           actor_id?: string | null
@@ -979,6 +981,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           title?: string
+          visibility?: string
         }
         Relationships: [
           {
@@ -1550,6 +1553,8 @@ export type Database = {
       finance_contracts: {
         Row: {
           amount: number
+          auto_billing: boolean
+          billing_paused_at: string | null
           client_id: string
           contract_number: string | null
           created_at: string
@@ -1558,6 +1563,7 @@ export type Database = {
           end_date: string | null
           file_name: string | null
           id: string
+          last_billed_on: string | null
           notes: string | null
           periodicity: Database["public"]["Enums"]["finance_periodicity"]
           service_key: string | null
@@ -1569,6 +1575,8 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          auto_billing?: boolean
+          billing_paused_at?: string | null
           client_id: string
           contract_number?: string | null
           created_at?: string
@@ -1577,6 +1585,7 @@ export type Database = {
           end_date?: string | null
           file_name?: string | null
           id?: string
+          last_billed_on?: string | null
           notes?: string | null
           periodicity?: Database["public"]["Enums"]["finance_periodicity"]
           service_key?: string | null
@@ -1588,6 +1597,8 @@ export type Database = {
         }
         Update: {
           amount?: number
+          auto_billing?: boolean
+          billing_paused_at?: string | null
           client_id?: string
           contract_number?: string | null
           created_at?: string
@@ -1596,6 +1607,7 @@ export type Database = {
           end_date?: string | null
           file_name?: string | null
           id?: string
+          last_billed_on?: string | null
           notes?: string | null
           periodicity?: Database["public"]["Enums"]["finance_periodicity"]
           service_key?: string | null
@@ -3389,6 +3401,7 @@ export type Database = {
         }
       }
       close_previous_post_month: { Args: never; Returns: number }
+      generate_recurring_charges: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
