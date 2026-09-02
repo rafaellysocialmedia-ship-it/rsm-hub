@@ -2069,6 +2069,9 @@ export type Database = {
           notes: string | null
           paid_date: string | null
           payment_method: string | null
+          recurrence: string | null
+          recurrence_active: boolean
+          recurrence_parent_id: string | null
           status: Database["public"]["Enums"]["finance_status"]
           type: Database["public"]["Enums"]["finance_type"]
           updated_at: string
@@ -2087,6 +2090,9 @@ export type Database = {
           notes?: string | null
           paid_date?: string | null
           payment_method?: string | null
+          recurrence?: string | null
+          recurrence_active?: boolean
+          recurrence_parent_id?: string | null
           status?: Database["public"]["Enums"]["finance_status"]
           type?: Database["public"]["Enums"]["finance_type"]
           updated_at?: string
@@ -2105,6 +2111,9 @@ export type Database = {
           notes?: string | null
           paid_date?: string | null
           payment_method?: string | null
+          recurrence?: string | null
+          recurrence_active?: boolean
+          recurrence_parent_id?: string | null
           status?: Database["public"]["Enums"]["finance_status"]
           type?: Database["public"]["Enums"]["finance_type"]
           updated_at?: string
@@ -2115,6 +2124,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_transactions_recurrence_parent_id_fkey"
+            columns: ["recurrence_parent_id"]
+            isOneToOne: false
+            referencedRelation: "finance_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -3402,6 +3418,7 @@ export type Database = {
       }
       close_previous_post_month: { Args: never; Returns: number }
       generate_recurring_charges: { Args: never; Returns: number }
+      generate_recurring_transactions: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
