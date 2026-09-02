@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Pencil, Plus, Receipt } from "lucide-react";
+import { FileText, Pencil, Play, Plus, Receipt, RefreshCw, Pause } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -64,6 +64,23 @@ function ContractsPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<FinanceContract | null>(null);
+
+  const toggleBilling = useMutation({
+    mutationFn: async (c: FinanceContract) => {
+      const next = !c.auto_billing;
+      const { error } = await supabase
+        .from("finance_contracts")
+        .update({ auto_billing: next, billing_paused_at: next ? null : new Date().toISOString() })
+        .eq("id", c.id);
+      if (error) throw error;
+      return next;
+    },
+    onSuccess: (next) => {
+      toast.success(next ? "Cobrança automática retomada" : "Cobrança automática pausada");
+      qc.invalidateQueries({ queryKey: ["finance-contracts"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "—";
 
@@ -191,12 +208,52 @@ function ContractsPage() {
                       {dateBR(c.start_date)} → {dateBR(c.end_date)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={CONTRACT_STATUS_META[c.status].className}>
-                        {CONTRACT_STATUS_META[c.status].label}
-                      </Badge>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant="outline" className={CONTRACT_STATUS_META[c.status].className}>
+                          {CONTRACT_STATUS_META[c.status].label}
+                        </Badge>
+                        {c.periodicity !== "once" && (
+                          <Badge
+                            variant="outline"
+                            className={
+                              c.auto_billing
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400"
+                                : "text-[10px] text-muted-foreground"
+                            }
+                            title={
+                              c.auto_billing
+                                ? "Cobranças geradas automaticamente a cada ciclo"
+                                : c.billing_paused_at
+                                  ? `Pausada em ${dateBR(c.billing_paused_at)}`
+                                  : "Cobrança automática desativada"
+                            }
+                          >
+                            {c.auto_billing ? (
+                              <>
+                                <RefreshCw className="mr-1 h-2.5 w-2.5" /> Automática
+                              </>
+                            ) : (
+                              <>
+                                <Pause className="mr-1 h-2.5 w-2.5" /> Pausada
+                              </>
+                            )}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {access.canEditContracts && c.periodicity !== "once" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title={c.auto_billing ? "Pausar cobrança automática" : "Retomar cobrança automática"}
+                            onClick={() => toggleBilling.mutate(c)}
+                            disabled={toggleBilling.isPending}
+                          >
+                            {c.auto_billing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </Button>
+                        )}
                         {access.canEditContracts && (
                           <Button
                             size="sm"

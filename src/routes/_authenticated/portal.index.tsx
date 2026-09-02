@@ -345,6 +345,23 @@ function ClientPortal() {
     },
   });
 
+  /** Atualizações que a equipe marcou como visíveis ao cliente. */
+  const { data: updates = [] } = useQuery({
+    queryKey: ["portal-timeline", client?.id],
+    enabled: !!client?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_timeline")
+        .select("id,title,detail,created_at")
+        .eq("client_id", client!.id)
+        .eq("visibility", "client")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const { data: comments = [] } = useQuery({
     queryKey: ["portal-post-comments", openPost?.id],
     enabled: !!openPost?.id,
@@ -548,6 +565,25 @@ function ClientPortal() {
           );
         })}
       </div>
+
+      {updates.length > 0 && (
+        <Card className="border-border/60">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Atualizações da equipe</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            {updates.map((u) => (
+              <div key={u.id} className="border-l-2 border-primary/40 pl-3">
+                <p className="text-sm font-medium">{u.title}</p>
+                {u.detail && <p className="text-xs text-muted-foreground">{u.detail}</p>}
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {new Date(u.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Tabs value={tab} onValueChange={(v) => setTab(v as Decision | "all")}>

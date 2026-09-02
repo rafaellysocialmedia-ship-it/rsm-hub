@@ -61,7 +61,7 @@ const staffGroups: NavGroup[] = [
     label: "Workspace",
     items: [
       { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, module: "workspace.dashboard" },
-      { title: "Clientes", url: "/clients", icon: Briefcase, module: "workspace.clients" },
+      { title: "Clientes (Operação)", url: "/clients", icon: Briefcase, module: "workspace.clients" },
       { title: "Tarefas", url: "/tasks", icon: KanbanSquare, module: "workspace.tasks" },
       { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
       { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
@@ -97,7 +97,7 @@ const staffGroups: NavGroup[] = [
   {
     label: "Gerência",
     items: [
-      { title: "Clientes", url: "/management/clients", icon: Building2, module: "management.clients" },
+      { title: "Cadastro Mestre", url: "/management/clients", icon: Building2, module: "management.clients" },
     ],
   },
   {
@@ -106,7 +106,7 @@ const staffGroups: NavGroup[] = [
       { title: "Dashboard", url: "/finance", icon: CircleDollarSign, module: "finance.dashboard" },
       { title: "Contas a Receber", url: "/finance/receivables", icon: Receipt, module: "finance.receivables" },
       { title: "Contratos", url: "/finance/contracts", icon: FileText, module: "finance.contracts" },
-      { title: "Clientes", url: "/finance/clients", icon: Building2, module: "finance.clients" },
+      { title: "Carteira de Clientes", url: "/finance/clients", icon: Building2, module: "finance.clients" },
       { title: "Formas de Pagamento", url: "/finance/payment-methods", icon: CreditCard, module: "finance.payment_methods" },
       { title: "Configurações", url: "/finance/settings", icon: Settings2, module: "finance.settings" },
     ],

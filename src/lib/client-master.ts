@@ -109,6 +109,7 @@ export const TIMELINE_LABELS: Record<string, string> = {
   service_updated: "Serviço",
   team_updated: "Equipe",
   document_uploaded: "Documento",
+  team_update: "Atualização da equipe",
 };
 
 export function formatMoney(value: number | null | undefined) {
