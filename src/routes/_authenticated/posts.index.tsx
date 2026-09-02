@@ -318,19 +318,61 @@ function PostsPage() {
       {clientFilter !== "all" && (() => {
         const activeClient = clients.find((c) => c.id === clientFilter);
         if (!activeClient?.monthly_post_quota) return null;
-        const used = countMonthPosts(posts, clientFilter, calendarMonth);
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth() + 1;
+        const closedRow = ledger.find(
+          (r) => r.client_id === clientFilter && r.year === year && r.month === month && r.closed_at,
+        );
+        const summary = closedRow
+          ? summarizeMonth({
+              year,
+              month,
+              contracted: closedRow.contracted,
+              previous: closedRow.previous_balance,
+              used: closedRow.used,
+              closed: true,
+            })
+          : summarizeMonth({
+              year,
+              month,
+              contracted: activeClient.monthly_post_quota,
+              previous: previousBalanceOf(ledger, clientFilter, year, month),
+              used: countMonthPosts(posts, clientFilter, calendarMonth),
+            });
         return (
           <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-medium">Cota mensal — {activeClient.name}</p>
                 <p className="text-xs capitalize text-muted-foreground">{formatMonth(calendarMonth)}</p>
               </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Badge variant="outline">Contratado {summary.contracted}</Badge>
+                {summary.previous !== 0 && (
+                  <Badge variant="outline" className={balanceTone(summary.previous)}>
+                    {summary.previous > 0 ? "Pendentes do mês anterior" : "Débito do mês anterior"}{" "}
+                    {balanceLabel(summary.previous)}
+                  </Badge>
+                )}
+                <Badge variant="outline">Disponível {summary.available}</Badge>
+                <Badge variant="outline" className={balanceTone(summary.balance)}>
+                  Saldo {balanceLabel(summary.balance)}
+                </Badge>
+                {summary.closed && <Badge variant="secondary">Mês fechado</Badge>}
+              </div>
             </div>
-            <QuotaBadge used={used} quota={activeClient.monthly_post_quota} />
+            <QuotaBadge used={summary.used} quota={summary.available || summary.contracted} />
+            <p className="mt-2 text-xs text-muted-foreground">
+              {summary.previous > 0
+                ? `Inclui ${summary.previous} publicaç${summary.previous === 1 ? "ão" : "ões"} que ficaram faltando do mês anterior.`
+                : summary.previous < 0
+                  ? `Há um débito de ${Math.abs(summary.previous)} publicaç${Math.abs(summary.previous) === 1 ? "ão" : "ões"} adiantadas em meses anteriores.`
+                  : "Nenhum saldo pendente de meses anteriores."}
+            </p>
           </div>
         );
       })()}
+
 
       {/* Result count + bulk actions */}
       <div className="flex flex-wrap items-center justify-between gap-2">
