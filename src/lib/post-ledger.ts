@@ -159,6 +159,8 @@ export function openMonthSummary(args: {
   ledger: PostLedgerRow[];
   posts: UsagePost[];
   ref?: Date;
+  /** Client start date (ISO). Limits how far back the carry-over is computed. */
+  since?: string | null;
 }): MonthSummary {
   const { year, month } = ymOf(args.ref ?? new Date());
   const closedRow = args.ledger.find(
@@ -178,10 +180,15 @@ export function openMonthSummary(args: {
     year,
     month,
     contracted: args.contracted,
-    previous: previousBalanceOf(args.ledger, args.clientId, year, month),
+    previous: previousBalanceOf(args.ledger, args.clientId, year, month, {
+      posts: args.posts,
+      contracted: args.contracted,
+      since: args.since,
+    }),
     used: usedInMonth(args.posts, args.clientId, year, month),
   });
 }
+
 
 export function balanceLabel(balance: number): string {
   if (balance > 0) return `+${balance}`;
