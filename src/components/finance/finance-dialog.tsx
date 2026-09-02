@@ -366,49 +366,29 @@ export function FinanceDialog({
               )}
             />
 
-            {!transaction && (
-              <div className="col-span-2 grid grid-cols-2 gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-3">
+            {(!transaction || !transaction.recurrence_parent_id) && (
+              <div className="col-span-2 rounded-lg border border-dashed border-border bg-muted/30 p-3">
                 <FormField
                   control={form.control}
-                  name="recurrence_frequency"
+                  name="recurrence_monthly"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recorrência</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Sem recorrência</SelectItem>
-                          <SelectItem value="weekly">Semanal</SelectItem>
-                          <SelectItem value="biweekly">Quinzenal</SelectItem>
-                          <SelectItem value="monthly">Mensal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="recurrence_count"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nº de parcelas</FormLabel>
+                    <FormItem className="flex items-center justify-between gap-4">
+                      <div>
+                        <FormLabel>Mensalidade recorrente</FormLabel>
+                        <p className="text-[11px] text-muted-foreground">
+                          O lançamento é recriado automaticamente todo mês, sempre com a mesma
+                          descrição (sem numeração de parcelas). Desative para encerrar.
+                        </p>
+                      </div>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={60}
-                          {...field}
-                          disabled={form.watch("recurrence_frequency") === "none"}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <p className="text-[11px] text-muted-foreground">
-                        Cria N lançamentos com datas incrementadas automaticamente.
-                      </p>
                     </FormItem>
                   )}
                 />
               </div>
             )}
+
 
             <DialogFooter className="col-span-2">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
