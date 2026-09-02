@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, History, LineChart, Pencil, Plus, Target } from "lucide-react";
+import { AlertTriangle, BarChart3, History, LineChart, Pencil, Plus, Target } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useTrafficAccess, useTrafficClients } from "@/hooks/use-traffic";
@@ -28,6 +28,7 @@ import {
   type PeriodKey,
 } from "@/lib/traffic-analytics";
 import { formatDate } from "@/lib/client-master";
+import { campaignHealth, type CampaignHealth } from "@/lib/campaign-health";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -196,6 +197,43 @@ function TrafficAnalyticsPage() {
 
   const history = useMemo(() => buildHistory(visibleCampaigns, rows), [visibleCampaigns, rows]);
 
+  /** Investimento acumulado (todo o histórico) — base para detectar saldo esgotado. */
+  const { data: lifetime = [] } = useQuery({
+    queryKey: ["traffic-metrics-lifetime"],
+    enabled: allowed,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("traffic_metrics")
+        .select("campaign_id,spend,collected_at")
+        .order("collected_at", { ascending: false })
+        .limit(5000);
+      if (error) throw error;
+      return (data ?? []) as Pick<TrafficMetric, "campaign_id" | "spend" | "collected_at">[];
+    },
+  });
+
+  /** Saúde por campanha: sem saldo, saldo baixo, pausada, vigência vencida, sem métricas. */
+  const healthById = useMemo(() => {
+    const spend = new Map<string, number>();
+    const last = new Map<string, string>();
+    for (const m of lifetime) {
+      spend.set(m.campaign_id, (spend.get(m.campaign_id) ?? 0) + Number(m.spend ?? 0));
+      const prev = last.get(m.campaign_id);
+      if (!prev || m.collected_at > prev) last.set(m.campaign_id, m.collected_at);
+    }
+    const map = new Map<string, CampaignHealth>();
+    for (const c of visibleCampaigns) {
+      map.set(c.id, campaignHealth(c, spend.get(c.id) ?? 0, last.get(c.id) ?? null));
+    }
+    return map;
+  }, [lifetime, visibleCampaigns]);
+
+  const campaignAlerts = useMemo(
+    () => visibleCampaigns.filter((c) => healthById.get(c.id)?.alert),
+    [visibleCampaigns, healthById],
+  );
+
   if (loading) return <div className="px-6 py-10 text-sm text-muted-foreground">Carregando…</div>;
   if (!allowed) return <TrafficLocked />;
 
@@ -335,9 +373,20 @@ function TrafficAnalyticsPage() {
                       {platformLabel(c.platform)} · {objectiveLabel(c.objective)}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {money(t.spend)} · {num(t.leads)} leads · {num(t.conversions)} conversões
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      {money(t.spend)} · {num(t.leads)} leads · {num(t.conversions)} conversões
+                    </p>
+                    {(() => {
+                      const h = healthById.get(c.id);
+                      if (!h || h.key === "ok") return null;
+                      return (
+                        <Badge variant="outline" className={h.tone}>
+                          {h.label}
+                        </Badge>
+                      );
+                    })()}
+                  </div>
                 </div>
               );
             })}
@@ -367,6 +416,43 @@ function TrafficAnalyticsPage() {
           ) : (
             <>
               <KpiGrid items={kpiItems(totals)} />
+
+              {campaignAlerts.length > 0 && (
+                <Card className="border-amber-500/30 p-5 shadow-soft">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    <p className="text-sm font-medium">
+                      {campaignAlerts.length} campanha{campaignAlerts.length === 1 ? "" : "s"} precisa
+                      {campaignAlerts.length === 1 ? "" : "m"} de atenção
+                    </p>
+                  </div>
+                  <ul className="mt-3 divide-y divide-border">
+                    {campaignAlerts.map((c) => {
+                      const h = healthById.get(c.id)!;
+                      return (
+                        <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                          <div className="min-w-0">
+                            <Link
+                              to="/traffic/campaigns/$campaignId"
+                              params={{ campaignId: c.id }}
+                              className="text-sm font-medium hover:underline"
+                            >
+                              {c.name}
+                            </Link>
+                            <p className="text-xs text-muted-foreground">
+                              {clientName(c.client_id)} · {platformLabel(c.platform)}
+                              {h.detail ? ` · ${h.detail}` : ""}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className={h.tone}>
+                            {h.label}
+                          </Badge>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </Card>
+              )}
 
               <Card className="p-5 shadow-soft">
                 <p className="text-sm font-medium">Investimento ao longo do tempo</p>
@@ -456,6 +542,16 @@ function TrafficAnalyticsPage() {
                           <Badge variant="outline" className={meta.tone}>
                             {meta.label}
                           </Badge>
+                          {(() => {
+                            const h = healthById.get(c.id);
+                            if (!h || h.key === "ok" || h.key === "paused" || h.key === "ended") return null;
+                            return (
+                              <Badge variant="outline" className={h.tone} title={h.detail}>
+                                <AlertTriangle className="mr-1 h-3 w-3" />
+                                {h.label}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {clientName(c.client_id)} · {platformLabel(c.platform)} ·{" "}
