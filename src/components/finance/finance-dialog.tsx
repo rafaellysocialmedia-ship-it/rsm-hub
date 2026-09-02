@@ -10,6 +10,8 @@ import type { FinanceStatus, FinanceTransaction, FinanceType } from "@/lib/finan
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+
 import {
   Dialog,
   DialogContent,
@@ -45,25 +47,11 @@ const schema = z.object({
   paid_date: z.string().optional().nullable(),
   payment_method: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  recurrence_frequency: z.enum(["none", "weekly", "biweekly", "monthly"]),
-  recurrence_count: z.coerce.number().min(1).max(60),
+  recurrence_monthly: z.boolean(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-function addInterval(iso: string, freq: "weekly" | "biweekly" | "monthly", steps: number): string {
-  const d = new Date(iso + "T00:00:00");
-  if (freq === "weekly") d.setDate(d.getDate() + 7 * steps);
-  else if (freq === "biweekly") d.setDate(d.getDate() + 14 * steps);
-  else {
-    const day = d.getDate();
-    d.setDate(1);
-    d.setMonth(d.getMonth() + steps);
-    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-    d.setDate(Math.min(day, last));
-  }
-  return d.toISOString().slice(0, 10);
-}
 
 type ClientLite = { id: string; name: string };
 
@@ -94,8 +82,7 @@ export function FinanceDialog({
       paid_date: null,
       payment_method: "",
       notes: "",
-      recurrence_frequency: "none",
-      recurrence_count: 1,
+      recurrence_monthly: false,
     },
   });
 
@@ -114,8 +101,7 @@ export function FinanceDialog({
         paid_date: transaction.paid_date,
         payment_method: transaction.payment_method ?? "",
         notes: transaction.notes ?? "",
-        recurrence_frequency: "none",
-        recurrence_count: 1,
+        recurrence_monthly: transaction.recurrence === "monthly" && transaction.recurrence_active !== false,
       });
     } else {
       form.reset({
@@ -130,8 +116,8 @@ export function FinanceDialog({
         paid_date: null,
         payment_method: "",
         notes: "",
-        recurrence_frequency: "none",
-        recurrence_count: 1,
+        recurrence_monthly: false,
+
       });
     }
   }, [open, transaction, form]);
@@ -155,6 +141,8 @@ export function FinanceDialog({
         paid_date: v.status === "paid" ? v.paid_date || v.issue_date : v.paid_date || null,
         payment_method: v.payment_method || null,
         notes: v.notes || null,
+        recurrence: v.recurrence_monthly ? "monthly" : null,
+        recurrence_active: v.recurrence_monthly,
       };
       if (transaction) {
         const { error } = await supabase
@@ -163,28 +151,13 @@ export function FinanceDialog({
           .eq("id", transaction.id);
         if (error) throw error;
       } else {
-        const freq = v.recurrence_frequency;
-        const n = freq === "none" ? 1 : Math.max(1, v.recurrence_count);
-        const rows = Array.from({ length: n }).map((_, i) => {
-          const issue = i === 0 || freq === "none" ? v.issue_date : addInterval(v.issue_date, freq, i);
-          const due = v.due_date
-            ? (i === 0 || freq === "none" ? v.due_date : addInterval(v.due_date, freq, i))
-            : null;
-          const suffix = n > 1 ? ` (${i + 1}/${n})` : "";
-          return {
-            ...payload,
-            description: payload.description + suffix,
-            issue_date: issue,
-            due_date: due,
-            paid_date: i === 0 ? payload.paid_date : null,
-            status: (i === 0 ? payload.status : "pending") as FinanceStatus,
-            created_by: sessionUserId ?? undefined,
-          };
-        });
-        const { error } = await supabase.from("finance_transactions").insert(rows);
+        const { error } = await supabase
+          .from("finance_transactions")
+          .insert({ ...payload, created_by: sessionUserId ?? undefined });
         if (error) throw error;
       }
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["finance"] });
       toast.success(transaction ? "Transação atualizada" : "Transação criada");
@@ -366,49 +339,29 @@ export function FinanceDialog({
               )}
             />
 
-            {!transaction && (
-              <div className="col-span-2 grid grid-cols-2 gap-4 rounded-lg border border-dashed border-border bg-muted/30 p-3">
+            {(!transaction || !transaction.recurrence_parent_id) && (
+              <div className="col-span-2 rounded-lg border border-dashed border-border bg-muted/30 p-3">
                 <FormField
                   control={form.control}
-                  name="recurrence_frequency"
+                  name="recurrence_monthly"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recorrência</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Sem recorrência</SelectItem>
-                          <SelectItem value="weekly">Semanal</SelectItem>
-                          <SelectItem value="biweekly">Quinzenal</SelectItem>
-                          <SelectItem value="monthly">Mensal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="recurrence_count"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nº de parcelas</FormLabel>
+                    <FormItem className="flex items-center justify-between gap-4">
+                      <div>
+                        <FormLabel>Mensalidade recorrente</FormLabel>
+                        <p className="text-[11px] text-muted-foreground">
+                          O lançamento é recriado automaticamente todo mês, sempre com a mesma
+                          descrição (sem numeração de parcelas). Desative para encerrar.
+                        </p>
+                      </div>
                       <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={60}
-                          {...field}
-                          disabled={form.watch("recurrence_frequency") === "none"}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
-                      <p className="text-[11px] text-muted-foreground">
-                        Cria N lançamentos com datas incrementadas automaticamente.
-                      </p>
                     </FormItem>
                   )}
                 />
               </div>
             )}
+
 
             <DialogFooter className="col-span-2">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
