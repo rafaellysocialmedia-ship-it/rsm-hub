@@ -341,9 +341,14 @@ function PostsPage() {
               year,
               month,
               contracted: activeClient.monthly_post_quota,
-              previous: previousBalanceOf(ledger, clientFilter, year, month),
+              previous: previousBalanceOf(ledger, clientFilter, year, month, {
+                posts,
+                contracted: activeClient.monthly_post_quota,
+                since: (activeClient as { start_date?: string | null }).start_date ?? null,
+              }),
               used: countMonthPosts(posts, clientFilter, calendarMonth),
             });
+
         return (
           <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">

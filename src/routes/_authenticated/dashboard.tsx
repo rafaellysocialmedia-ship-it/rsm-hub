@@ -941,7 +941,9 @@ function MonthlyQuotaCard({
         ledger,
         posts,
         ref,
+        since: (c as { start_date?: string | null }).start_date ?? null,
       });
+
       const quota = summary.available || (c.monthly_post_quota ?? 0);
       return {
         client: c,

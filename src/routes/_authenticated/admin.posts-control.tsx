@@ -88,7 +88,9 @@ function PostsControl() {
           contracted: c.monthly_post_quota ?? 0,
           ledger: ledger as PostLedgerRow[],
           posts: usage,
+          since: (c as { start_date?: string | null }).start_date ?? null,
         }),
+
       }));
   }, [clients, ledger, usage, q]);
 
