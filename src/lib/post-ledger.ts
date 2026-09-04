@@ -115,8 +115,17 @@ export function previousBalanceOf(
     const m = idx - y * 12;
     const closed = rows.find((r) => r.client_id === clientId && r.year === y && r.month === m && r.closed_at);
     if (closed) continue; // already reflected in the closed balance chain
-    balance += contracted - usedInMonth(posts, clientId, y, m);
+    const used = usedInMonth(posts, clientId, y, m);
+    // Months with no activity at all are not treated as unspent quota: they
+    // would inflate the carry-over with posts that were never contracted /
+    // delivered in the first place.
+    if (used === 0) continue;
+    balance += contracted - used;
   }
+  // Carry-over never exceeds one contracted month: leftovers do not stack
+  // indefinitely across the whole history.
+  if (balance > contracted) balance = contracted;
+
   return balance;
 }
 
