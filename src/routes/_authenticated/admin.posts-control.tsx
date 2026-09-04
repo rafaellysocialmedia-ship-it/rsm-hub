@@ -188,6 +188,8 @@ function PostsControl() {
         </CardContent>
       </Card>
 
+      {historyOf && <PostBalanceCard clientId={historyOf} canEdit />}
+
       {historyOf && (
         <Card className="shadow-soft">
           <CardHeader className="pb-2">

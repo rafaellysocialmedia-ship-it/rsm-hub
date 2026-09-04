@@ -92,6 +92,8 @@ function FinancePage() {
   const [typeFilter, setTypeFilter] = useState<"all" | FinanceType>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | FinanceStatus>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<FinanceTransaction | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -147,6 +149,9 @@ function FinancePage() {
     return (transactions ?? []).filter((t) => {
       if (typeFilter !== "all" && t.type !== typeFilter) return false;
       if (statusFilter !== "all" && t.status !== statusFilter) return false;
+      const day = (t.due_date ?? t.issue_date ?? "").slice(0, 10);
+      if (dateFrom && (!day || day < dateFrom)) return false;
+      if (dateTo && (!day || day > dateTo)) return false;
       if (clientFilter !== "all") {
         if (clientFilter === "none" && t.client_id) return false;
         if (clientFilter !== "none" && t.client_id !== clientFilter) return false;
@@ -161,10 +166,10 @@ function FinancePage() {
           .includes(q)
       );
     });
-  }, [transactions, search, typeFilter, statusFilter, clientFilter, clientNameById]);
+  }, [transactions, search, typeFilter, statusFilter, clientFilter, clientNameById, dateFrom, dateTo]);
 
   const kpis = useMemo(() => {
-    const list = transactions ?? [];
+    const list = filtered;
     const now = new Date();
     const ym = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const currentMonth = ym(now);
@@ -187,7 +192,7 @@ function FinancePage() {
     });
 
     return { mrr, paidTotal, pendingTotal, overdueTotal, expensesMonth, net: mrr - expensesMonth };
-  }, [transactions]);
+  }, [filtered]);
 
   const monthlySeries = useMemo(() => {
     const buckets = new Map<string, { month: string; receita: number; despesa: number }>();
@@ -459,6 +464,36 @@ function FinancePage() {
                 ))}
               </SelectContent>
             </Select>
+            <div className="flex items-center gap-2">
+              <Input
+                type="date"
+                aria-label="Data inicial"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="sm:w-40"
+              />
+              <span className="text-xs text-muted-foreground">até</span>
+              <Input
+                type="date"
+                aria-label="Data final"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="sm:w-40"
+              />
+              {(dateFrom || dateTo) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                >
+                  Limpar
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
