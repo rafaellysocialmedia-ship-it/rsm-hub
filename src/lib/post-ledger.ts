@@ -171,6 +171,17 @@ export function adjustmentOf(
   return row?.adjustment ?? 0;
 }
 
+/** Note saved with the manual adjustment of a client/month. */
+export function noteOf(
+  rows: PostLedgerRow[],
+  clientId: string,
+  year: number,
+  month: number,
+): string | null {
+  const row = rows.find((r) => r.client_id === clientId && r.year === year && r.month === month);
+  return row?.adjustment_note ?? null;
+}
+
 /** Builds the summary of an open (not yet closed) month from live posts. */
 export function openMonthSummary(args: {
   clientId: string;
