@@ -31,8 +31,10 @@ import { QuotaNumber } from "@/components/clients/quota-number";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { usePostLedger } from "@/hooks/use-post-ledger";
 import {
-  adjustmentOf, balanceLabel, balanceTone, previousBalanceOf, summarizeMonth,
+  adjustmentOf, balanceLabel, balanceTone, noteOf, previousBalanceOf, summarizeMonth,
 } from "@/lib/post-ledger";
+import { BalanceAdjustDialog } from "@/components/clients/balance-adjust-dialog";
+import { useAuth } from "@/hooks/use-auth";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -52,6 +54,8 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
+  const { hasRole } = useAuth();
+  const isStaff = hasRole("administrator") || hasRole("team");
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const [view, setView] = useStickyState<ViewMode>("posts:view", "calendar");
   const [search, setSearch] = useStickyState<string>("posts:search", "");
@@ -381,6 +385,19 @@ function PostsPage() {
                   tone={balanceTone(summary.balance)}
                 />
                 {summary.closed && <Badge variant="secondary" className="text-[10px]">Mês fechado</Badge>}
+                {isStaff && (
+                  <BalanceAdjustDialog
+                    clientId={clientFilter}
+                    year={year}
+                    month={month}
+                    contracted={summary.contracted}
+                    previous={summary.previous}
+                    used={summary.used}
+                    adjustment={summary.adjustment}
+                    note={noteOf(ledger, clientFilter, year, month)}
+                    disabled={summary.closed}
+                  />
+                )}
               </div>
             </div>
             <QuotaBadge
