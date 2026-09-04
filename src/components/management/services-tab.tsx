@@ -146,6 +146,8 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
   });
 
   return (
+    <div className="space-y-4">
+    <PostBalanceCard clientId={clientId} canEdit={canEdit} />
     <SectionCard
       collapsible
       title="Serviços contratados"
