@@ -26,15 +26,7 @@ const TimelineView = lazy(() => import("@/components/posts/views/timeline-view")
 
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
-import { QuotaBadge } from "@/components/clients/quota-badge";
-import { QuotaNumber } from "@/components/clients/quota-number";
-import { countMonthPosts, formatMonth } from "@/lib/post-quota";
-import { usePostLedger } from "@/hooks/use-post-ledger";
-import {
-  adjustmentOf, balanceLabel, balanceTone, noteOf, previousBalanceOf, summarizeMonth,
-} from "@/lib/post-ledger";
-import { BalanceAdjustDialog } from "@/components/clients/balance-adjust-dialog";
-import { useAuth } from "@/hooks/use-auth";
+import { formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -54,8 +46,6 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
-  const { hasRole } = useAuth();
-  const isStaff = hasRole("administrator") || hasRole("team");
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const [view, setView] = useStickyState<ViewMode>("posts:view", "calendar");
   const [search, setSearch] = useStickyState<string>("posts:search", "");
@@ -105,7 +95,6 @@ function PostsPage() {
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
   // Saldo mensal (inclui o que ficou faltando do mês anterior)
-  const { data: ledger = [] } = usePostLedger(clientFilter !== "all" ? clientFilter : null);
 
   // Realtime
   useEffect(() => {
@@ -326,88 +315,8 @@ function PostsPage() {
         </div>
       </div>
 
-      {/* Quota banner (visible when a client filter is applied) */}
-      {clientFilter !== "all" && (() => {
-        const activeClient = clients.find((c) => c.id === clientFilter);
-        if (!activeClient?.monthly_post_quota) return null;
-        const year = calendarMonth.getFullYear();
-        const month = calendarMonth.getMonth() + 1;
-        const closedRow = ledger.find(
-          (r) => r.client_id === clientFilter && r.year === year && r.month === month && r.closed_at,
-        );
-        const summary = closedRow
-          ? summarizeMonth({
-              year,
-              month,
-              contracted: closedRow.contracted,
-              previous: closedRow.previous_balance,
-              used: closedRow.used,
-              closed: true,
-            })
-          : summarizeMonth({
-              year,
-              month,
-              contracted: activeClient.monthly_post_quota,
-              previous: previousBalanceOf(ledger, clientFilter, year, month, {
-                posts,
-                contracted: activeClient.monthly_post_quota,
-                since: (activeClient as { start_date?: string | null }).start_date ?? null,
-              }),
-              adjustment: adjustmentOf(ledger, clientFilter, year, month),
-              used: countMonthPosts(posts, clientFilter, calendarMonth),
-            });
 
-        return (
-          <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{activeClient.name}</p>
-                <p className="text-xs capitalize text-muted-foreground">{formatMonth(calendarMonth)}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <QuotaNumber label="Contratados" value={summary.contracted} />
-                <QuotaNumber
-                  label="Mês anterior"
-                  value={balanceLabel(summary.previous)}
-                  tone={balanceTone(summary.previous)}
-                />
-                {summary.adjustment !== 0 && (
-                  <QuotaNumber
-                    label="Ajuste"
-                    value={balanceLabel(summary.adjustment)}
-                    tone={balanceTone(summary.adjustment)}
-                  />
-                )}
-                <QuotaNumber label="Disponíveis" value={summary.available} />
-                <QuotaNumber
-                  label="Remaining balance"
-                  value={balanceLabel(summary.balance)}
-                  tone={balanceTone(summary.balance)}
-                />
-                {summary.closed && <Badge variant="secondary" className="text-[10px]">Mês fechado</Badge>}
-                {isStaff && (
-                  <BalanceAdjustDialog
-                    clientId={clientFilter}
-                    year={year}
-                    month={month}
-                    contracted={summary.contracted}
-                    previous={summary.previous}
-                    used={summary.used}
-                    adjustment={summary.adjustment}
-                    note={noteOf(ledger, clientFilter, year, month)}
-                    disabled={summary.closed}
-                  />
-                )}
-              </div>
-            </div>
-            <QuotaBadge
-              className="mt-3"
-              used={summary.used}
-              quota={summary.available || summary.contracted}
-            />
-          </div>
-        );
-      })()}
+
 
 
       {/* Result count + bulk actions */}
