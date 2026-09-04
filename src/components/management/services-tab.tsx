@@ -289,5 +289,6 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
         </DialogContent>
       </Dialog>
     </SectionCard>
+    </div>
   );
 }
