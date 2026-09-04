@@ -381,6 +381,19 @@ function PostsPage() {
                   tone={balanceTone(summary.balance)}
                 />
                 {summary.closed && <Badge variant="secondary" className="text-[10px]">Mês fechado</Badge>}
+                {isStaff && (
+                  <BalanceAdjustDialog
+                    clientId={clientFilter}
+                    year={year}
+                    month={month}
+                    contracted={summary.contracted}
+                    previous={summary.previous}
+                    used={summary.used}
+                    adjustment={summary.adjustment}
+                    note={noteOf(ledger, clientFilter, year, month)}
+                    disabled={summary.closed}
+                  />
+                )}
               </div>
             </div>
             <QuotaBadge
