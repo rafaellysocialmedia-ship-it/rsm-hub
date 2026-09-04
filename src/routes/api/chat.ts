@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { createClient } from "@supabase/supabase-js";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { createAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 const SYSTEM_PROMPT = `Você é o assistente de IA do Social Media Hub, uma plataforma brasileira de gestão de social media para agências e criadores. Ajude com:
 - ideias de pauta e conteúdo para Instagram, TikTok, LinkedIn, YouTube, Facebook, X
@@ -17,8 +17,10 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const key = process.env.LOVABLE_API_KEY;
-        if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+        const key = process.env.AI_API_KEY;
+        if (!key) return new Response("IA ainda não configurada", { status: 503 });
+        const baseURL = process.env.AI_BASE_URL || "https://api.openai.com/v1";
+        const model = process.env.AI_MODEL || "gpt-4.1-mini";
 
         const { messages, threadId } = (await request.json()) as {
           messages?: UIMessage[];
@@ -53,9 +55,9 @@ export const Route = createFileRoute("/api/chat")({
           .maybeSingle();
         if (!thread) return new Response("Thread not found", { status: 404 });
 
-        const gateway = createLovableAiGatewayProvider(key);
+        const gateway = createAiGatewayProvider(key, baseURL);
         const result = streamText({
-          model: gateway("google/gemini-2.5-flash"),
+          model: gateway(model),
           system: SYSTEM_PROMPT,
           messages: await convertToModelMessages(messages),
         });

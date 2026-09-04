@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CircleDollarSign, Pencil, Plus, Search, Ban, CheckCircle2 } from "lucide-react";
@@ -86,7 +86,10 @@ function ReceivablesPage() {
   const [editing, setEditing] = useState<FinanceCharge | null>(null);
   const [paying, setPaying] = useState<FinanceCharge | null>(null);
 
-  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "—";
+  const clientName = useCallback(
+    (id: string) => clients.find((client) => client.id === id)?.name ?? "—",
+    [clients],
+  );
   const methodName = (id: string | null) =>
     id ? methods.find((m) => m.id === id)?.label ?? "—" : "—";
 
@@ -110,7 +113,7 @@ function ReceivablesPage() {
         }
         return true;
       }),
-    [charges, clientFilter, serviceFilter, statusFilter, methodFilter, from, to, search, clients],
+    [charges, clientFilter, serviceFilter, statusFilter, methodFilter, from, to, search, clientName],
   );
 
   const cancel = useMutation({

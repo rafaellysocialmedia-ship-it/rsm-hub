@@ -119,8 +119,7 @@ function RolesCatalogCard() {
       <CardHeader className="flex flex-col gap-1">
         <CardTitle className="text-base">Papéis e permissões</CardTitle>
         <p className="text-xs text-muted-foreground">
-          Perfis de acesso cadastrados no sistema. A edição das permissões por módulo será
-          liberada em breve.
+          Resumo dos perfis de acesso, usuários associados e permissões configuradas.
         </p>
       </CardHeader>
       <CardContent className="p-0">

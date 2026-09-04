@@ -62,7 +62,7 @@ function BriefingsIndex() {
   const { data: briefings = [], isLoading } = useQuery({
     queryKey: ["briefings"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("briefings")
         .select("id, client_id, title, meeting_date, status, sections, notes, created_at, updated_at")
         .order("updated_at", { ascending: false });
@@ -85,7 +85,7 @@ function BriefingsIndex() {
   const { data: template } = useQuery({
     queryKey: ["briefing-template"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("briefing_template")
         .select("id, name, sections")
         .order("created_at", { ascending: true })
@@ -112,7 +112,7 @@ function BriefingsIndex() {
         sections: cloned,
         created_by: user?.id ?? null,
       };
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("briefings")
         .insert(payload)
         .select("id")
@@ -134,7 +134,7 @@ function BriefingsIndex() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any).from("briefings").delete().eq("id", id);
+      const { error } = await supabase.from("briefings").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

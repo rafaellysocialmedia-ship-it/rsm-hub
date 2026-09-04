@@ -50,7 +50,6 @@ import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminVisibilityRouteImport } from './routes/_authenticated/admin.visibility'
 import { Route as AuthenticatedAdminPostsControlRouteImport } from './routes/_authenticated/admin.posts-control'
 import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
@@ -284,11 +283,6 @@ const AuthenticatedAdminPermissionsRoute =
     path: '/admin/permissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedTrafficCampaignsIndexRoute =
   AuthenticatedTrafficCampaignsIndexRouteImport.update({
     id: '/traffic/campaigns/',
@@ -331,7 +325,6 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/api/chat': typeof ApiChatRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/admin/posts-control': typeof AuthenticatedAdminPostsControlRoute
   '/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
@@ -378,7 +371,6 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/team': typeof AuthenticatedTeamRoute
   '/api/chat': typeof ApiChatRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/admin/posts-control': typeof AuthenticatedAdminPostsControlRoute
   '/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
@@ -428,7 +420,6 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/api/chat': typeof ApiChatRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
   '/_authenticated/admin/posts-control': typeof AuthenticatedAdminPostsControlRoute
   '/_authenticated/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
@@ -478,7 +469,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/api/chat'
-    | '/.lovable/oauth/consent'
     | '/admin/permissions'
     | '/admin/posts-control'
     | '/admin/visibility'
@@ -525,7 +515,6 @@ export interface FileRouteTypes {
     | '/settings'
     | '/team'
     | '/api/chat'
-    | '/.lovable/oauth/consent'
     | '/admin/permissions'
     | '/admin/posts-control'
     | '/admin/visibility'
@@ -574,7 +563,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/team'
     | '/api/chat'
-    | '/.lovable/oauth/consent'
     | '/_authenticated/admin/permissions'
     | '/_authenticated/admin/posts-control'
     | '/_authenticated/admin/visibility'
@@ -618,7 +606,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
-  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -910,13 +897,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/traffic/campaigns/': {
       id: '/_authenticated/traffic/campaigns/'
       path: '/traffic/campaigns'
@@ -1067,7 +1047,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

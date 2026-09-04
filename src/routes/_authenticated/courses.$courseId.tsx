@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Lock, PlayCircle, ArrowLeft, GraduationCap, FileText, Video, BookOpen, CheckCircle2, Clock,
 } from "lucide-react";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/courses/$courseId")({
 function CourseDetail() {
   const { courseId } = useParams({ from: "/_authenticated/courses/$courseId" });
   const { user, hasRole } = useAuth();
+  const queryClient = useQueryClient();
   const isAdmin = hasRole("administrator");
   const [selectedLesson, setSelectedLesson] = useState<CourseLesson | null>(null);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -68,23 +69,58 @@ function CourseDetail() {
     },
   });
 
-  const ownedQuery = useQuery({
-    queryKey: ["course-owned", courseId, user?.id],
+  const purchaseStatusQuery = useQuery({
+    queryKey: ["course-purchase-status", courseId, user?.id],
     enabled: !!user?.id,
-    queryFn: async (): Promise<boolean> => {
+    queryFn: async (): Promise<"paid" | "pending" | null> => {
       const { data, error } = await supabase
         .from("course_purchases")
-        .select("id")
+        .select("status")
         .eq("user_id", user!.id)
         .eq("course_id", courseId)
-        .eq("status", "paid")
+        .in("status", ["paid", "pending"])
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return !!data;
+      return data?.status === "paid" || data?.status === "pending" ? data.status : null;
     },
   });
 
-  const owned = ownedQuery.data === true;
+  const requestAccess = useMutation({
+    mutationFn: async (course: Course) => {
+      if (!user) throw new Error("Sessão expirada");
+      const isFree = course.price_cents === 0;
+      const { error } = await supabase.from("course_purchases").insert({
+        user_id: user.id,
+        course_id: course.id,
+        amount_cents: course.price_cents,
+        currency: course.currency,
+        status: isFree ? "paid" : "pending",
+        provider: isFree ? "free" : "manual_request",
+        paid_at: isFree ? new Date().toISOString() : null,
+        note: isFree ? "Acesso gratuito" : "Solicitação enviada pelo cliente",
+      });
+      if (error) throw error;
+      return isFree;
+    },
+    onSuccess: (isFree) => {
+      void queryClient.invalidateQueries({
+        queryKey: ["course-purchase-status", courseId, user?.id],
+      });
+      void queryClient.invalidateQueries({ queryKey: ["courses-owned", user?.id] });
+      setCheckoutOpen(false);
+      toast.success(
+        isFree
+          ? "Acesso liberado. Bom curso!"
+          : "Solicitação enviada. A equipe entrará em contato.",
+      );
+    },
+    onError: (error: Error) => toast.error(error.message || "Não foi possível solicitar acesso"),
+  });
+
+  const owned = purchaseStatusQuery.data === "paid";
+  const requestPending = purchaseStatusQuery.data === "pending";
   const canAccess = owned || isAdmin;
 
   const lessonsByModule = useMemo(() => {
@@ -213,11 +249,26 @@ function CourseDetail() {
                 <div className="text-3xl font-bold">
                   {course.price_cents === 0 ? "Grátis" : formatPrice(course.price_cents, course.currency)}
                 </div>
-                <Button className="w-full" onClick={() => setCheckoutOpen(true)}>
-                  <Lock className="mr-2 h-4 w-4" /> Comprar acesso
+                <Button
+                  className="w-full"
+                  onClick={() => setCheckoutOpen(true)}
+                  disabled={requestPending}
+                >
+                  {requestPending ? (
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Lock className="mr-2 h-4 w-4" />
+                  )}
+                  {requestPending
+                    ? "Solicitação enviada"
+                    : course.price_cents === 0
+                      ? "Liberar acesso grátis"
+                      : "Solicitar acesso"}
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  Acesso vitalício ao conteúdo após a compra.
+                  {requestPending
+                    ? "A equipe analisará sua solicitação e entrará em contato."
+                    : "Acesso vitalício ao conteúdo após a liberação."}
                 </p>
               </CardContent>
             </Card>
@@ -279,28 +330,39 @@ function CourseDetail() {
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Checkout em breve</DialogTitle>
+            <DialogTitle>
+              {course.price_cents === 0 ? "Liberar acesso gratuito" : "Solicitar acesso"}
+            </DialogTitle>
             <DialogDescription>
-              A integração de pagamento ainda não foi ativada neste workspace. Assim que o provedor
-              estiver conectado, o botão de compra abrirá o checkout automaticamente.
+              {course.price_cents === 0
+                ? "Confirme para liberar este curso imediatamente na sua conta."
+                : `Envie sua solicitação para a equipe. O valor do curso é ${formatPrice(
+                    course.price_cents,
+                    course.currency,
+                  )}.`}
             </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Enquanto isso, entre em contato com sua equipe para liberação manual do acesso.
-          </p>
+          {course.price_cents > 0 && (
+            <p className="text-sm text-muted-foreground">
+              A equipe poderá combinar a forma de pagamento e liberar o conteúdo pelo painel
+              administrativo.
+            </p>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCheckoutOpen(false)}>Fechar</Button>
-            {isAdmin && (
-              <Button asChild>
-                <Link to="/admin/courses">Gerenciar acessos</Link>
-              </Button>
-            )}
+            <Button variant="outline" onClick={() => setCheckoutOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={() => requestAccess.mutate(course)}
+              disabled={requestAccess.isPending}
+            >
+              {requestAccess.isPending
+                ? "Enviando..."
+                : course.price_cents === 0
+                  ? "Liberar agora"
+                  : "Enviar solicitação"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
-// Prevent unused warning
-void toast;

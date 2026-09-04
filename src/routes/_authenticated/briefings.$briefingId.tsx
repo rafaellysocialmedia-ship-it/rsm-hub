@@ -52,7 +52,7 @@ function BriefingDetail() {
   const { data: briefing, isLoading } = useQuery({
     queryKey: ["briefing", briefingId],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("briefings")
         .select("*")
         .eq("id", briefingId)
@@ -102,7 +102,7 @@ function BriefingDetail() {
         sections,
         status: patch?.status ?? status,
       };
-      const { error } = await (supabase as any).from("briefings").update(payload).eq("id", briefingId);
+      const { error } = await supabase.from("briefings").update(payload).eq("id", briefingId);
       if (error) throw error;
       if (patch?.status) setStatus(patch.status);
     },
@@ -116,7 +116,7 @@ function BriefingDetail() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await (supabase as any).from("briefings").delete().eq("id", briefingId);
+      const { error } = await supabase.from("briefings").delete().eq("id", briefingId);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -105,3 +105,4 @@ export function campaignHealth(
 
   return { key: "ok", label: "Em veiculação", tone: TONE.ok, alert: false };
 }
+

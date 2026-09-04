@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Pencil, Play, Plus, Receipt, RefreshCw, Pause } from "lucide-react";
@@ -82,7 +82,10 @@ function ContractsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "—";
+  const clientName = useCallback(
+    (id: string) => clients.find((client) => client.id === id)?.name ?? "—",
+    [clients],
+  );
 
   const filtered = useMemo(
     () =>
@@ -95,7 +98,7 @@ function ContractsPage() {
           (c.service_label ?? "").toLowerCase().includes(q)
         );
       }),
-    [contracts, search, clients],
+    [contracts, search, clientName],
   );
 
   const generateCharge = useMutation({

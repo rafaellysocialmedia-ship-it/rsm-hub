@@ -61,7 +61,7 @@ export function UploadDialog({
       let done = 0;
       for (const f of files) {
         const cat = category === "auto" ? inferCategory(f.type, f.name) : category;
-        const safeName = f.name.replace(/[^\w.\-]+/g, "_");
+        const safeName = f.name.replace(/[^\w.-]+/g, "_");
         const path = `${user.id}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
         const { error: upErr } = await supabase.storage.from(LIBRARY_BUCKET).upload(path, f, {
           contentType: f.type || undefined, upsert: false,

@@ -570,7 +570,6 @@ function StatCard({
     </Card>
   );
 }
-
 function MiniStat({
   label,
   value,

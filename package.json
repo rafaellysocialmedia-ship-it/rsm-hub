@@ -1,11 +1,12 @@
 {
   "name": "tanstack_start_ts",
   "private": true,
+  "packageManager": "npm@11.9.0",
   "sideEffects": false,
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -18,7 +19,6 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
-    "@lovable.dev/cloud-auth-js": "^1.1.2",
     "@lovable.dev/mcp-js": "^0.28.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",

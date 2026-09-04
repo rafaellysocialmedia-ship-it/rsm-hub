@@ -93,7 +93,6 @@ function CoursesCatalog() {
               <Card key={c.id} className="overflow-hidden transition-shadow hover:shadow-lg">
                 <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-fuchsia-500/20 via-purple-500/20 to-blue-500/20">
                   {c.thumbnail_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={c.thumbnail_url}
                       alt={c.title}

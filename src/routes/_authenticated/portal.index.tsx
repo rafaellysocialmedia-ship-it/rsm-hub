@@ -12,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -865,8 +864,6 @@ function ClientPortal() {
         </SheetContent>
       </Sheet>
 
-      {/* eslint no-unused-vars silencer */}
-      <div className="hidden"><Avatar><AvatarFallback>x</AvatarFallback></Avatar></div>
     </div>
   );
 }

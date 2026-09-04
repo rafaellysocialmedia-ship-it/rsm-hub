@@ -225,3 +225,4 @@ export function PostBalanceCard({ clientId, canEdit }: Props) {
     </Card>
   );
 }
+

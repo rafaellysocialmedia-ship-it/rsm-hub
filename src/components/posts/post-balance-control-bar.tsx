@@ -115,3 +115,4 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
     </div>
   );
 }
+

@@ -148,9 +148,11 @@ function ChatWindow({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, status]);
 
+  const ready = status === "ready";
+
   useEffect(() => {
-    textareaRef.current?.focus();
-  }, [threadId, status === "ready"]);
+    if (ready) textareaRef.current?.focus();
+  }, [threadId, ready]);
 
   const busy = status === "submitted" || status === "streaming";
 

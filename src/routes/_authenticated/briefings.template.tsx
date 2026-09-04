@@ -27,7 +27,7 @@ function BriefingTemplateEditor() {
   const { data, isLoading } = useQuery({
     queryKey: ["briefing-template"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("briefing_template")
         .select("id, name, sections")
         .order("created_at", { ascending: true })
@@ -48,13 +48,13 @@ function BriefingTemplateEditor() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (templateId) {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("briefing_template")
           .update({ sections, updated_by: user?.id ?? null })
           .eq("id", templateId);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("briefing_template")
           .insert({ name: "Template padrão", sections, updated_by: user?.id ?? null });
         if (error) throw error;

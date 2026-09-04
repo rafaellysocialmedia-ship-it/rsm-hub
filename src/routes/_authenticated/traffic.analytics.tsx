@@ -725,7 +725,6 @@ function TrafficAnalyticsPage() {
     </div>
   );
 }
-
 type HistoryEvent = {
   id: string;
   kind: "campaign" | "metric" | "status";

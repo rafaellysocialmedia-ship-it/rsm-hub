@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createLovableAiGatewayProvider } from "@/lib/ai-gateway.server";
+import { createAiGatewayProvider } from "@/lib/ai-gateway.server";
 
 export type GeneratorKind = "caption" | "ideas" | "hashtags" | "rewrite" | "script";
 
@@ -46,7 +46,7 @@ function buildPrompt(input: GeneratorInput): { system: string; user: string } {
 
 export const runAiGenerator = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown): GeneratorInput => {
+  .validator((input: unknown): GeneratorInput => {
     const i = input as GeneratorInput;
     if (!i?.kind || !i?.topic || typeof i.topic !== "string") {
       throw new Error("Campos obrigatórios ausentes");
@@ -54,12 +54,14 @@ export const runAiGenerator = createServerFn({ method: "POST" })
     return i;
   })
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("Missing LOVABLE_API_KEY");
-    const gateway = createLovableAiGatewayProvider(key);
+    const key = process.env.AI_API_KEY;
+    if (!key) throw new Error("IA ainda não configurada");
+    const baseURL = process.env.AI_BASE_URL || "https://api.openai.com/v1";
+    const model = process.env.AI_MODEL || "gpt-4.1-mini";
+    const gateway = createAiGatewayProvider(key, baseURL);
     const { system, user } = buildPrompt(data);
     const { text } = await generateText({
-      model: gateway("google/gemini-2.5-flash"),
+      model: gateway(model),
       system,
       prompt: user,
     });

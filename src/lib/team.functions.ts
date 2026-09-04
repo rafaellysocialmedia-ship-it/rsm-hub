@@ -13,7 +13,7 @@ async function assertAdmin(supabase: {
 
 export const inviteMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { email: string; role: AppRole }) => d)
+  .validator((d: { email: string; role: AppRole }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase as never, context.userId);
     const email = data.email.trim().toLowerCase();
@@ -34,7 +34,7 @@ export const inviteMember = createServerFn({ method: "POST" })
 
 export const changeMemberRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { userId: string; role: AppRole }) => d)
+  .validator((d: { userId: string; role: AppRole }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase as never, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -46,7 +46,7 @@ export const changeMemberRole = createServerFn({ method: "POST" })
 
 export const removeMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { userId: string }) => d)
+  .validator((d: { userId: string }) => d)
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase as never, context.userId);
     if (data.userId === context.userId) throw new Error("Você não pode se remover");

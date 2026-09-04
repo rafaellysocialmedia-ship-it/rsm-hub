@@ -16,3 +16,4 @@ export function QuotaNumber({ label, value, tone, className }: Props) {
     </div>
   );
 }
+

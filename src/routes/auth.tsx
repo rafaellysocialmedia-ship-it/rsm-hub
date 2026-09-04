@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +14,17 @@ export function safeNext(next: string | undefined): string | null {
   if (!next) return null;
   if (!next.startsWith("/") || next.startsWith("//")) return null;
   return next;
+}
+
+function authErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  if (/invalid login credentials/i.test(message)) return "Email ou senha incorretos.";
+  if (/email not confirmed/i.test(message)) return "Confirme seu email antes de entrar.";
+  if (/already registered/i.test(message)) return "Este email já possui uma conta.";
+  if (/fetch|network|timeout|tempo limite|abort/i.test(message)) {
+    return "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.";
+  }
+  return message || "Não foi possível concluir a operação. Tente novamente.";
 }
 
 export const Route = createFileRoute("/auth")({
@@ -33,7 +43,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { next } = Route.useSearch();
-  const { user, loading, hasRole } = useAuth();
+  const { user, loading, error: authError, hasRole } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
 
   useEffect(() => {
@@ -82,6 +92,16 @@ function AuthPage() {
             </div>
           </div>
 
+          {authError && (
+            <div
+              role="alert"
+              className="mb-5 flex gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{authError}</span>
+            </div>
+          )}
+
           {mode === "forgot" ? (
             <ForgotForm onBack={() => setMode("signin")} />
           ) : (
@@ -108,9 +128,15 @@ function GoogleButton() {
   const [loading, setLoading] = useState(false);
   const handle = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) {
-      toast.error("Não foi possível entrar com Google");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    } finally {
       setLoading(false);
     }
   };
@@ -139,10 +165,15 @@ function SignInForm({ onForgot }: { onForgot: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Bem-vindo de volta!");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Bem-vindo de volta!");
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -185,17 +216,22 @@ function SignUpForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { name },
-      },
-    });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Conta criada! Verifique seu email para confirmar.");
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { name },
+        },
+      });
+      if (error) throw error;
+      toast.success("Conta criada! Verifique seu email para confirmar.");
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -235,12 +271,17 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Enviamos um link para o seu email.");
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Enviamos um link para o seu email.");
+    } catch (error) {
+      toast.error(authErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

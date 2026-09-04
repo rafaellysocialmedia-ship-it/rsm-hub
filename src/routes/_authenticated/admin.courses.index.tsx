@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Plus, Pencil, Trash2, GraduationCap, DollarSign, TrendingUp, Users, Package,
   Video, FileText, BookOpen, Upload, ExternalLink,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -34,6 +35,15 @@ import {
   type Course, type CourseModule, type CourseLesson, type CoursePurchase,
 } from "@/lib/courses";
 import { useAuth } from "@/hooks/use-auth";
+
+type CourseSale = CoursePurchase & {
+  profiles: { name: string | null; email: string | null } | null;
+  courses: { title: string } | null;
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export const Route = createFileRoute("/_authenticated/admin/courses/")({
   head: () => ({
@@ -65,13 +75,30 @@ function AdminCoursesPage() {
 
   const purchasesQuery = useQuery({
     queryKey: ["admin-purchases"],
-    queryFn: async (): Promise<Array<CoursePurchase & { profiles: { name: string | null; email: string | null } | null; courses: { title: string } | null }>> => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<CourseSale[]> => {
+      const { data: purchaseRows, error } = await supabase
         .from("course_purchases")
-        .select("*, profiles:user_id(name, email), courses:course_id(title)")
+        .select("*, courses:course_id(title)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as any;
+
+      const purchases = (purchaseRows ?? []) as unknown as Array<
+        CoursePurchase & { courses: { title: string } | null }
+      >;
+      const userIds = [...new Set(purchases.map((purchase) => purchase.user_id))];
+      if (userIds.length === 0) return [];
+
+      const { data: profileRows, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id,name,email")
+        .in("id", userIds);
+      if (profilesError) throw profilesError;
+
+      const profiles = new Map((profileRows ?? []).map((profile) => [profile.id, profile]));
+      return purchases.map((purchase) => ({
+        ...purchase,
+        profiles: profiles.get(purchase.user_id) ?? null,
+      }));
     },
   });
 
@@ -86,16 +113,12 @@ function AdminCoursesPage() {
       qc.invalidateQueries({ queryKey: ["courses"] });
       setDeleteCourse(null);
     },
-    onError: (e: any) => toast.error(e.message ?? "Erro ao excluir"),
+    onError: (error: unknown) => toast.error(getErrorMessage(error, "Erro ao excluir")),
   });
 
-  if (!hasRole("administrator")) {
-    return <div className="p-6 text-sm text-muted-foreground">Acesso restrito a administradores.</div>;
-  }
-
   const courses = coursesQuery.data ?? [];
-  const purchases = purchasesQuery.data ?? [];
-  const paid = purchases.filter((p) => p.status === "paid");
+  const purchases = useMemo(() => purchasesQuery.data ?? [], [purchasesQuery.data]);
+  const paid = useMemo(() => purchases.filter((p) => p.status === "paid"), [purchases]);
   const revenueCents = paid.reduce((acc, p) => acc + p.amount_cents, 0);
   const avgTicket = paid.length ? revenueCents / paid.length : 0;
 
@@ -110,6 +133,10 @@ function AdminCoursesPage() {
     }
     return [...map.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
   }, [paid]);
+
+  if (!hasRole("administrator")) {
+    return <div className="p-6 text-sm text-muted-foreground">Acesso restrito a administradores.</div>;
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -312,7 +339,7 @@ function AdminCoursesPage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function StatCard({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <Card>
       <CardContent className="flex items-center gap-3 p-4">
@@ -348,7 +375,7 @@ function CourseFormDialog({
   const [uploading, setUploading] = useState(false);
 
   // Reset form when opening
-  useMemo(() => {
+  useEffect(() => {
     if (open) {
       setForm(
         course
@@ -371,7 +398,8 @@ function CourseFormDialog({
     }
   }, [open, course]);
 
-  const set = <K extends keyof Course>(k: K, v: any) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof Course>(key: K, value: Course[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   const handleUploadThumb = async (file: File) => {
     setUploading(true);
@@ -380,8 +408,8 @@ function CourseFormDialog({
       const { data } = await supabase.storage.from("course-assets").createSignedUrl(path, 60 * 60 * 24 * 365);
       set("thumbnail_url", data?.signedUrl ?? path);
       toast.success("Thumbnail enviada");
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro no upload");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Erro no upload"));
     } finally {
       setUploading(false);
     }
@@ -417,8 +445,8 @@ function CourseFormDialog({
       }
       onSaved();
       onOpenChange(false);
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro ao salvar");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Erro ao salvar"));
     } finally {
       setSaving(false);
     }
@@ -669,7 +697,7 @@ function LessonDialog({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     if (state) {
       setForm(
         state.lesson ?? {
@@ -687,7 +715,8 @@ function LessonDialog({
     }
   }, [state, existingCount]);
 
-  const set = (k: keyof CourseLesson, v: any) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof CourseLesson>(key: K, value: CourseLesson[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   const handleUpload = async (file: File, kind: "videos" | "files") => {
     setUploading(true);
@@ -695,8 +724,8 @@ function LessonDialog({
       const path = await uploadCourseAsset(file, kind);
       set(kind === "videos" ? "video_url" : "file_url", path);
       toast.success("Arquivo enviado");
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro no upload");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Erro no upload"));
     } finally {
       setUploading(false);
     }
@@ -730,8 +759,8 @@ function LessonDialog({
       toast.success("Lição salva");
       onSaved();
       onClose();
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro ao salvar");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Erro ao salvar"));
     } finally {
       setSaving(false);
     }
@@ -754,7 +783,12 @@ function LessonDialog({
           </div>
           <div>
             <Label>Tipo</Label>
-            <Select value={form.content_type ?? "video"} onValueChange={(v) => set("content_type", v)}>
+            <Select
+              value={form.content_type ?? "video"}
+              onValueChange={(value) =>
+                set("content_type", value as CourseLesson["content_type"])
+              }
+            >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="video">Vídeo</SelectItem>
@@ -839,7 +873,7 @@ function ManualSaleDialog({
   const [amount, setAmount] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
-  useMemo(() => {
+  useEffect(() => {
     if (course) setAmount(((course.price_cents ?? 0) / 100).toString());
   }, [course]);
 
@@ -868,8 +902,8 @@ function ManualSaleDialog({
       onSaved();
       onClose();
       setEmail("");
-    } catch (e: any) {
-      toast.error(e.message ?? "Erro ao liberar");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Erro ao liberar"));
     } finally {
       setSaving(false);
     }

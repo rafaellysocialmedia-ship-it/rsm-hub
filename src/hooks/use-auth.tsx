@@ -20,6 +20,7 @@ type AuthContextValue = {
   profile: Profile | null;
   roles: AppRole[];
   loading: boolean;
+  error: string | null;
   hasRole: (role: AppRole) => boolean;
   signOut: () => Promise<void>;
 };
@@ -32,14 +33,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+
+    const handleConnectionError = (cause: unknown) => {
+      console.error("Erro ao conectar com a autenticação", cause);
+      if (!active) return;
+      setProfile(null);
+      setRoles([]);
+      setError(
+        "Não foi possível conectar ao banco de dados. Tente novamente em alguns instantes.",
+      );
+      setLoading(false);
+    };
 
     const hydrateSession = async (sess: Session | null) => {
       if (!active) return;
       setSession(sess);
       setUser(sess?.user ?? null);
+      setError(null);
 
       if (!sess?.user) {
         setProfile(null);
@@ -49,21 +63,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setLoading(true);
-      await loadUserData(sess.user.id);
-      if (active) setLoading(false);
+      try {
+        await loadUserData(sess.user.id);
+      } catch (cause) {
+        handleConnectionError(cause);
+      } finally {
+        if (active) setLoading(false);
+      }
     };
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setTimeout(() => void hydrateSession(sess), 0);
-    });
+    let unsubscribe = () => {};
 
-    supabase.auth.getSession().then(({ data }) => {
-      void hydrateSession(data.session);
-    });
+    try {
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => {
+        setTimeout(() => void hydrateSession(sess), 0);
+      });
+      unsubscribe = () => sub.subscription.unsubscribe();
+
+      void supabase.auth
+        .getSession()
+        .then(({ data, error: sessionError }) => {
+          if (sessionError) throw sessionError;
+          return hydrateSession(data.session);
+        })
+        .catch(handleConnectionError);
+    } catch (cause) {
+      handleConnectionError(cause);
+    }
 
     return () => {
       active = false;
-      sub.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
@@ -82,18 +112,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     setLoading(true);
-    await supabase.auth.signOut();
-    setProfile(null);
-    setRoles([]);
-    setSession(null);
-    setUser(null);
-    setLoading(false);
+    setError(null);
+    try {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+      setProfile(null);
+      setRoles([]);
+      setSession(null);
+      setUser(null);
+    } catch (cause) {
+      handleSignOutError(cause);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignOutError = (cause: unknown) => {
+    console.error("Erro ao sair", cause);
+    setError("Não foi possível encerrar a sessão. Verifique sua conexão e tente novamente.");
   };
 
   const hasRole = (role: AppRole) => roles.includes(role);
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, roles, loading, hasRole, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, roles, loading, error, hasRole, signOut }}>
       {children}
     </AuthContext.Provider>
   );

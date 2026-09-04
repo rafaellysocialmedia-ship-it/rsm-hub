@@ -136,7 +136,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
       (document.getElementById(targetId) ?? document.getElementById("post-comments-section"))
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 200);
-  }, [open, focusedCommentId, comments.length]);
+  }, [open, focusedCommentId, comments]);
 
 
   // ---- Save
