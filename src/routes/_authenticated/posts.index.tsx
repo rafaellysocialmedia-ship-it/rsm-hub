@@ -16,6 +16,7 @@ import {
   POST_STATUS, SOCIAL_NETWORKS, type Post, type PostStatus,
 } from "@/lib/posts";
 import type { Client } from "@/lib/clients";
+import { useAuth } from "@/hooks/use-auth";
 
 // Visualizações carregam sob demanda — só a que o usuário abre entra no bundle.
 const KanbanView = lazy(() => import("@/components/posts/views/kanban-view").then((m) => ({ default: m.KanbanView })));
@@ -26,6 +27,7 @@ const TimelineView = lazy(() => import("@/components/posts/views/timeline-view")
 
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
+import { PostBalanceControlBar } from "@/components/posts/post-balance-control-bar";
 import { formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
@@ -315,9 +317,10 @@ function PostsPage() {
         </div>
       </div>
 
-
-
-
+      {/* Calendar balance control bar — tied to the displayed month and selected client */}
+      {view === "calendar" && clientFilter !== "all" && (
+        <PostBalanceControlBar clientId={clientFilter} ref={calendarMonth} />
+      )}
 
       {/* Result count + bulk actions */}
       <div className="flex flex-wrap items-center justify-between gap-2">
