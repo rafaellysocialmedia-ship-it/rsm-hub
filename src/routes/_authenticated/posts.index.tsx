@@ -31,8 +31,10 @@ import { QuotaNumber } from "@/components/clients/quota-number";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { usePostLedger } from "@/hooks/use-post-ledger";
 import {
-  adjustmentOf, balanceLabel, balanceTone, previousBalanceOf, summarizeMonth,
+  adjustmentOf, balanceLabel, balanceTone, noteOf, previousBalanceOf, summarizeMonth,
 } from "@/lib/post-ledger";
+import { BalanceAdjustDialog } from "@/components/clients/balance-adjust-dialog";
+import { useAuth } from "@/hooks/use-auth";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
