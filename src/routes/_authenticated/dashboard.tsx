@@ -43,6 +43,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { usePostLedger, usePostUsage } from "@/hooks/use-post-ledger";
 import { balanceLabel, balanceTone, labelMonth, openMonthSummary } from "@/lib/post-ledger";
+import { QuotaNumber } from "@/components/clients/quota-number";
 import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, type Client } from "@/lib/clients";
 import { cn } from "@/lib/utils";
@@ -1011,14 +1012,12 @@ function MonthlyQuotaCard({
                 </div>
                 <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
                   <span className="text-muted-foreground">{label}</span>
-                  {previous !== 0 && (
-                    <span className={cn("font-medium", balanceTone(previous))}>
-                      saldo anterior {balanceLabel(previous)}
-                    </span>
-                  )}
-                  {previous === 0 && balance < 0 && (
-                    <span className={cn("font-medium", balanceTone(balance))}>débito {balanceLabel(balance)}</span>
-                  )}
+                  <span
+                    className={cn("font-semibold tabular-nums", balanceTone(previous || balance))}
+                    title={previous !== 0 ? "Mês anterior" : "Remaining balance"}
+                  >
+                    {balanceLabel(previous !== 0 ? previous : balance)}
+                  </span>
                 </div>
               </Link>
             );
@@ -1052,23 +1051,19 @@ function ClientMonthPostsCard({ clientId, contracted }: { clientId: string; cont
         </Badge>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-lg border border-border bg-card/50 p-3">
-            <p className="text-[11px] text-muted-foreground">Contratados</p>
-            <p className="mt-0.5 text-lg font-semibold">{summary.contracted}</p>
-          </div>
-          <div className="rounded-lg border border-border bg-card/50 p-3">
-            <p className="text-[11px] text-muted-foreground">Utilizados</p>
-            <p className="mt-0.5 text-lg font-semibold">{summary.used}</p>
-          </div>
-          <div className="rounded-lg border border-border bg-card/50 p-3">
-            <p className="text-[11px] text-muted-foreground">
-              {summary.balance < 0 ? "Débito" : "Saldo"}
-            </p>
-            <p className={cn("mt-0.5 text-lg font-semibold", balanceTone(summary.balance))}>
-              {balanceLabel(summary.balance)}
-            </p>
-          </div>
+        <div className="flex items-center justify-between gap-2">
+          <QuotaNumber label="Contratados" value={summary.contracted} />
+          <QuotaNumber
+            label="Mês anterior"
+            value={balanceLabel(summary.previous)}
+            tone={balanceTone(summary.previous)}
+          />
+          <QuotaNumber label="Utilizados" value={summary.used} />
+          <QuotaNumber
+            label={summary.balance < 0 ? "Débito" : "Remaining balance"}
+            value={balanceLabel(summary.balance)}
+            tone={balanceTone(summary.balance)}
+          />
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div
@@ -1076,12 +1071,6 @@ function ClientMonthPostsCard({ clientId, contracted }: { clientId: string; cont
             style={{ width: `${pct}%` }}
           />
         </div>
-        {summary.previous !== 0 && (
-          <p className="text-xs text-muted-foreground">
-            Inclui saldo do mês anterior:{" "}
-            <span className={cn("font-medium", balanceTone(summary.previous))}>{balanceLabel(summary.previous)}</span>
-          </p>
-        )}
       </CardContent>
     </Card>
   );

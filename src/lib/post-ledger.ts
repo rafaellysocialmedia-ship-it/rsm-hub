@@ -18,6 +18,9 @@ export type PostLedgerRow = {
   balance: number;
   closed_at: string | null;
   notes: string | null;
+  /** Manual correction applied by the internal team (can be negative). */
+  adjustment?: number | null;
+  adjustment_note?: string | null;
 };
 
 export type UsagePost = {
@@ -123,10 +126,12 @@ export type MonthSummary = {
   month: number;
   contracted: number;
   previous: number;
-  /** contracted + previous (may be lower than contracted when there is a debt) */
+  /** Manual correction applied by the internal team (can be negative). */
+  adjustment: number;
+  /** contracted + previous + adjustment (may be lower than contracted when there is a debt) */
   available: number;
   used: number;
-  /** available - used: positive = saldo, negative = débito */
+  /** available - used: positive = remaining balance, negative = débito */
   balance: number;
   closed: boolean;
 };
@@ -137,19 +142,33 @@ export function summarizeMonth(args: {
   contracted: number;
   previous: number;
   used: number;
+  adjustment?: number;
   closed?: boolean;
 }): MonthSummary {
-  const available = args.contracted + args.previous;
+  const adjustment = args.adjustment ?? 0;
+  const available = args.contracted + args.previous + adjustment;
   return {
     year: args.year,
     month: args.month,
     contracted: args.contracted,
     previous: args.previous,
+    adjustment,
     available,
     used: args.used,
     balance: available - args.used,
     closed: args.closed ?? false,
   };
+}
+
+/** Manual adjustment stored for a client/month (0 when none). */
+export function adjustmentOf(
+  rows: PostLedgerRow[],
+  clientId: string,
+  year: number,
+  month: number,
+): number {
+  const row = rows.find((r) => r.client_id === clientId && r.year === year && r.month === month);
+  return row?.adjustment ?? 0;
 }
 
 /** Builds the summary of an open (not yet closed) month from live posts. */
@@ -173,6 +192,7 @@ export function openMonthSummary(args: {
       contracted: closedRow.contracted,
       previous: closedRow.previous_balance,
       used: closedRow.used,
+      adjustment: closedRow.adjustment ?? 0,
       closed: true,
     });
   }
@@ -185,6 +205,7 @@ export function openMonthSummary(args: {
       contracted: args.contracted,
       since: args.since,
     }),
+    adjustment: adjustmentOf(args.ledger, args.clientId, year, month),
     used: usedInMonth(args.posts, args.clientId, year, month),
   });
 }
