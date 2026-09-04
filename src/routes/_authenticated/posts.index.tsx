@@ -317,9 +317,10 @@ function PostsPage() {
         </div>
       </div>
 
-
-
-
+      {/* Calendar balance control bar — tied to the displayed month and selected client */}
+      {view === "calendar" && clientFilter !== "all" && (
+        <PostBalanceControlBar clientId={clientFilter} ref={calendarMonth} />
+      )}
 
       {/* Result count + bulk actions */}
       <div className="flex flex-wrap items-center justify-between gap-2">
