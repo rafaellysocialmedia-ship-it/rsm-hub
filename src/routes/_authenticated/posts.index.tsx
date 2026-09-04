@@ -54,6 +54,8 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
+  const { hasRole } = useAuth();
+  const isStaff = hasRole("administrator") || hasRole("team");
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const [view, setView] = useStickyState<ViewMode>("posts:view", "calendar");
   const [search, setSearch] = useStickyState<string>("posts:search", "");
