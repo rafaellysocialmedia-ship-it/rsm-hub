@@ -19,6 +19,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { PostBalanceCard } from "@/components/management/post-balance-card";
 
 export const Route = createFileRoute("/_authenticated/admin/posts-control")({
   head: () => ({
@@ -187,6 +188,8 @@ function PostsControl() {
           )}
         </CardContent>
       </Card>
+
+      {historyOf && <PostBalanceCard clientId={historyOf} canEdit />}
 
       {historyOf && (
         <Card className="shadow-soft">

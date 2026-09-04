@@ -867,11 +867,14 @@ export type Database = {
       client_services: {
         Row: {
           amount: number | null
+          auto_billing: boolean
+          billing_day: number | null
           client_id: string
           created_at: string
           created_by: string | null
           id: string
           label: string | null
+          last_billed_on: string | null
           notes: string | null
           service_key: string
           situation: string
@@ -880,11 +883,14 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          auto_billing?: boolean
+          billing_day?: number | null
           client_id: string
           created_at?: string
           created_by?: string | null
           id?: string
           label?: string | null
+          last_billed_on?: string | null
           notes?: string | null
           service_key: string
           situation?: string
@@ -893,11 +899,14 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          auto_billing?: boolean
+          billing_day?: number | null
           client_id?: string
           created_at?: string
           created_by?: string | null
           id?: string
           label?: string | null
+          last_billed_on?: string | null
           notes?: string | null
           service_key?: string
           situation?: string
