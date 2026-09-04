@@ -26,15 +26,7 @@ const TimelineView = lazy(() => import("@/components/posts/views/timeline-view")
 
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
-import { QuotaBadge } from "@/components/clients/quota-badge";
-import { QuotaNumber } from "@/components/clients/quota-number";
-import { countMonthPosts, formatMonth } from "@/lib/post-quota";
-import { usePostLedger } from "@/hooks/use-post-ledger";
-import {
-  adjustmentOf, balanceLabel, balanceTone, noteOf, previousBalanceOf, summarizeMonth,
-} from "@/lib/post-ledger";
-import { BalanceAdjustDialog } from "@/components/clients/balance-adjust-dialog";
-import { useAuth } from "@/hooks/use-auth";
+import { formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -54,8 +46,6 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
-  const { hasRole } = useAuth();
-  const isStaff = hasRole("administrator") || hasRole("team");
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const [view, setView] = useStickyState<ViewMode>("posts:view", "calendar");
   const [search, setSearch] = useStickyState<string>("posts:search", "");
@@ -105,7 +95,6 @@ function PostsPage() {
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
   // Saldo mensal (inclui o que ficou faltando do mês anterior)
-  const { data: ledger = [] } = usePostLedger(clientFilter !== "all" ? clientFilter : null);
 
   // Realtime
   useEffect(() => {
