@@ -32,6 +32,11 @@ Supabase. A chave `SUPABASE_SERVICE_ROLE_KEY` é usada somente no servidor e é
 necessária para convites e administração de usuários. As variáveis de IA são
 opcionais.
 
+O botão de acesso pelo Google fica oculto por segurança enquanto
+`VITE_GOOGLE_AUTH_ENABLED=false`. Depois de configurar o Client ID, o Client
+Secret e as URLs de redirecionamento no provedor de autenticação, defina essa
+variável como `true` e publique novamente.
+
 ## Banco de dados
 
 As migrações versionadas ficam em `supabase/migrations`. Em um projeto

@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 
+const googleAuthEnabled = import.meta.env.VITE_GOOGLE_AUTH_ENABLED === "true";
+
 /** Only same-origin relative paths are accepted as post-login redirects. */
 export function safeNext(next: string | undefined): string | null {
   if (!next) return null;
@@ -21,6 +23,9 @@ function authErrorMessage(error: unknown) {
   if (/invalid login credentials/i.test(message)) return "Email ou senha incorretos.";
   if (/email not confirmed/i.test(message)) return "Confirme seu email antes de entrar.";
   if (/already registered/i.test(message)) return "Este email já possui uma conta.";
+  if (/unsupported provider|missing oauth secret/i.test(message)) {
+    return "O login com Google ainda não está configurado. Entre com email e senha.";
+  }
   if (/fetch|network|timeout|tempo limite|abort/i.test(message)) {
     return "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.";
   }
@@ -157,6 +162,17 @@ function GoogleButton() {
   );
 }
 
+function GoogleLoginOption() {
+  if (!googleAuthEnabled) return null;
+
+  return (
+    <>
+      <GoogleButton />
+      <Divider />
+    </>
+  );
+}
+
 function SignInForm({ onForgot }: { onForgot: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -182,8 +198,7 @@ function SignInForm({ onForgot }: { onForgot: () => void }) {
         <h2 className="text-2xl font-semibold tracking-tight">Acesse sua conta</h2>
         <p className="mt-1 text-sm text-muted-foreground">Entre para continuar gerenciando seus clientes.</p>
       </div>
-      <GoogleButton />
-      <Divider />
+      <GoogleLoginOption />
       <form onSubmit={submit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -240,8 +255,7 @@ function SignUpForm() {
         <h2 className="text-2xl font-semibold tracking-tight">Criar nova conta</h2>
         <p className="mt-1 text-sm text-muted-foreground">Comece a centralizar a operação da sua agência.</p>
       </div>
-      <GoogleButton />
-      <Divider />
+      <GoogleLoginOption />
       <form onSubmit={submit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nome completo</Label>
