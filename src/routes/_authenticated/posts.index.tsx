@@ -27,9 +27,12 @@ const TimelineView = lazy(() => import("@/components/posts/views/timeline-view")
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
 import { QuotaBadge } from "@/components/clients/quota-badge";
+import { QuotaNumber } from "@/components/clients/quota-number";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 import { usePostLedger } from "@/hooks/use-post-ledger";
-import { balanceLabel, balanceTone, previousBalanceOf, summarizeMonth } from "@/lib/post-ledger";
+import {
+  adjustmentOf, balanceLabel, balanceTone, previousBalanceOf, summarizeMonth,
+} from "@/lib/post-ledger";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -346,39 +349,45 @@ function PostsPage() {
                 contracted: activeClient.monthly_post_quota,
                 since: (activeClient as { start_date?: string | null }).start_date ?? null,
               }),
+              adjustment: adjustmentOf(ledger, clientFilter, year, month),
               used: countMonthPosts(posts, clientFilter, calendarMonth),
             });
 
         return (
           <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-medium">Cota mensal — {activeClient.name}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{activeClient.name}</p>
                 <p className="text-xs capitalize text-muted-foreground">{formatMonth(calendarMonth)}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <Badge variant="outline">Contratado {summary.contracted}</Badge>
-                {summary.previous !== 0 && (
-                  <Badge variant="outline" className={balanceTone(summary.previous)}>
-                    {summary.previous > 0 ? "Pendentes do mês anterior" : "Débito do mês anterior"}{" "}
-                    {balanceLabel(summary.previous)}
-                  </Badge>
+              <div className="flex items-center gap-4">
+                <QuotaNumber label="Contratados" value={summary.contracted} />
+                <QuotaNumber
+                  label="Mês anterior"
+                  value={balanceLabel(summary.previous)}
+                  tone={balanceTone(summary.previous)}
+                />
+                {summary.adjustment !== 0 && (
+                  <QuotaNumber
+                    label="Ajuste"
+                    value={balanceLabel(summary.adjustment)}
+                    tone={balanceTone(summary.adjustment)}
+                  />
                 )}
-                <Badge variant="outline">Disponível {summary.available}</Badge>
-                <Badge variant="outline" className={balanceTone(summary.balance)}>
-                  Saldo {balanceLabel(summary.balance)}
-                </Badge>
-                {summary.closed && <Badge variant="secondary">Mês fechado</Badge>}
+                <QuotaNumber label="Disponíveis" value={summary.available} />
+                <QuotaNumber
+                  label="Remaining balance"
+                  value={balanceLabel(summary.balance)}
+                  tone={balanceTone(summary.balance)}
+                />
+                {summary.closed && <Badge variant="secondary" className="text-[10px]">Mês fechado</Badge>}
               </div>
             </div>
-            <QuotaBadge used={summary.used} quota={summary.available || summary.contracted} />
-            <p className="mt-2 text-xs text-muted-foreground">
-              {summary.previous > 0
-                ? `Inclui ${summary.previous} publicaç${summary.previous === 1 ? "ão" : "ões"} que ficaram faltando do mês anterior.`
-                : summary.previous < 0
-                  ? `Há um débito de ${Math.abs(summary.previous)} publicaç${Math.abs(summary.previous) === 1 ? "ão" : "ões"} adiantadas em meses anteriores.`
-                  : "Nenhum saldo pendente de meses anteriores."}
-            </p>
+            <QuotaBadge
+              className="mt-3"
+              used={summary.used}
+              quota={summary.available || summary.contracted}
+            />
           </div>
         );
       })()}

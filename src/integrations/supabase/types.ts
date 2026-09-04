@@ -772,6 +772,8 @@ export type Database = {
       }
       client_post_ledger: {
         Row: {
+          adjustment: number
+          adjustment_note: string | null
           balance: number
           client_id: string
           closed_at: string | null
@@ -786,6 +788,8 @@ export type Database = {
           year: number
         }
         Insert: {
+          adjustment?: number
+          adjustment_note?: string | null
           balance?: number
           client_id: string
           closed_at?: string | null
@@ -800,6 +804,8 @@ export type Database = {
           year: number
         }
         Update: {
+          adjustment?: number
+          adjustment_note?: string | null
           balance?: number
           client_id?: string
           closed_at?: string | null
@@ -3396,6 +3402,8 @@ export type Database = {
       close_post_month: {
         Args: { _client_id: string; _month: number; _year: number }
         Returns: {
+          adjustment: number
+          adjustment_note: string | null
           balance: number
           client_id: string
           closed_at: string | null
