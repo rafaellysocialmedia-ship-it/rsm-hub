@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState, SectionCard } from "./master-shared";
+import { PostBalanceCard } from "./post-balance-card";
 import { monthsActive, monthsActiveLabel, deliveryState } from "@/lib/digital-assets";
 import { countMonthPosts, formatMonth } from "@/lib/post-quota";
 
