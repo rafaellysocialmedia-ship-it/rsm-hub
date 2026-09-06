@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
+  ClipboardList,
   FolderOpen,
   GraduationCap,
   KanbanSquare,
@@ -50,6 +51,7 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   exact?: boolean;
   soon?: boolean;
+  nested?: boolean;
   module?: string;
 };
 
@@ -92,8 +94,14 @@ const staffGroups: NavGroup[] = [
     label: "Conteúdo e equipe",
     items: [
       { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
-      { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
-      { title: "Briefings", url: "/library/briefings", icon: FolderOpen, module: "social.briefings" },
+      { title: "Biblioteca", url: "/library", icon: FolderOpen, exact: true, module: "workspace.library" },
+      {
+        title: "Briefings",
+        url: "/library/briefings",
+        icon: ClipboardList,
+        nested: true,
+        module: "social.briefings",
+      },
       { title: "Acessos", url: "/vault", icon: KeyRound, module: "workspace.vault" },
       { title: "Assistente de IA", url: "/ai", icon: Bot, module: "social.ai" },
       { title: "Resultados", url: "/analytics", icon: BarChart3, module: "social.analytics" },
@@ -262,8 +270,11 @@ export function AppSidebar() {
         isActive={!item.soon && isItemActive(item, currentPath)}
         tooltip={item.soon ? `${item.title} (em breve)` : item.title}
       >
-        <Link to={item.url} className="flex items-center gap-2">
-          <item.icon className="h-4 w-4" />
+        <Link
+          to={item.url}
+          className={`flex items-center gap-2 ${item.nested && !collapsed ? "ml-4 border-l border-sidebar-border pl-3" : ""}`}
+        >
+          <item.icon className={item.nested ? "h-3.5 w-3.5" : "h-4 w-4"} />
           <span className="flex-1 truncate">{item.title}</span>
           {item.soon && !collapsed && (
             <Badge
