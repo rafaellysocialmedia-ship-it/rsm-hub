@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpDown, Building2, Search } from "lucide-react";
+import { ArrowUpDown, Building2, Plus, Search } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 import type { Client } from "@/lib/clients";
 import { CLIENT_STATUS } from "@/lib/clients";
 import { formatDate, formatDateTime, type ClientService } from "@/lib/client-master";
@@ -21,25 +22,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ClientLogo } from "@/components/clients/client-logo";
+import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ListSkeleton } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/management/clients/")({
   head: () => ({
     meta: [
-      { title: "Central de Clientes · Gerência" },
+      { title: "Clientes · RSM Gestão de Marketing" },
       {
         name: "description",
-        content:
-          "Cadastro mestre dos clientes da agência: dados, serviços, equipe, documentos e histórico.",
-      },
-      { property: "og:title", content: "Central de Clientes · Gerência" },
-      {
-        property: "og:description",
         content: "Cadastro mestre dos clientes da agência em um só lugar.",
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ManagementClientsPage,
@@ -54,9 +48,12 @@ export const Route = createFileRoute("/_authenticated/management/clients/")({
 type SortKey = "name" | "start_date" | "updated_at";
 
 function ManagementClientsPage() {
+  const { hasRole } = useAuth();
+  const canManage = hasRole("administrator") || hasRole("team");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [sort, setSort] = useState<SortKey>("updated_at");
+  const [newClientOpen, setNewClientOpen] = useState(false);
   const { data: staff = [] } = useStaffMembers();
 
   const { data: clients, isLoading } = useQuery({
@@ -78,10 +75,7 @@ function ManagementClientsPage() {
         .from("client_services")
         .select("client_id, label, service_key, situation");
       if (error) throw error;
-      return (data ?? []) as Pick<
-        ClientService,
-        "client_id" | "label" | "service_key" | "situation"
-      >[];
+      return (data ?? []) as Pick<ClientService, "client_id" | "label" | "service_key" | "situation">[];
     },
   });
 
@@ -112,14 +106,21 @@ function ManagementClientsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-2xl font-semibold tracking-tight">Central de Clientes</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+            <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Cadastro mestre da operação — dados, serviços, cobrança, briefings e histórico em uma única ficha.
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Cadastro mestre da operação — base única para todos os módulos do sistema.
-        </p>
+        {canManage && (
+          <Button onClick={() => setNewClientOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Novo cliente
+          </Button>
+        )}
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -139,9 +140,7 @@ function ManagementClientsPage() {
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             {CLIENT_STATUS.map((s) => (
-              <SelectItem key={s.value} value={s.value}>
-                {s.label}
-              </SelectItem>
+              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -159,9 +158,7 @@ function ManagementClientsPage() {
       </div>
 
       {isLoading ? (
-        <div className="mt-6">
-          <ListSkeleton />
-        </div>
+        <div className="mt-6"><ListSkeleton /></div>
       ) : rows.length === 0 ? (
         <Card className="mt-6 border-dashed p-10 text-center text-sm text-muted-foreground">
           Nenhum cliente encontrado com os filtros atuais.
@@ -188,8 +185,7 @@ function ManagementClientsPage() {
                     <StatusBadge status={c.status} />
                   </div>
                   <p className="truncate text-xs text-muted-foreground">
-                    {extra.trade_name || c.legal_name || "Sem empresa"} ·{" "}
-                    {c.responsible || "Sem responsável"}
+                    {extra.trade_name || c.legal_name || "Sem empresa"} · {c.responsible || "Sem responsável"}
                   </p>
                 </div>
                 <div className="flex min-w-0 flex-wrap gap-1.5 sm:w-[220px]">
@@ -202,28 +198,18 @@ function ManagementClientsPage() {
                       </Badge>
                     ))
                   )}
-                  {svc.length > 3 && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      +{svc.length - 3}
-                    </Badge>
-                  )}
+                  {svc.length > 3 && <Badge variant="secondary" className="text-[10px]">+{svc.length - 3}</Badge>}
                 </div>
                 <div className="sm:w-[160px]">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Responsável interno
-                  </p>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Responsável interno</p>
                   <p className="truncate text-xs">{nameOf(extra.account_manager_id)}</p>
                 </div>
                 <div className="sm:w-[130px]">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Início
-                  </p>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Início</p>
                   <p className="text-xs">{formatDate(c.start_date)}</p>
                 </div>
                 <div className="sm:w-[150px]">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Atualizado
-                  </p>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Atualizado</p>
                   <p className="text-xs">{formatDateTime(c.updated_at)}</p>
                 </div>
               </Link>
@@ -231,6 +217,8 @@ function ManagementClientsPage() {
           })}
         </Card>
       )}
+
+      <ClientFormDialog open={newClientOpen} onOpenChange={setNewClientOpen} client={null} />
     </div>
   );
 }
