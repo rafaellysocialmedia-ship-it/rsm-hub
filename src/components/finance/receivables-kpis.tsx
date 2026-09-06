@@ -7,11 +7,10 @@ import {
   Users2,
   Wallet,
 } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useCharges, useContracts } from "@/hooks/use-finance";
 import { effectiveStatus, money, todayISO } from "@/lib/finance-core";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 function Kpi({
   icon: Icon,
@@ -38,7 +37,6 @@ function Kpi({
   );
 }
 
-/** Indicadores de Contas a Receber e Contratos (financeiro interno). */
 export function ReceivablesKpis() {
   const { data: charges = [] } = useCharges();
   const { data: contracts = [] } = useContracts();
@@ -51,18 +49,18 @@ export function ReceivablesKpis() {
     let overdue = 0;
     let forecast = 0;
     const defaulters = new Set<string>();
-    const upcoming = new Map<string, number>();
 
     for (const c of charges) {
+      const paidThisMonth = c.status === "paid" && (c.paid_date ?? "").startsWith(monthPrefix);
+      if (paidThisMonth) {
+        receivedMonth += Number(c.amount_received ?? c.amount ?? 0);
+      }
+
+      if (!c.due_date.startsWith(monthPrefix)) continue;
       const status = effectiveStatus(c);
       const amount = Number(c.amount ?? 0);
-      if (status === "paid") {
-        if ((c.paid_date ?? "").startsWith(monthPrefix)) {
-          receivedMonth += Number(c.amount_received ?? amount);
-        }
-        continue;
-      }
-      if (status === "cancelled") continue;
+      if (status === "paid" || status === "cancelled") continue;
+
       forecast += amount;
       if (status === "overdue") {
         overdue += amount;
@@ -70,8 +68,6 @@ export function ReceivablesKpis() {
       } else {
         toReceive += amount;
       }
-      const key = c.due_date.slice(0, 7);
-      upcoming.set(key, (upcoming.get(key) ?? 0) + amount);
     }
 
     const active = contracts.filter((c) => c.status === "active");
@@ -79,78 +75,17 @@ export function ReceivablesKpis() {
       ? active.reduce((s, c) => s + Number(c.amount ?? 0), 0) / active.length
       : 0;
 
-    const series = [...upcoming.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(0, 6)
-      .map(([month, total]) => ({
-        month: month.split("-").reverse().join("/"),
-        total,
-      }));
-
-    return { receivedMonth, toReceive, overdue, forecast, defaulters: defaulters.size, ticket, series };
+    return { receivedMonth, toReceive, overdue, forecast, defaulters: defaulters.size, ticket };
   }, [charges, contracts]);
 
   return (
-    <>
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi
-          icon={TrendingUp}
-          label="Recebido no mês"
-          value={money(k.receivedMonth)}
-          hint="Cobranças pagas no mês corrente"
-        />
-        <Kpi icon={CalendarClock} label="A receber" value={money(k.toReceive)} hint="Vencimentos futuros" />
-        <Kpi icon={AlertTriangle} label="Em atraso" value={money(k.overdue)} hint="Vencidas e não recebidas" />
-        <Kpi
-          icon={Wallet}
-          label="Receita prevista"
-          value={money(k.forecast)}
-          hint="Cobranças pendentes + vencidas"
-        />
-        <Kpi
-          icon={Users2}
-          label="Clientes inadimplentes"
-          value={String(k.defaulters)}
-          hint="Com cobranças vencidas"
-        />
-        <Kpi
-          icon={CircleDollarSign}
-          label="Ticket médio"
-          value={money(k.ticket)}
-          hint="Média dos contratos ativos"
-        />
-      </section>
-
-      {k.series.length > 0 && (
-        <Card className="shadow-soft">
-          <CardHeader>
-            <CardTitle className="text-base">Cobranças previstas por mês</CardTitle>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={k.series} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <YAxis
-                  stroke="hsl(var(--muted-foreground))"
-                  fontSize={12}
-                  tickFormatter={(v) => money(Number(v)).replace("R$", "").trim()}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "hsl(var(--popover))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                  formatter={(v: number) => money(Number(v))}
-                />
-                <Bar dataKey="total" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
-    </>
+    <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <Kpi icon={TrendingUp} label="Recebido no mês" value={money(k.receivedMonth)} hint="Pagamentos recebidos no mês corrente" />
+      <Kpi icon={CalendarClock} label="A receber no mês" value={money(k.toReceive)} hint="Mensalidades pendentes deste mês" />
+      <Kpi icon={AlertTriangle} label="Em atraso no mês" value={money(k.overdue)} hint="Mensalidades vencidas deste mês" />
+      <Kpi icon={Wallet} label="Receita prevista no mês" value={money(k.forecast)} hint="Pendente + vencido deste mês" />
+      <Kpi icon={Users2} label="Clientes inadimplentes" value={String(k.defaulters)} hint="Com mensalidade vencida no mês" />
+      <Kpi icon={CircleDollarSign} label="Ticket médio" value={money(k.ticket)} hint="Média dos contratos ativos" />
+    </section>
   );
 }
