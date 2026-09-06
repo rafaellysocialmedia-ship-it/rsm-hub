@@ -26,7 +26,7 @@ const TableView = lazy(() => import("@/components/posts/views/table-view").then(
 const TimelineView = lazy(() => import("@/components/posts/views/timeline-view").then((m) => ({ default: m.TimelineView })));
 
 import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
-const PostDetailSheet = lazy(() => import("@/components/posts/post-detail-sheet").then((m) => ({ default: m.PostDetailSheet })));
+import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
 import { PostBalanceControlBar } from "@/components/posts/post-balance-control-bar";
 import { formatMonth } from "@/lib/post-quota";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
@@ -37,7 +37,7 @@ import { useStickyState } from "@/hooks/use-sticky-state";
 export const Route = createFileRoute("/_authenticated/posts/")({
   head: () => ({
     meta: [
-      { title: "Calendário Editorial · Social Media Hub" },
+      { title: "Calendário Editorial · RSM Gestão de Marketing" },
       { name: "description", content: "Planeje, organize e publique seu conteúdo em todas as redes." },
     ],
   }),
@@ -392,19 +392,16 @@ function PostsPage() {
         )}
       </div>
 
-
-      <Suspense fallback={null}>
-        {detailPost && (
-          <PostDetailSheet
-            post={detailPost}
-            open={detailOpen}
-            onOpenChange={(o) => { setDetailOpen(o); if (!o) setFocusedCommentId(null); }}
-            clientName={detailPost.client_id ? clientMap.get(detailPost.client_id) ?? null : null}
-            onEdit={editFromDetail}
-            focusedCommentId={focusedCommentId}
-          />
-        )}
-      </Suspense>
+      {detailPost && (
+        <PostDetailSheet
+          post={detailPost}
+          open={detailOpen}
+          onOpenChange={(o) => { setDetailOpen(o); if (!o) setFocusedCommentId(null); }}
+          clientName={detailPost.client_id ? clientMap.get(detailPost.client_id) ?? null : null}
+          onEdit={editFromDetail}
+          focusedCommentId={focusedCommentId}
+        />
+      )}
 
       <PostEditorSheet
         open={editorOpen}
