@@ -1,12 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Save, Bell, Building2, User as UserIcon, Palette } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Bell,
+  Building2,
+  User as UserIcon,
+  Palette,
+  CircleDollarSign,
+  CreditCard,
+  ShieldCheck,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/theme-provider";
+import { useFinanceAccess, usePaymentMethods } from "@/hooks/use-finance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +26,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
-      { title: "Configurações · Social Media Hub" },
-      { name: "description", content: "Ajuste seu perfil, workspace, notificações e aparência." },
+      { title: "Configurações · RSM Gestão de Marketing" },
+      { name: "description", content: "Ajuste perfil, workspace, financeiro, notificações e aparência." },
     ],
   }),
   component: SettingsPage,
@@ -29,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsPage() {
   const { hasRole } = useAuth();
   const isAdmin = hasRole("administrator");
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <header className="flex flex-col gap-1">
@@ -37,15 +50,17 @@ function SettingsPage() {
       </header>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList>
+        <TabsList className="flex h-auto flex-wrap justify-start gap-1">
           <TabsTrigger value="profile"><UserIcon className="mr-1.5 h-3.5 w-3.5" /> Perfil</TabsTrigger>
           {isAdmin && <TabsTrigger value="workspace"><Building2 className="mr-1.5 h-3.5 w-3.5" /> Workspace</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="finance"><CircleDollarSign className="mr-1.5 h-3.5 w-3.5" /> Financeiro</TabsTrigger>}
           <TabsTrigger value="notifications"><Bell className="mr-1.5 h-3.5 w-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="appearance"><Palette className="mr-1.5 h-3.5 w-3.5" /> Aparência</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-4"><ProfileTab /></TabsContent>
         {isAdmin && <TabsContent value="workspace" className="mt-4"><WorkspaceTab /></TabsContent>}
+        {isAdmin && <TabsContent value="finance" className="mt-4"><FinanceSettingsTab /></TabsContent>}
         <TabsContent value="notifications" className="mt-4"><NotificationsTab /></TabsContent>
         <TabsContent value="appearance" className="mt-4"><AppearanceTab /></TabsContent>
       </Tabs>
@@ -68,13 +83,15 @@ function ProfileTab() {
 
   const [form, setForm] = useState({ name: "", cargo: "", phone: "", company: "", avatar_url: "" });
   useEffect(() => {
-    if (profile) setForm({
-      name: profile.name ?? "",
-      cargo: profile.cargo ?? "",
-      phone: profile.phone ?? "",
-      company: profile.company ?? "",
-      avatar_url: profile.avatar_url ?? "",
-    });
+    if (profile) {
+      setForm({
+        name: profile.name ?? "",
+        cargo: profile.cargo ?? "",
+        phone: profile.phone ?? "",
+        company: profile.company ?? "",
+        avatar_url: profile.avatar_url ?? "",
+      });
+    }
   }, [profile]);
 
   const save = useMutation({
@@ -82,7 +99,10 @@ function ProfileTab() {
       const { error } = await supabase.from("profiles").update(form).eq("id", user!.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Perfil atualizado"); qc.invalidateQueries({ queryKey: ["profile"] }); },
+    onSuccess: () => {
+      toast.success("Perfil atualizado");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -93,7 +113,10 @@ function ProfileTab() {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Senha alterada"); setNewPassword(""); },
+    onSuccess: () => {
+      toast.success("Senha alterada");
+      setNewPassword("");
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -123,7 +146,6 @@ function ProfileTab() {
             {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Salvar
           </Button>
         </div>
-
         <div className="border-t pt-4">
           <p className="mb-2 text-sm font-medium">Alterar senha</p>
           <div className="flex gap-2">
@@ -150,20 +172,28 @@ function WorkspaceTab() {
 
   const [form, setForm] = useState({ name: "", logo_url: "", timezone: "America/Sao_Paulo", primary_color: "" });
   useEffect(() => {
-    if (ws) setForm({
-      name: ws.name ?? "",
-      logo_url: ws.logo_url ?? "",
-      timezone: ws.timezone ?? "America/Sao_Paulo",
-      primary_color: ws.primary_color ?? "",
-    });
+    if (ws) {
+      setForm({
+        name: ws.name ?? "",
+        logo_url: ws.logo_url ?? "",
+        timezone: ws.timezone ?? "America/Sao_Paulo",
+        primary_color: ws.primary_color ?? "",
+      });
+    }
   }, [ws]);
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("workspace_settings").update({ ...form, updated_by: user?.id ?? null }).eq("id", 1);
+      const { error } = await supabase
+        .from("workspace_settings")
+        .update({ ...form, updated_by: user?.id ?? null })
+        .eq("id", 1);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Workspace atualizado"); qc.invalidateQueries({ queryKey: ["workspace-settings"] }); },
+    onSuccess: () => {
+      toast.success("Workspace atualizado");
+      qc.invalidateQueries({ queryKey: ["workspace-settings"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -199,34 +229,120 @@ function WorkspaceTab() {
   );
 }
 
+function FinanceSettingsTab() {
+  const access = useFinanceAccess();
+  const { data: methods = [] } = usePaymentMethods();
+  const defaultMethod = methods.find((m) => m.is_default);
+
+  const permissions: [string, boolean][] = [
+    ["Visualizar financeiro", access.canView],
+    ["Criar cobranças", access.canCreate],
+    ["Editar e registrar pagamentos", access.canEdit],
+    ["Cancelar cobranças", access.canCancel],
+    ["Configurar formas de pagamento", access.canConfigure],
+  ];
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <CreditCard className="h-4 w-4 text-primary" /> Cobrança e pagamentos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Forma padrão</span>
+            <span className="font-medium">{defaultMethod?.label ?? "Não definida"}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Formas ativas</span>
+            <span className="font-medium">{methods.filter((m) => m.is_active).length}</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            As formas de pagamento não aparecem mais no menu do Financeiro. Elas ficam centralizadas aqui.
+          </p>
+          {access.canConfigure && (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/finance/payment-methods">Gerenciar formas de pagamento</Link>
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-4 w-4 text-primary" /> Permissões financeiras
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {permissions.map(([label, ok]) => (
+            <div key={label} className="flex items-center justify-between text-sm">
+              <span>{label}</span>
+              <Badge variant="outline" className={ok ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600" : "text-muted-foreground"}>
+                {ok ? "Liberado" : "Bloqueado"}
+              </Badge>
+            </div>
+          ))}
+          <Button asChild variant="outline" size="sm" className="mt-2">
+            <Link to="/admin/permissions">Gerenciar permissões</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function NotificationsTab() {
   const qc = useQueryClient();
   const { user } = useAuth();
   const { data: prefs } = useQuery({
     queryKey: ["notif-prefs", user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from("notification_preferences").select("*").eq("user_id", user!.id).maybeSingle();
-      return data ?? { notify_approvals: true, notify_comments: true, notify_tasks: true, notify_publish: true, notify_files: true };
+      const { data } = await supabase
+        .from("notification_preferences")
+        .select("*")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data ?? {
+        notify_approvals: true,
+        notify_comments: true,
+        notify_tasks: true,
+        notify_publish: true,
+        notify_files: true,
+      };
     },
     enabled: !!user,
   });
 
-  const [form, setForm] = useState({ notify_approvals: true, notify_comments: true, notify_tasks: true, notify_publish: true, notify_files: true });
+  const [form, setForm] = useState({
+    notify_approvals: true,
+    notify_comments: true,
+    notify_tasks: true,
+    notify_publish: true,
+    notify_files: true,
+  });
+
   useEffect(() => {
-    if (prefs) setForm({
-      notify_approvals: prefs.notify_approvals,
-      notify_comments: prefs.notify_comments,
-      notify_tasks: prefs.notify_tasks,
-      notify_publish: prefs.notify_publish,
-      notify_files: prefs.notify_files,
-    });
+    if (prefs) {
+      setForm({
+        notify_approvals: prefs.notify_approvals,
+        notify_comments: prefs.notify_comments,
+        notify_tasks: prefs.notify_tasks,
+        notify_publish: prefs.notify_publish,
+        notify_files: prefs.notify_files,
+      });
+    }
   }, [prefs]);
 
   const save = useMutation({
     mutationFn: async (patch: Partial<typeof form>) => {
       const next = { ...form, ...patch };
       setForm(next);
-      const { error } = await supabase.from("notification_preferences").upsert({ user_id: user!.id, ...next });
+      const { error } = await supabase
+        .from("notification_preferences")
+        .upsert({ user_id: user!.id, ...next });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notif-prefs"] }),
