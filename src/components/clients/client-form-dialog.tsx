@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { usePaymentMethods } from "@/hooks/use-finance";
 import { CLIENT_STATUS, formatCNPJ, type Client } from "@/lib/clients";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ const schema = z.object({
   monthly_post_quota: z.union([z.string(), z.number()]).optional(),
   profile_project_deadline: z.string().optional().or(z.literal("")),
   editorial_deadline: z.string().optional().or(z.literal("")),
+  default_payment_method_id: z.string().optional().or(z.literal("")),
   notes: z.string().trim().max(2000).optional().or(z.literal("")),
   user_id: z.string().optional().or(z.literal("")),
 });
@@ -67,6 +69,7 @@ const empty: FormValues = {
   monthly_post_quota: "",
   profile_project_deadline: "",
   editorial_deadline: "",
+  default_payment_method_id: "",
   notes: "",
   user_id: "",
 };
@@ -85,6 +88,7 @@ export function ClientFormDialog({
   const fileRef = useRef<HTMLInputElement>(null);
   const [logoPath, setLogoPath] = useState<string | null>(client?.logo_url ?? null);
   const [uploading, setUploading] = useState(false);
+  const { data: paymentMethods = [] } = usePaymentMethods(true);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -93,6 +97,7 @@ export function ClientFormDialog({
 
   useEffect(() => {
     if (open) {
+      const extra = client as (Client & { default_payment_method_id?: string | null }) | null | undefined;
       form.reset(
         client
           ? {
@@ -110,6 +115,7 @@ export function ClientFormDialog({
               monthly_post_quota: client.monthly_post_quota ?? "",
               profile_project_deadline: (client as unknown as { profile_project_deadline?: string | null }).profile_project_deadline ?? "",
               editorial_deadline: (client as unknown as { editorial_deadline?: string | null }).editorial_deadline ?? "",
+              default_payment_method_id: extra?.default_payment_method_id ?? "",
               notes: client.notes ?? "",
               user_id: client.user_id ?? "",
             }
@@ -119,7 +125,6 @@ export function ClientFormDialog({
     }
   }, [open, client, form]);
 
-  // Fetch client-role users to link login
   const { data: clientUsers = [] } = useQuery({
     queryKey: ["client-role-users"],
     enabled: open,
@@ -159,6 +164,7 @@ export function ClientFormDialog({
         monthly_post_quota: quotaNum,
         profile_project_deadline: values.profile_project_deadline || null,
         editorial_deadline: values.editorial_deadline || null,
+        default_payment_method_id: values.default_payment_method_id || null,
         notes: values.notes || null,
         user_id: values.user_id ? values.user_id : null,
         logo_url: logoPath,
@@ -175,6 +181,7 @@ export function ClientFormDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
+      qc.invalidateQueries({ queryKey: ["management-clients"] });
       toast.success(client ? "Cliente atualizado" : "Cliente criado");
       onOpenChange(false);
     },
@@ -203,18 +210,15 @@ export function ClientFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{client ? "Editar cliente" : "Novo cliente"}</DialogTitle>
           <DialogDescription>
-            Preencha as informações do cliente. Campos com * são obrigatórios.
+            Preencha as informações do cliente. A forma de pagamento escolhida será usada nas mensalidades automáticas.
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-          className="space-y-5"
-        >
+        <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-5">
           <div className="flex items-center gap-4">
             <ClientLogo path={logoPath} name={watchedName} className="h-16 w-16" />
             <div className="flex flex-col gap-2">
@@ -228,18 +232,8 @@ export function ClientFormDialog({
                   if (f) handleUpload(f);
                 }}
               />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-              >
-                {uploading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="mr-2 h-4 w-4" />
-                )}
+              <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                 Enviar logo
               </Button>
               <p className="text-xs text-muted-foreground">PNG, JPG ou SVG até 2MB</p>
@@ -250,65 +244,41 @@ export function ClientFormDialog({
             <Field label="Nome *" error={form.formState.errors.name?.message}>
               <Input {...form.register("name")} placeholder="Ex: Acme Co." />
             </Field>
-            <Field label="Razão Social">
-              <Input {...form.register("legal_name")} />
-            </Field>
+            <Field label="Razão Social"><Input {...form.register("legal_name")} /></Field>
             <Field label="CNPJ">
-              <Input
-                {...form.register("cnpj")}
-                onChange={(e) => form.setValue("cnpj", formatCNPJ(e.target.value))}
-                placeholder="00.000.000/0000-00"
-              />
+              <Input {...form.register("cnpj")} onChange={(e) => form.setValue("cnpj", formatCNPJ(e.target.value))} placeholder="00.000.000/0000-00" />
             </Field>
-            <Field label="Responsável">
-              <Input {...form.register("responsible")} />
-            </Field>
-            <Field label="Telefone">
-              <Input {...form.register("phone")} placeholder="(11) 0000-0000" />
-            </Field>
-            <Field label="WhatsApp">
-              <Input {...form.register("whatsapp")} placeholder="(11) 90000-0000" />
-            </Field>
-            <Field label="Email" error={form.formState.errors.email?.message}>
-              <Input type="email" {...form.register("email")} />
-            </Field>
-            <Field label="Segmento">
-              <Input {...form.register("segment")} placeholder="Ex: E-commerce" />
-            </Field>
-            <Field label="Plano contratado">
-              <Input {...form.register("plan")} placeholder="Ex: Premium" />
-            </Field>
-            <Field label="Data de início">
-              <Input type="date" {...form.register("start_date")} />
+            <Field label="Responsável"><Input {...form.register("responsible")} /></Field>
+            <Field label="Telefone"><Input {...form.register("phone")} placeholder="(11) 0000-0000" /></Field>
+            <Field label="WhatsApp"><Input {...form.register("whatsapp")} placeholder="(11) 90000-0000" /></Field>
+            <Field label="Email" error={form.formState.errors.email?.message}><Input type="email" {...form.register("email")} /></Field>
+            <Field label="Segmento"><Input {...form.register("segment")} placeholder="Ex: E-commerce" /></Field>
+            <Field label="Plano contratado"><Input {...form.register("plan")} placeholder="Ex: Premium" /></Field>
+            <Field label="Data de início"><Input type="date" {...form.register("start_date")} /></Field>
+            <Field label="Forma de pagamento padrão">
+              <Select
+                value={form.watch("default_payment_method_id") || "none"}
+                onValueChange={(v) => form.setValue("default_payment_method_id", v === "none" ? "" : v)}
+              >
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Não definida —</SelectItem>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.id} value={method.id}>{method.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Cota mensal de posts">
-              <Input
-                type="number"
-                min={0}
-                placeholder="Ex: 12"
-                {...form.register("monthly_post_quota")}
-              />
+              <Input type="number" min={0} placeholder="Ex: 12" {...form.register("monthly_post_quota")} />
             </Field>
-            <Field label="Prazo — Projeto de Perfil">
-              <Input type="date" {...form.register("profile_project_deadline")} />
-            </Field>
-            <Field label="Prazo — Editorial">
-              <Input type="date" {...form.register("editorial_deadline")} />
-            </Field>
+            <Field label="Prazo — Projeto de Perfil"><Input type="date" {...form.register("profile_project_deadline")} /></Field>
+            <Field label="Prazo — Editorial"><Input type="date" {...form.register("editorial_deadline")} /></Field>
             <Field label="Status">
-              <Select
-                value={form.watch("status")}
-                onValueChange={(v) => form.setValue("status", v as FormValues["status"])}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={form.watch("status")} onValueChange={(v) => form.setValue("status", v as FormValues["status"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {CLIENT_STATUS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
+                  {CLIENT_STATUS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </Field>
@@ -319,9 +289,7 @@ export function ClientFormDialog({
               value={form.watch("user_id") || "none"}
               onValueChange={(v) => form.setValue("user_id", v === "none" ? "" : v)}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma conta" />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Selecione uma conta" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">— Nenhum —</SelectItem>
                 {clientUsers.map((u) => (
@@ -336,14 +304,10 @@ export function ClientFormDialog({
             </p>
           </Field>
 
-          <Field label="Observações">
-            <Textarea rows={4} {...form.register("notes")} />
-          </Field>
+          <Field label="Observações"><Textarea rows={4} {...form.register("notes")} /></Field>
 
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {client ? "Salvar alterações" : "Criar cliente"}
@@ -355,15 +319,7 @@ export function ClientFormDialog({
   );
 }
 
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
