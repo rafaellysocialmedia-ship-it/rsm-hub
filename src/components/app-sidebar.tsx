@@ -77,7 +77,12 @@ const staffGroups: NavGroup[] = [
         exact: true,
         module: "workspace.dashboard",
       },
-      { title: "Clientes", url: "/clients", icon: Briefcase, module: "workspace.clients" },
+      {
+        title: "Clientes",
+        url: "/management/clients",
+        icon: Briefcase,
+        module: "workspace.clients",
+      },
       { title: "Calendário", url: "/posts", icon: Calendar, module: "social.calendar" },
       { title: "Tarefas", url: "/tasks", icon: KanbanSquare, module: "workspace.tasks" },
       {
@@ -117,12 +122,6 @@ const staffGroups: NavGroup[] = [
   {
     label: "Gestão financeira",
     items: [
-      {
-        title: "Cadastro mestre",
-        url: "/management/clients",
-        icon: Building2,
-        module: "management.clients",
-      },
       {
         title: "Visão geral",
         url: "/finance",
