@@ -3,14 +3,10 @@ import {
   BarChart3,
   Bot,
   Briefcase,
-  Building2,
   Calendar,
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
-  ClipboardList,
-  CreditCard,
-  FileText,
   FolderOpen,
   GraduationCap,
   KanbanSquare,
@@ -20,7 +16,6 @@ import {
   Megaphone,
   Receipt,
   Settings,
-  Settings2,
   Shield,
   Store,
   Users,
@@ -55,7 +50,6 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   exact?: boolean;
   soon?: boolean;
-  /** Module key from the dynamic permission catalog (app_modules). */
   module?: string;
 };
 
@@ -98,7 +92,6 @@ const staffGroups: NavGroup[] = [
     label: "Conteúdo e equipe",
     items: [
       { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
-      { title: "Briefings", url: "/briefings", icon: ClipboardList, module: "social.briefings" },
       { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
       { title: "Acessos", url: "/vault", icon: KeyRound, module: "workspace.vault" },
       { title: "Assistente de IA", url: "/ai", icon: Bot, module: "social.ai" },
@@ -136,28 +129,10 @@ const staffGroups: NavGroup[] = [
         module: "finance.receivables",
       },
       {
-        title: "Contratos",
-        url: "/finance/contracts",
-        icon: FileText,
-        module: "finance.contracts",
-      },
-      {
         title: "Carteira financeira",
         url: "/finance/clients",
-        icon: Building2,
+        icon: Users2,
         module: "finance.clients",
-      },
-      {
-        title: "Formas de pagamento",
-        url: "/finance/payment-methods",
-        icon: CreditCard,
-        module: "finance.payment_methods",
-      },
-      {
-        title: "Configurações",
-        url: "/finance/settings",
-        icon: Settings2,
-        module: "finance.settings",
       },
     ],
   },
