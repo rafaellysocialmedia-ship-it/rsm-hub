@@ -4,15 +4,41 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { Toaster } from "@/components/ui/sonner";
+
+const BRAND_NAME = "RSM Gestão de Marketing";
+const LEGACY_BRAND_NAME = "Social Media Hub";
+
+function BrandTitleSync() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  useEffect(() => {
+    const syncTitle = () => {
+      if (document.title.includes(LEGACY_BRAND_NAME)) {
+        document.title = document.title.replaceAll(LEGACY_BRAND_NAME, BRAND_NAME);
+      }
+    };
+
+    syncTitle();
+    const titleElement = document.querySelector("title");
+    if (!titleElement) return;
+
+    const observer = new MutationObserver(syncTitle);
+    observer.observe(titleElement, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  return null;
+}
 
 function NotFoundComponent() {
   return (
@@ -74,14 +100,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RSM Gestão de Marketing" },
+      { title: BRAND_NAME },
       { name: "description", content: "Centralize toda a gestão de clientes de social media em um único sistema." },
       { name: "theme-color", content: "#7c3aed" },
-      { property: "og:title", content: "RSM Gestão de Marketing" },
+      { property: "og:title", content: BRAND_NAME },
       { property: "og:description", content: "Centralize toda a gestão de clientes de social media em um único sistema." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "RSM Gestão de Marketing" },
+      { name: "twitter:title", content: BRAND_NAME },
       { name: "twitter:description", content: "Centralize toda a gestão de clientes de social media em um único sistema." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/69c2784c-dbfc-44ba-8cd9-7a24df27bcf1" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/69c2784c-dbfc-44ba-8cd9-7a24df27bcf1" },
@@ -124,6 +150,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <AuthProvider>
+          <BrandTitleSync />
           <Outlet />
           <Toaster richColors position="bottom-right" closeButton duration={5000} />
         </AuthProvider>
