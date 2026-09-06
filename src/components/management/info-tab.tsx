@@ -8,6 +8,7 @@ import type { Client } from "@/lib/clients";
 import { formatCNPJ } from "@/lib/clients";
 import { BR_STATES, COMPANY_SIZES } from "@/lib/client-master";
 import { useStaffMembers } from "@/hooks/use-staff";
+import { usePaymentMethods } from "@/hooks/use-finance";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ type Extra = {
   account_manager_id: string;
   social_manager_id: string;
   traffic_manager_id: string;
+  default_payment_method_id: string;
 };
 
 type FormState = Extra & {
@@ -69,12 +71,14 @@ function toForm(client: Client): FormState {
     account_manager_id: c.account_manager_id ?? "",
     social_manager_id: c.social_manager_id ?? "",
     traffic_manager_id: c.traffic_manager_id ?? "",
+    default_payment_method_id: c.default_payment_method_id ?? "",
   };
 }
 
 export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean }) {
   const qc = useQueryClient();
   const { data: staff = [] } = useStaffMembers();
+  const { data: paymentMethods = [] } = usePaymentMethods(true);
   const [form, setForm] = useState<FormState>(() => toForm(client));
 
   useEffect(() => setForm(toForm(client)), [client]);
@@ -95,6 +99,7 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
+      qc.invalidateQueries({ queryKey: ["management-clients"] });
       qc.invalidateQueries({ queryKey: ["client-timeline", client.id] });
       toast.success("Informações atualizadas");
     },
@@ -212,6 +217,37 @@ export function InfoTab({ client, canEdit }: { client: Client; canEdit: boolean 
               onChange={(e) => set("email")(e.target.value)}
             />
           </F>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Cobrança"
+        description="Preferências financeiras específicas deste cliente"
+        collapsible
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <F label="Forma de pagamento padrão">
+            <Select
+              disabled={!canEdit}
+              value={form.default_payment_method_id || "none"}
+              onValueChange={(v) => set("default_payment_method_id")(v === "none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Não definida —</SelectItem>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method.id} value={method.id}>
+                    {method.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </F>
+          <div className="flex items-end pb-1 text-xs text-muted-foreground">
+            As novas mensalidades deste cliente usarão esta forma automaticamente.
+          </div>
         </div>
       </SectionCard>
 
