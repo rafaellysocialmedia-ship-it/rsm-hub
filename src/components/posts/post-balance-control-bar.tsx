@@ -126,7 +126,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
               className={cn(
                 "mt-0.5 text-xs font-medium",
                 overPlan
-                  ? "text-rose-600 dark:text-rose-400"
+                  ? "text-violet-700 dark:text-violet-300"
                   : oneLeft
                     ? "text-amber-600 dark:text-amber-400"
                     : "text-muted-foreground",
@@ -139,7 +139,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
           <div className="text-right">
             {overPlan ? (
               <>
-                <p className="text-lg font-semibold text-rose-600 dark:text-rose-400">+{extras}</p>
+                <p className="text-lg font-semibold text-violet-700 dark:text-violet-300">+{extras}</p>
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground">extras</p>
               </>
             ) : (
@@ -163,7 +163,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
             className={cn(
               "h-full rounded-full transition-[width,background-color] duration-500 ease-out",
               overPlan
-                ? "bg-rose-500"
+                ? "bg-violet-700"
                 : oneLeft
                   ? "bg-amber-500"
                   : "bg-violet-600",
@@ -178,7 +178,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
             <span><span className="text-muted-foreground">Utilizadas:</span> <strong>{used}</strong></span>
             <span>
               <span className="text-muted-foreground">Disponíveis:</span>{" "}
-              <strong className={cn(overPlan && "text-rose-600 dark:text-rose-400", oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</strong>
+              <strong className={cn(overPlan && "text-violet-700 dark:text-violet-300", oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</strong>
             </span>
           </div>
 
