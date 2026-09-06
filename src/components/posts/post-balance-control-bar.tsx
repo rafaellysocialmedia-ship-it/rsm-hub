@@ -62,10 +62,32 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
   if (!client || summary.contracted <= 0) return null;
 
   const contracted = Math.max(0, Number(summary.contracted) || 0);
-  const used = Math.max(0, Number(summary.used) || 0);
-  const balance = Number(summary.balance) || 0;
-  const remaining = Math.max(0, balance);
-  const extras = Math.max(0, -balance);
+  const carriedBalance = Math.max(0, Number(summary.previous) || 0);
+  const adjustment = Number(summary.adjustment) || 0;
+  const hasCarryOver = carriedBalance > 0;
+
+  // Quando existe saldo pendente do mês anterior, os posts que apenas foram
+  // reposicionados no calendário continuam sendo "a fazer". Eles só consomem
+  // esse saldo quando efetivamente chegam ao status publicado.
+  const publishedThisMonth = usage.filter((p) => {
+    if (p.client_id !== clientId || p.status !== "published" || !p.scheduled_date) return false;
+    const d = new Date(`${p.scheduled_date}T00:00:00`);
+    return d.getFullYear() === year && d.getMonth() + 1 === month;
+  }).length;
+
+  const carriedUsed = hasCarryOver ? Math.max(0, contracted - Math.min(contracted, carriedBalance)) : 0;
+  const used = hasCarryOver
+    ? Math.max(0, carriedUsed + publishedThisMonth)
+    : Math.max(0, Number(summary.used) || 0);
+
+  const carriedAvailable = Math.max(0, carriedBalance + adjustment);
+  const remaining = hasCarryOver
+    ? Math.max(0, carriedAvailable - publishedThisMonth)
+    : Math.max(0, Number(summary.balance) || 0);
+  const extras = hasCarryOver
+    ? Math.max(0, publishedThisMonth - carriedAvailable)
+    : Math.max(0, -(Number(summary.balance) || 0));
+
   const progress = contracted > 0 ? Math.min(100, Math.round((used / contracted) * 100)) : 0;
   const oneLeft = remaining === 1 && extras === 0;
   const planUsed = remaining === 0 && extras === 0;
