@@ -46,26 +46,21 @@ import {
 export const Route = createFileRoute("/_authenticated/finance/receivables")({
   head: () => ({
     meta: [
-      { title: "Contas a Receber · Financeiro" },
-      {
-        name: "description",
-        content:
-          "Gestão interna de cobranças: vencimentos, formas de pagamento, inadimplência e registro de pagamentos.",
-      },
-      { property: "og:title", content: "Contas a Receber · Financeiro" },
-      { property: "og:description", content: "Controle de cobranças e recebimentos da agência." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { title: "Contas a Receber · RSM Gestão de Marketing" },
+      { name: "description", content: "Mensalidades e cobranças do mês atual." },
     ],
   }),
   component: ReceivablesPage,
-  errorComponent: ({ error }) => (
-    <div className="px-6 py-16 text-center text-sm text-muted-foreground">{error.message}</div>
-  ),
-  notFoundComponent: () => (
-    <div className="px-6 py-16 text-center text-sm text-muted-foreground">Página não encontrada</div>
-  ),
 });
+
+function currentMonthRange() {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return { from: iso(first), toExclusive: iso(next) };
+}
 
 function ReceivablesPage() {
   const qc = useQueryClient();
@@ -73,14 +68,13 @@ function ReceivablesPage() {
   const { data: charges = [], isLoading } = useCharges();
   const { data: clients = [] } = useFinanceClients();
   const { data: methods = [] } = usePaymentMethods();
+  const month = currentMonthRange();
 
   const [search, setSearch] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<FinanceCharge | null>(null);
@@ -96,13 +90,12 @@ function ReceivablesPage() {
   const filtered = useMemo(
     () =>
       charges.filter((c) => {
+        if (c.due_date < month.from || c.due_date >= month.toExclusive) return false;
         const status = effectiveStatus(c);
         if (clientFilter !== "all" && c.client_id !== clientFilter) return false;
         if (serviceFilter !== "all" && c.service_key !== serviceFilter) return false;
         if (statusFilter !== "all" && status !== statusFilter) return false;
         if (methodFilter !== "all" && c.payment_method_id !== methodFilter) return false;
-        if (from && c.due_date < from) return false;
-        if (to && c.due_date > to) return false;
         if (search) {
           const q = search.toLowerCase();
           if (
@@ -113,7 +106,7 @@ function ReceivablesPage() {
         }
         return true;
       }),
-    [charges, clientFilter, serviceFilter, statusFilter, methodFilter, from, to, search, clientName],
+    [charges, clientFilter, serviceFilter, statusFilter, methodFilter, search, clientName, month.from, month.toExclusive],
   );
 
   const cancel = useMutation({
@@ -141,6 +134,7 @@ function ReceivablesPage() {
   }
 
   const total = filtered.reduce((s, c) => s + Number(c.amount ?? 0), 0);
+  const monthLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -151,7 +145,7 @@ function ReceivablesPage() {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">Contas a Receber</h1>
           <p className="text-sm text-muted-foreground">
-            {filtered.length} cobranças · {money(total)} no filtro atual
+            Mensalidades de {monthLabel} · {filtered.length} cobranças · {money(total)}
           </p>
         </div>
         <div className="flex gap-2">
@@ -173,9 +167,9 @@ function ReceivablesPage() {
 
       <Card className="shadow-soft">
         <CardHeader>
-          <CardTitle className="text-base">Filtros</CardTitle>
+          <CardTitle className="text-base">Filtros do mês atual</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3 xl:grid-cols-4">
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -221,8 +215,6 @@ function ReceivablesPage() {
               ))}
             </SelectContent>
           </Select>
-          <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-          <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         </CardContent>
       </Card>
 
@@ -252,7 +244,7 @@ function ReceivablesPage() {
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
-                    Nenhuma cobrança encontrada.
+                    Nenhuma mensalidade encontrada para este mês.
                   </TableCell>
                 </TableRow>
               ) : (
