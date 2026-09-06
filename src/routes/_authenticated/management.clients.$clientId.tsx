@@ -21,21 +21,18 @@ import { IntegrationsTab } from "@/components/management/integrations-tab";
 import { DigitalAssetsTab } from "@/components/management/digital-assets-tab";
 import { TimelineTab } from "@/components/management/timeline-tab";
 import { InternalChatTab } from "@/components/management/internal-chat-tab";
+import { ClientBriefingsTab } from "@/components/management/client-briefings-tab";
 import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
 
 export const Route = createFileRoute("/_authenticated/management/clients/$clientId")({
   head: () => ({
     meta: [
-      { title: "Cadastro do cliente · Gerência" },
+      { title: "Cadastro do cliente · RSM Gestão de Marketing" },
       {
         name: "description",
         content:
-          "Cadastro mestre do cliente: informações, serviços, equipe, documentos, acessos e histórico.",
+          "Cadastro mestre do cliente: informações, serviços, briefings, equipe, documentos, acessos e histórico.",
       },
-      { property: "og:title", content: "Cadastro do cliente · Gerência" },
-      { property: "og:description", content: "Cadastro mestre completo do cliente." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ClientMasterPage,
@@ -92,7 +89,7 @@ function ClientMasterPage() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
-        Central de Clientes
+        Clientes
       </Link>
 
       <div className="mt-4 flex items-start gap-4">
@@ -113,6 +110,7 @@ function ClientMasterPage() {
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="info">Informações</TabsTrigger>
           <TabsTrigger value="services">Serviços</TabsTrigger>
+          <TabsTrigger value="briefings">Briefings</TabsTrigger>
           <TabsTrigger value="team">Equipe</TabsTrigger>
           <TabsTrigger value="documents">Documentos</TabsTrigger>
           <TabsTrigger value="accounts">Acessos</TabsTrigger>
@@ -132,6 +130,9 @@ function ClientMasterPage() {
         </TabsContent>
         <TabsContent value="services" className="mt-6">
           <ServicesTab clientId={client.id} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="briefings" className="mt-6">
+          <ClientBriefingsTab clientId={client.id} />
         </TabsContent>
         <TabsContent value="team" className="mt-6">
           <TeamTab clientId={client.id} canEdit={canEdit} />
