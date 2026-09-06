@@ -6,19 +6,16 @@ import {
   isSameDay, isSameMonth, startOfMonth, startOfWeek, subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { statusMeta, postNetworks, type Post } from "@/lib/posts";
-import { sanitizeHtml } from "@/lib/sanitize";
+import { statusMeta, type Post } from "@/lib/posts";
 import { cn } from "@/lib/utils";
+import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
 
 export const Route = createFileRoute("/_authenticated/portal/calendar")({
   head: () => ({
@@ -182,62 +179,12 @@ function ClientCalendarPage() {
         </div>
       </div>
 
-      <Sheet open={!!openPost} onOpenChange={(o) => !o && setOpenPost(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
-          {openPost && (
-            <>
-              <SheetHeader>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={statusMeta(openPost.status).tone}>
-                    {statusMeta(openPost.status).label}
-                  </Badge>
-                  {postNetworks(openPost).map((n) => (
-                    <Badge key={n} variant="secondary">{n}</Badge>
-                  ))}
-                </div>
-                <SheetTitle>{openPost.title}</SheetTitle>
-                {openPost.headline && <SheetDescription>{openPost.headline}</SheetDescription>}
-              </SheetHeader>
-
-              <ScrollArea className="mt-4 max-h-[70vh] pr-3">
-                <div className="space-y-4 text-sm">
-                  {openPost.scheduled_date && (
-                    <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-2 text-xs">
-                      <CalendarIcon className="h-3.5 w-3.5" />
-                      {new Date(openPost.scheduled_date).toLocaleDateString("pt-BR")}
-                      {openPost.scheduled_time && ` · ${openPost.scheduled_time.slice(0, 5)}`}
-                    </div>
-                  )}
-                  {openPost.caption && (
-                    <section>
-                      <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Legenda</p>
-                      <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted/30 p-3" dangerouslySetInnerHTML={{ __html: sanitizeHtml(openPost.caption) }} />
-                    </section>
-                  )}
-                  {openPost.cta && (
-                    <section>
-                      <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">CTA</p>
-                      <p>{openPost.cta}</p>
-                    </section>
-                  )}
-                  {openPost.hashtags && (
-                    <section>
-                      <p className="mb-1 text-xs font-medium uppercase text-muted-foreground">Hashtags</p>
-                      <p className="text-muted-foreground">{openPost.hashtags}</p>
-                    </section>
-                  )}
-                  <div className="grid grid-cols-2 gap-3">
-                    {openPost.theme && <div><p className="text-xs uppercase text-muted-foreground">Tema</p><p>{openPost.theme}</p></div>}
-                    {openPost.objective && <div><p className="text-xs uppercase text-muted-foreground">Objetivo</p><p>{openPost.objective}</p></div>}
-                    {openPost.format && <div><p className="text-xs uppercase text-muted-foreground">Formato</p><p>{openPost.format}</p></div>}
-                    {openPost.pillar && <div><p className="text-xs uppercase text-muted-foreground">Pilar</p><p>{openPost.pillar}</p></div>}
-                  </div>
-                </div>
-              </ScrollArea>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <PostDetailSheet
+        post={openPost}
+        open={!!openPost}
+        onOpenChange={(o) => { if (!o) setOpenPost(null); }}
+        clientName={client.name}
+      />
     </div>
   );
 }
