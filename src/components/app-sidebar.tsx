@@ -93,6 +93,7 @@ const staffGroups: NavGroup[] = [
     items: [
       { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
       { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
+      { title: "Briefings", url: "/library/briefings", icon: FolderOpen, module: "social.briefings" },
       { title: "Acessos", url: "/vault", icon: KeyRound, module: "workspace.vault" },
       { title: "Assistente de IA", url: "/ai", icon: Bot, module: "social.ai" },
       { title: "Resultados", url: "/analytics", icon: BarChart3, module: "social.analytics" },
