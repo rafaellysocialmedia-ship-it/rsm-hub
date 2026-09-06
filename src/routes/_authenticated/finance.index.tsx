@@ -350,7 +350,12 @@ function FinancePage() {
         </CardContent>
       </Card>
 
-      <FinanceDialog open={dialogOpen} onOpenChange={setDialogOpen} transaction={editing} />
+      <FinanceDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        transaction={editing}
+        clients={clients}
+      />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
