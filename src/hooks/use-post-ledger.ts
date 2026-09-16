@@ -25,7 +25,7 @@ export function usePostLedger(clientId?: string | null) {
 /** Minimal post rows used for quota counting. */
 export function usePostUsage(clientId?: string | null) {
   const qc = useQueryClient();
-  const usageKey = ["post-usage", clientId ?? "all"] as const;
+  const usageClientKey = clientId ?? "all";
 
   // Keep the quota/count query synchronized with the posts table. The calendar
   // uses a different React Query key ("posts"), so invalidating only that key
@@ -37,7 +37,7 @@ export function usePostUsage(clientId?: string | null) {
   // currently active client's lightweight usage query.
   useEffect(() => {
     const channel = supabase
-      .channel(`post-usage-rt-${clientId ?? "all"}`)
+      .channel(`post-usage-rt-${usageClientKey}`)
       .on(
         "postgres_changes",
         {
@@ -46,7 +46,7 @@ export function usePostUsage(clientId?: string | null) {
           table: "posts",
         },
         () => {
-          qc.invalidateQueries({ queryKey: usageKey });
+          qc.invalidateQueries({ queryKey: ["post-usage", usageClientKey] });
         },
       )
       .subscribe();
@@ -54,10 +54,10 @@ export function usePostUsage(clientId?: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [clientId, qc, usageKey]);
+  }, [qc, usageClientKey]);
 
   return useQuery({
-    queryKey: usageKey,
+    queryKey: ["post-usage", usageClientKey],
     queryFn: async () => {
       let q = supabase.from("posts").select("client_id,status,scheduled_date");
       if (clientId) q = q.eq("client_id", clientId);
