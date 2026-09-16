@@ -6,13 +6,10 @@ import { usePostLedger, usePostUsage } from "@/hooks/use-post-ledger";
 import {
   balanceLabel,
   labelMonth,
-  noteOf,
   openMonthSummary,
   ymOf,
   type PostLedgerRow,
 } from "@/lib/post-ledger";
-import { useAuth } from "@/hooks/use-auth";
-import { BalanceAdjustDialog } from "@/components/clients/balance-adjust-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -31,8 +28,6 @@ type Props = {
  * more than planned.
  */
 export function PostBalanceControlBar({ clientId, ref }: Props) {
-  const { hasRole } = useAuth();
-  const isStaff = hasRole("administrator") || hasRole("team");
   const { year, month } = ymOf(ref ?? new Date());
 
   const { data: client, isLoading } = useQuery({
@@ -112,21 +107,6 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
             <p className="text-xs text-muted-foreground">Controle de publicações do calendário</p>
           </div>
         </div>
-
-        {isStaff && !summary.closed && (
-          <div className="shrink-0">
-            <BalanceAdjustDialog
-              clientId={clientId}
-              year={year}
-              month={month}
-              contracted={summary.contracted}
-              previous={summary.previous}
-              used={summary.used}
-              adjustment={summary.adjustment}
-              note={noteOf(ledger as PostLedgerRow[], clientId, year, month)}
-            />
-          </div>
-        )}
       </div>
 
       <div className="mt-4 space-y-2.5">
