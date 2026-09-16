@@ -30,6 +30,11 @@ export function usePostUsage(clientId?: string | null) {
   // Keep the quota/count query synchronized with the posts table. The calendar
   // uses a different React Query key ("posts"), so invalidating only that key
   // leaves the balance counter stale after creating, deleting or moving posts.
+  //
+  // The realtime subscription intentionally does not filter by client. DELETE
+  // filters depend on the table's replica identity containing the old row, so
+  // an unfiltered table subscription is more reliable for refreshing the
+  // currently active client's lightweight usage query.
   useEffect(() => {
     const channel = supabase
       .channel(`post-usage-rt-${clientId ?? "all"}`)
@@ -39,10 +44,9 @@ export function usePostUsage(clientId?: string | null) {
           event: "*",
           schema: "public",
           table: "posts",
-          ...(clientId ? { filter: `client_id=eq.${clientId}` } : {}),
         },
         () => {
-          qc.invalidateQueries({ queryKey: ["post-usage", clientId ?? "all"] });
+          qc.invalidateQueries({ queryKey: usageKey });
         },
       )
       .subscribe();
@@ -50,7 +54,7 @@ export function usePostUsage(clientId?: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [clientId, qc]);
+  }, [clientId, qc, usageKey]);
 
   return useQuery({
     queryKey: usageKey,
