@@ -24,9 +24,11 @@ type Props = {
 
 /**
  * Compact monthly balance card used above the editorial calendar.
- * The main visual answers two questions immediately: how much was used and
- * how much remains. Carry-over and manual adjustments stay visible as
- * secondary information without competing with the monthly quota.
+ *
+ * The primary number is always the real amount of publications registered in
+ * the displayed month. Previous balance is shown separately so it is clear
+ * whether the team still owes posts from earlier months or already delivered
+ * more than planned.
  */
 export function PostBalanceControlBar({ clientId, ref }: Props) {
   const { hasRole } = useAuth();
@@ -62,44 +64,33 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
   if (!client || summary.contracted <= 0) return null;
 
   const contracted = Math.max(0, Number(summary.contracted) || 0);
-  const carriedBalance = Math.max(0, Number(summary.previous) || 0);
+  const currentCount = Math.max(0, Number(summary.used) || 0);
+  const previousBalance = Number(summary.previous) || 0;
   const adjustment = Number(summary.adjustment) || 0;
-  const hasCarryOver = carriedBalance > 0;
 
-  // Quando existe saldo pendente do mês anterior, os posts que apenas foram
-  // reposicionados no calendário continuam sendo "a fazer". Eles só consomem
-  // esse saldo quando efetivamente chegam ao status publicado.
-  const publishedThisMonth = usage.filter((p) => {
-    if (p.client_id !== clientId || p.status !== "published" || !p.scheduled_date) return false;
-    const d = new Date(`${p.scheduled_date}T00:00:00`);
-    return d.getFullYear() === year && d.getMonth() + 1 === month;
-  }).length;
+  // Positive previous balance means publications are still pending from prior
+  // months. Negative previous balance means there was over-delivery before.
+  const pendingPrevious = Math.max(0, previousBalance);
+  const previousExcess = Math.max(0, -previousBalance);
+  const totalToDeliver = Math.max(0, Number(summary.available) || 0);
+  const remaining = Math.max(0, totalToDeliver - currentCount);
+  const extras = Math.max(0, currentCount - totalToDeliver);
 
-  const carriedUsed = hasCarryOver ? Math.max(0, contracted - Math.min(contracted, carriedBalance)) : 0;
-  const used = hasCarryOver
-    ? Math.max(0, carriedUsed + publishedThisMonth)
-    : Math.max(0, Number(summary.used) || 0);
+  const progress = totalToDeliver > 0
+    ? Math.min(100, Math.round((currentCount / totalToDeliver) * 100))
+    : currentCount > 0
+      ? 100
+      : 0;
 
-  const carriedAvailable = Math.max(0, carriedBalance + adjustment);
-  const remaining = hasCarryOver
-    ? Math.max(0, carriedAvailable - publishedThisMonth)
-    : Math.max(0, Number(summary.balance) || 0);
-  const extras = hasCarryOver
-    ? Math.max(0, publishedThisMonth - carriedAvailable)
-    : Math.max(0, -(Number(summary.balance) || 0));
-
-  const progress = contracted > 0 ? Math.min(100, Math.round((used / contracted) * 100)) : 0;
   const oneLeft = remaining === 1 && extras === 0;
-  const planUsed = remaining === 0 && extras === 0;
   const overPlan = extras > 0;
+  const complete = remaining === 0 && extras === 0;
 
   const statusLabel = overPlan
-    ? `+${extras} extra${extras === 1 ? "" : "s"}`
-    : planUsed
-      ? "Plano utilizado"
-      : oneLeft
-        ? "Última publicação disponível"
-        : `${progress}% do plano utilizado`;
+    ? `${extras} publicaç${extras === 1 ? "ão" : "ões"} acima do total a entregar`
+    : complete
+      ? "Total previsto cadastrado"
+      : `${remaining} publicaç${remaining === 1 ? "ão" : "ões"} ainda ${remaining === 1 ? "pendente" : "pendentes"}`;
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
@@ -118,7 +109,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
                 <Badge variant="secondary" className="text-[10px]">Mês fechado</Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">Saldo de publicações do mês</p>
+            <p className="text-xs text-muted-foreground">Controle de publicações do calendário</p>
           </div>
         </div>
 
@@ -142,7 +133,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <p className="text-sm font-semibold">
-              <span className="text-base">{used}</span> de {contracted} publicações utilizadas
+              <span className="text-base">{currentCount}</span> publicações cadastradas no calendário
             </p>
             <p
               className={cn(
@@ -164,10 +155,15 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
                 <p className="text-lg font-semibold text-violet-700 dark:text-violet-300">+{extras}</p>
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground">extras</p>
               </>
-            ) : (
+            ) : remaining > 0 ? (
               <>
                 <p className={cn("text-lg font-semibold", oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</p>
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">disponíveis</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">faltam</p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold">✓</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">completo</p>
               </>
             )}
           </div>
@@ -176,10 +172,10 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
         <div
           className="h-2.5 w-full overflow-hidden rounded-full bg-violet-100 dark:bg-violet-950/50"
           role="progressbar"
-          aria-label="Uso do plano mensal de publicações"
+          aria-label="Progresso das publicações previstas para o período"
           aria-valuemin={0}
-          aria-valuemax={contracted}
-          aria-valuenow={Math.min(used, contracted)}
+          aria-valuemax={Math.max(totalToDeliver, 1)}
+          aria-valuenow={Math.min(currentCount, Math.max(totalToDeliver, 1))}
         >
           <div
             className={cn(
@@ -196,17 +192,26 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
 
         <div className="flex flex-col gap-2 border-t border-border/60 pt-2 text-xs sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span><span className="text-muted-foreground">Contratadas:</span> <strong>{contracted}</strong></span>
-            <span><span className="text-muted-foreground">Utilizadas:</span> <strong>{used}</strong></span>
-            <span>
-              <span className="text-muted-foreground">Disponíveis:</span>{" "}
-              <strong className={cn(overPlan && "text-violet-700 dark:text-violet-300", oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</strong>
-            </span>
+            <span><span className="text-muted-foreground">Plano do mês:</span> <strong>{contracted}</strong></span>
+            <span><span className="text-muted-foreground">Cadastradas:</span> <strong>{currentCount}</strong></span>
+            <span><span className="text-muted-foreground">Total a entregar:</span> <strong>{totalToDeliver}</strong></span>
+            {remaining > 0 && (
+              <span><span className="text-muted-foreground">Faltam:</span> <strong className={cn(oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</strong></span>
+            )}
+            {extras > 0 && (
+              <span><span className="text-muted-foreground">Extras:</span> <strong className="text-violet-700 dark:text-violet-300">+{extras}</strong></span>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-            <span>Mês anterior: {balanceLabel(summary.previous)}</span>
-            <span>Ajustes: {balanceLabel(summary.adjustment)}</span>
+            {pendingPrevious > 0 ? (
+              <span>Pendência anterior: <strong className="text-amber-600 dark:text-amber-400">+{pendingPrevious} a entregar</strong></span>
+            ) : previousExcess > 0 ? (
+              <span>Excedente anterior: <strong className="text-violet-700 dark:text-violet-300">{previousExcess} já entregue{previousExcess === 1 ? "" : "s"}</strong></span>
+            ) : (
+              <span>Saldo anterior: 0</span>
+            )}
+            {adjustment !== 0 && <span>Ajustes: {balanceLabel(adjustment)}</span>}
           </div>
         </div>
       </div>
