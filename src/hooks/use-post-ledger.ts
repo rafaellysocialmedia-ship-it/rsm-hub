@@ -42,7 +42,7 @@ export function usePostUsage(clientId?: string | null) {
           ...(clientId ? { filter: `client_id=eq.${clientId}` } : {}),
         },
         () => {
-          qc.invalidateQueries({ queryKey: usageKey });
+          qc.invalidateQueries({ queryKey: ["post-usage", clientId ?? "all"] });
         },
       )
       .subscribe();
