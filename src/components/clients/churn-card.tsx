@@ -31,7 +31,7 @@ export function ChurnCard({ clientId }: { clientId: string }) {
     if (churned && (!date || !reason || (reason === "Outro" && !notes.trim()))) throw new Error("Preencha a data e o motivo do churn. Para Outro, descreva o motivo.");
     const { error } = await supabase.from("clients").update({ churned, churn_date: date || null, churn_reason: reason || null, churn_notes: notes.trim() || null, ...(churned ? { status: "inactive" as const, journey_stage: "offboarded" as const } : {}) } as never).eq("id", clientId).select("id").single();
     if (error) throw error;
-  }, onSuccess: () => { toast.success("Churn atualizado"); for (const key of ["clients", "management-clients", "management-client", "client-churn", "journey-events"]) qc.invalidateQueries({ queryKey: [key] }); }, onError: (e: Error) => toast.error(e.message) });
+  }, onSuccess: () => { toast.success("Churn atualizado"); for (const key of ["clients", "management-clients", "management-client", "client-churn", "journey-events", "finance-contracts", "finance-charges", "finance-history", "finance-clients", "client-services"]) qc.invalidateQueries({ queryKey: [key] }); }, onError: (e: Error) => toast.error(e.message) });
   if (!canManage) return null;
   return <Card className="shadow-soft"><CardHeader><CardTitle className="text-base">Churn do cliente</CardTitle></CardHeader><CardContent className="space-y-4">
     {error ? <p className="text-sm text-destructive">Não foi possível carregar o churn.</p> : isLoading ? <p className="text-sm text-muted-foreground">Carregando…</p> : <>
@@ -41,7 +41,8 @@ export function ChurnCard({ clientId }: { clientId: string }) {
       <div><Label>Motivo do churn</Label><Select value={reason} onValueChange={setReason}><SelectTrigger><SelectValue placeholder="Selecione o motivo" /></SelectTrigger><SelectContent>{reasons.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent></Select></div>
       <div><Label htmlFor={`churn-notes-${clientId}`}>Detalhes e observações</Label><Textarea id={`churn-notes-${clientId}`} value={notes} maxLength={2000} onChange={(e) => setNotes(e.target.value)} /></div>
     </div>}
-    <p className="text-sm text-muted-foreground">Registrar churn deixa o cliente inativo e encerra sua jornada. Os dados e contratos são preservados.</p>
+    <p className="text-sm text-muted-foreground">Registrar churn deixa o cliente inativo, encerra sua jornada e desativa as mensalidades automáticas dos contratos e serviços. Cobranças já lançadas e pagamentos são preservados.</p>
+    <p className="text-sm text-muted-foreground">Desmarcar churn não reativa as mensalidades automaticamente.</p>
     <Button onClick={() => save.mutate()} disabled={save.isPending}>{save.isPending ? "Salvando…" : "Salvar churn"}</Button>
     </>}
   </CardContent></Card>;
