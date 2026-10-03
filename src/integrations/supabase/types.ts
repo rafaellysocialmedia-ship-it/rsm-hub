@@ -475,6 +475,8 @@ export type Database = {
       }
       client_contracts: {
         Row: {
+          signed_url: string | null
+          signature_provider: string | null
           client_id: string
           created_at: string
           created_by: string | null
@@ -491,6 +493,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          signed_url?: string | null
+          signature_provider?: string | null
           client_id: string
           created_at?: string
           created_by?: string | null
@@ -507,6 +511,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          signed_url?: string | null
+          signature_provider?: string | null
           client_id?: string
           created_at?: string
           created_by?: string | null
@@ -1010,6 +1016,10 @@ export type Database = {
       }
       clients: {
         Row: {
+          churned: boolean
+          churn_date: string | null
+          churn_reason: string | null
+          churn_notes: string | null
           account_manager_id: string | null
           address: string | null
           city: string | null
@@ -1046,6 +1056,10 @@ export type Database = {
           zip_code: string | null
         }
         Insert: {
+          churned?: boolean
+          churn_date?: string | null
+          churn_reason?: string | null
+          churn_notes?: string | null
           account_manager_id?: string | null
           address?: string | null
           city?: string | null
@@ -1082,6 +1096,10 @@ export type Database = {
           zip_code?: string | null
         }
         Update: {
+          churned?: boolean
+          churn_date?: string | null
+          churn_reason?: string | null
+          churn_notes?: string | null
           account_manager_id?: string | null
           address?: string | null
           city?: string | null

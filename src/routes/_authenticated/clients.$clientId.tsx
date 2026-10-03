@@ -1,3 +1,4 @@
+import { ChurnCard } from "@/components/clients/churn-card";
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -230,6 +231,7 @@ function ClientDetailPage() {
           <JourneyCard clientId={client.id} currentStage={(client as unknown as { journey_stage: "closing" | "kickoff" | "onboarding" | "ongoing" | "renewal" | "offboarded" }).journey_stage ?? "closing"} />
         </div>
         <ContractsCard clientId={client.id} />
+        <ChurnCard clientId={client.id} />
       </div>
 
       <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} client={client} />

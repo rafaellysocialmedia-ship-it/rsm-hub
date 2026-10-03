@@ -1,3 +1,5 @@
+import { ContractsCard } from "@/components/clients/contracts-card";
+import { ChurnCard } from "@/components/clients/churn-card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
@@ -124,6 +126,7 @@ function ClientMasterPage() {
         <TabsContent value="overview" className="mt-6 space-y-4">
           <OverviewTab client={client} />
           <JourneyCard clientId={client.id} currentStage={journeyStage} />
+          <ChurnCard clientId={client.id} />
         </TabsContent>
         <TabsContent value="info" className="mt-6">
           <InfoTab client={client} canEdit={canEdit} />
@@ -137,7 +140,8 @@ function ClientMasterPage() {
         <TabsContent value="team" className="mt-6">
           <TeamTab clientId={client.id} canEdit={canEdit} />
         </TabsContent>
-        <TabsContent value="documents" className="mt-6">
+        <TabsContent value="documents" className="mt-6 space-y-4">
+          <ContractsCard clientId={client.id} />
           <DocumentsTab clientId={client.id} />
         </TabsContent>
         <TabsContent value="accounts" className="mt-6">

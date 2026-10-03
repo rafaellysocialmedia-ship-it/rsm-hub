@@ -22,6 +22,8 @@ type Contract = {
   mime_type: string | null;
   status: "pending" | "signed" | "expired" | "cancelled";
   signed_at: string | null;
+  signed_url: string | null;
+  signature_provider: string | null;
   expires_at: string | null;
   notes: string | null;
   created_at: string;
@@ -43,6 +45,9 @@ export function ContractsCard({ clientId }: { clientId: string }) {
   const canManage = hasRole("administrator") || hasRole("team");
   const fileRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
+  const [signedUrl, setSignedUrl] = useState("");
+  const [provider, setProvider] = useState("zapsign");
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const { data: contracts = [] } = useQuery({
@@ -91,6 +96,24 @@ export function ContractsCard({ clientId }: { clientId: string }) {
     }
   }
 
+  const saveLink = useMutation({
+    mutationFn: async () => {
+      const url = new URL(signedUrl.trim());
+      if (url.protocol !== "https:") throw new Error("Informe um link HTTPS válido");
+      const payload = { signed_url: url.href, signature_provider: provider, status: "signed", signed_at: new Date().toISOString() };
+      if (editingId) {
+        const { error } = await sb.from("client_contracts" as never).update(payload as never).eq("id", editingId).select("id").single();
+        if (error) throw error;
+      } else {
+        const { data: u } = await supabase.auth.getUser();
+        const { error } = await sb.from("client_contracts" as never).insert({ ...payload, client_id: clientId, title: title.trim() || "Contrato assinado digitalmente", created_by: u.user?.id ?? null } as never);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { setSignedUrl(""); setTitle(""); setEditingId(null); toast.success("Contrato salvo"); qc.invalidateQueries({ queryKey: ["client-contracts", clientId] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: Contract["status"] }) => {
       const patch: Record<string, unknown> = { status };
@@ -136,6 +159,19 @@ export function ContractsCard({ clientId }: { clientId: string }) {
               <Label className="text-xs">Título do contrato (opcional)</Label>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Contrato mensal 2026" />
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="signed-contract-url">Link do contrato assinado digitalmente</Label>
+              <Input id="signed-contract-url" type="url" value={signedUrl} onChange={(e) => setSignedUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Plataforma de assinatura</Label>
+              <Select value={provider} onValueChange={setProvider}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value="zapsign">ZapSign</SelectItem><SelectItem value="autentique">Autentique</SelectItem><SelectItem value="other">Outra</SelectItem></SelectContent>
+              </Select>
+            </div>
+            <Button onClick={() => saveLink.mutate()} disabled={!signedUrl.trim() || saveLink.isPending} className="w-full" size="sm">{editingId ? "Salvar link do contrato" : "Adicionar contrato por link"}</Button>
+            {editingId && <Button variant="ghost" size="sm" onClick={() => { setEditingId(null); setSignedUrl(""); setTitle(""); }}>Cancelar edição</Button>}
             <input
               ref={fileRef}
               type="file"
@@ -161,7 +197,7 @@ export function ContractsCard({ clientId }: { clientId: string }) {
               const meta = STATUS_META[c.status];
               const Icon = meta.icon;
               return (
-                <div key={c.id} className="flex items-start gap-3 rounded-lg border border-border p-3">
+                <div key={c.id} className="flex flex-wrap items-start gap-3 rounded-lg border border-border p-3">
                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${meta.tone}`}>
                     <Icon className="h-4 w-4" />
                   </div>
@@ -171,8 +207,11 @@ export function ContractsCard({ clientId }: { clientId: string }) {
                       {meta.label}
                       {c.signed_at && ` · Assinado ${formatDistanceToNow(new Date(c.signed_at), { locale: ptBR, addSuffix: true })}`}
                     </p>
+                    {c.signature_provider && <p className="text-sm text-muted-foreground">{c.signature_provider === "zapsign" ? "ZapSign" : c.signature_provider === "autentique" ? "Autentique" : "Outra plataforma"}</p>}
+                    {c.signed_url?.startsWith("https://") && <a className="text-sm text-primary underline" href={c.signed_url} target="_blank" rel="noopener noreferrer">Abrir contrato assinado</a>}
+                    {canManage && <Button className="mt-1 block" size="sm" variant="ghost" onClick={() => { setEditingId(c.id); setTitle(c.title); setSignedUrl(c.signed_url ?? ""); setProvider(c.signature_provider ?? "zapsign"); }}>Editar assinatura digital</Button>}
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex flex-wrap items-center gap-1">
                     {c.storage_path && (
                       <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => download(c)} title="Baixar">
                         <Download className="h-4 w-4" />
