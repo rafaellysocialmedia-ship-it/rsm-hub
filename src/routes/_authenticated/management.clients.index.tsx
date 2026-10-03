@@ -1,3 +1,4 @@
+import { isActiveClient } from "@/lib/active-clients";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +52,7 @@ function ManagementClientsPage() {
   const { hasRole } = useAuth();
   const canManage = hasRole("administrator") || hasRole("team");
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState("active");
   const [sort, setSort] = useState<SortKey>("updated_at");
   const [newClientOpen, setNewClientOpen] = useState(false);
   const { data: staff = [] } = useStaffMembers();
@@ -82,7 +83,7 @@ function ManagementClientsPage() {
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (clients ?? [])
-      .filter((c) => (status === "all" ? true : c.status === status))
+      .filter((c) => status === "active" ? isActiveClient(c) : status === "all" || c.status === status)
       .filter((c) =>
         !q
           ? true

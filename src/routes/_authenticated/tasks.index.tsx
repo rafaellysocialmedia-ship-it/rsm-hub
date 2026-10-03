@@ -1,3 +1,4 @@
+import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -32,7 +33,7 @@ function TasksPage() {
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("todo");
 
   const { data: tasks = [] } = useQuery({ queryKey: ["tasks"], queryFn: listTasks });
-  const { data: clients = [] } = useQuery({
+  const { data: allClients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
       const { data, error } = await supabase.from("clients").select("*").order("name");
@@ -41,9 +42,13 @@ function TasksPage() {
     },
   });
 
+  const clients = useMemo(() => allClients.filter(isActiveClient), [allClients]);
+  const activeIds = useMemo(() => new Set(clients.map((c) => c.id)), [clients]);
+
   useEffect(() => {
     const ch = supabase
       .channel("tasks-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => qc.invalidateQueries({ queryKey: ["clients"] }))
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
         qc.invalidateQueries({ queryKey: ["tasks"] });
       })
@@ -59,12 +64,13 @@ function TasksPage() {
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
+      if (!belongsToActiveClient(t, activeIds)) return false;
       if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
       if (clientFilter !== "all" && t.client_id !== clientFilter) return false;
       if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       return true;
     });
-  }, [tasks, search, clientFilter, priorityFilter]);
+  }, [tasks, search, clientFilter, priorityFilter, activeIds]);
 
   return (
     <div className="space-y-6 p-6">

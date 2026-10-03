@@ -55,6 +55,8 @@ export function useTrafficClients() {
       const { data, error } = await supabase
         .from("clients")
         .select("id, name, status")
+        .eq("status", "active")
+        .eq("churned", false)
         .order("name");
       if (error) throw error;
       return (data ?? []) as Pick<Client, "id" | "name" | "status">[];

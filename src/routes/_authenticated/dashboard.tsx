@@ -1,3 +1,4 @@
+import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useEffect, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -83,12 +84,12 @@ function DashboardPage() {
 }
 
 function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; name: string }) {
-  const { data: clients = [], isLoading } = useQuery({
+  const { data: allClients = [], isLoading } = useQuery({
     queryKey: ["clients"],
     queryFn: fetchClients,
   });
 
-  const { data: posts = [] } = useQuery({
+  const { data: allPosts = [] } = useQuery({
     queryKey: ["dash-posts"],
     queryFn: async () => {
       const { data, error } = await supabase.from("posts").select("id,title,status,scheduled_date,scheduled_time,client_id,social_network");
@@ -97,7 +98,7 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     },
   });
 
-  const { data: approvals = [] } = useQuery({
+  const { data: allApprovals = [] } = useQuery({
     queryKey: ["dash-approvals"],
     queryFn: async () => {
       const { data, error } = await supabase.from("post_approvals").select("id,decision,post_id,client_id,created_at");
@@ -106,10 +107,10 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     },
   });
 
-  const { data: tasks = [] } = useQuery({
+  const { data: allTasks = [] } = useQuery({
     queryKey: ["dash-tasks"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tasks").select("id,title,status,due_date");
+      const { data, error } = await supabase.from("tasks").select("id,title,status,due_date,client_id");
       if (error) throw error;
       return data ?? [];
     },
@@ -124,7 +125,7 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     },
   });
 
-  const { data: meetings = [] } = useQuery({
+  const { data: allMeetings = [] } = useQuery({
     queryKey: ["dash-meetings"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -140,7 +141,7 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
     },
   });
 
-  const { data: activity = [], isLoading: activityLoading } = useQuery({
+  const { data: allActivity = [], isLoading: activityLoading } = useQuery({
     queryKey: ["dash-activity"],
 
     queryFn: async () => {
@@ -168,6 +169,15 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [qc]);
+
+  const clients = useMemo(() => allClients.filter((c) => !c.churned), [allClients]);
+  const activeClients = useMemo(() => clients.filter(isActiveClient), [clients]);
+  const activeIds = useMemo(() => new Set(activeClients.map((c) => c.id)), [activeClients]);
+  const posts = useMemo(() => allPosts.filter((item) => belongsToActiveClient(item, activeIds)), [allPosts, activeIds]);
+  const approvals = useMemo(() => allApprovals.filter((item) => belongsToActiveClient(item, activeIds)), [allApprovals, activeIds]);
+  const tasks = useMemo(() => allTasks.filter((item) => belongsToActiveClient(item, activeIds)), [allTasks, activeIds]);
+  const meetings = useMemo(() => allMeetings.filter((item) => belongsToActiveClient(item, activeIds)), [allMeetings, activeIds]);
+  const activity = useMemo(() => allActivity.filter((item) => belongsToActiveClient(item, activeIds)), [allActivity, activeIds]);
 
   const metrics = useMemo(() => {
     const total = clients.length;
@@ -309,10 +319,10 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
       </div>
 
       {/* Monthly post quota */}
-      <MonthlyQuotaCard clients={clients} posts={posts} />
+      <MonthlyQuotaCard clients={activeClients} posts={posts} />
 
       {/* Deliverable deadlines */}
-      <DeadlinesCard clients={clients} />
+      <DeadlinesCard clients={activeClients} />
 
       {/* Charts row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

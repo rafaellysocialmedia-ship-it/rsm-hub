@@ -1,3 +1,4 @@
+import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -56,19 +57,23 @@ function MeetingsPage() {
     },
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: allClients = [] } = useQuery({
     queryKey: ["meetings-clients"],
     enabled: isStaff,
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("id, name").order("name");
+      const { data, error } = await supabase.from("clients").select("id, name, status, churned").order("name");
       if (error) throw error;
-      return (data ?? []) as { id: string; name: string }[];
+      return (data ?? []) as { id: string; name: string; status: string; churned: boolean }[];
     },
   });
+
+  const clients = useMemo(() => allClients.filter(isActiveClient), [allClients]);
+  const activeIds = useMemo(() => new Set(clients.map((c) => c.id)), [clients]);
 
   useEffect(() => {
     const channel = supabase
       .channel("meetings-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => qc.invalidateQueries({ queryKey: ["meetings-clients"] }))
       .on("postgres_changes", { event: "*", schema: "public", table: "meetings" },
         () => qc.invalidateQueries({ queryKey: ["meetings"] }))
       .subscribe();
@@ -77,9 +82,9 @@ function MeetingsPage() {
 
   const clientNameById = useMemo(() => {
     const m = new Map<string, string>();
-    clients.forEach((c) => m.set(c.id, c.name));
+    allClients.forEach((c) => m.set(c.id, c.name));
     return m;
-  }, [clients]);
+  }, [allClients]);
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -108,6 +113,7 @@ function MeetingsPage() {
   }, [meetings, search, clientNameById]);
 
   const upcoming = filtered.filter((m) => {
+    if (isStaff && !belongsToActiveClient(m, activeIds)) return false;
     const d = new Date(m.meeting_date + "T00:00:00");
     return m.status === "scheduled" && !isBefore(d, today);
   });

@@ -1,3 +1,4 @@
+import { isActiveClient } from "@/lib/active-clients";
 import { useState, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -80,7 +81,7 @@ function ClientsPage() {
   const qc = useQueryClient();
 
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<ClientStatus | "all">("all");
+  const [status, setStatus] = useState<ClientStatus | "all">("active");
   const [segment, setSegment] = useState<string>("all");
   const [stage, setStage] = useState<JourneyStage | "all">("all");
   const [view, setView] = useState<"cards" | "table">("cards");
@@ -134,6 +135,7 @@ function ClientsPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const rows = clients.filter((c) => {
+      if (status === "active" && !isActiveClient(c)) return false;
       if (status !== "all" && c.status !== status) return false;
       if (segment !== "all" && c.segment !== segment) return false;
       if (stage !== "all" && (c as { journey_stage?: string }).journey_stage !== stage) return false;

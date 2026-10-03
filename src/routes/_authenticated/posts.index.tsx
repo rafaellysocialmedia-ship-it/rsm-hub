@@ -1,3 +1,4 @@
+import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -85,7 +86,7 @@ function PostsPage() {
     },
   });
 
-  const { data: clients = [] } = useQuery({
+  const { data: allClients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
       const { data, error } = await supabase.from("clients").select("*").order("name");
@@ -93,6 +94,9 @@ function PostsPage() {
       return data as Client[];
     },
   });
+
+  const clients = useMemo(() => allClients.filter(isActiveClient), [allClients]);
+  const activeIds = useMemo(() => new Set(clients.map((c) => c.id)), [clients]);
 
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
@@ -102,6 +106,7 @@ function PostsPage() {
   useEffect(() => {
     const channel = supabase
       .channel("posts-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => qc.invalidateQueries({ queryKey: ["clients"] }))
       .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () =>
         qc.invalidateQueries({ queryKey: ["posts"] }),
       )
@@ -151,6 +156,7 @@ function PostsPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return posts.filter((p) => {
+      if (!belongsToActiveClient(p, activeIds)) return false;
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (clientFilter !== "all" && p.client_id !== clientFilter) return false;
       if (networkFilter !== "all") {
@@ -165,7 +171,7 @@ function PostsPage() {
       }
       return true;
     });
-  }, [posts, search, statusFilter, clientFilter, networkFilter]);
+  }, [posts, search, statusFilter, clientFilter, networkFilter, activeIds]);
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: PostStatus }) => {

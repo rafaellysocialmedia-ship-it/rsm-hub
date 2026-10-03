@@ -70,6 +70,8 @@ function PostsControl() {
       const { data, error } = await supabase
         .from("clients")
         .select("id,name,status,monthly_post_quota,start_date")
+        .eq("status", "active")
+        .eq("churned", false)
         .order("name");
       if (error) throw error;
       return data ?? [];
