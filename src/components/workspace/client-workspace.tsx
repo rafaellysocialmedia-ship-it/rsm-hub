@@ -1,3 +1,4 @@
+import { ClientRequests, ClientRequestAttention } from "./client-requests";
 import { ClientOnboarding } from "./client-onboarding";
 import { FeedPreview } from "./feed-preview";
 import { MonthlyReports } from "./monthly-reports";
@@ -80,6 +81,7 @@ export function ClientWorkspace() {
                     ["files", "Arquivos"],
                     ["contract", "Contrato"],
                     ["finance", "Financeiro"],
+                    ["support", "Suporte"],
                   ].map(([value, label]) => (
                     <TabsTrigger className="shrink-0 text-sm" key={value} value={value}>
                       {label}
@@ -87,6 +89,9 @@ export function ClientWorkspace() {
                   ))}
                 </TabsList>
               </div>
+              <TabsContent value="support" className="mt-5">
+                <ClientRequests clientId={query.data.id} />
+              </TabsContent>
               <TabsContent value="home" className="mt-5">
                 <ClientHome account={query.data} onTab={setTab} />
               </TabsContent>
@@ -99,13 +104,21 @@ export function ClientWorkspace() {
               <TabsContent value="calendar" className="mt-5">
                 <ClientCalendarPage />
               </TabsContent>
-              <TabsContent value="feed" className="mt-5"><FeedPreview clientId={query.data.id} name={query.data.name} logo={query.data.logo_url}/></TabsContent>
-              <TabsContent value="onboarding" className="mt-5"><ClientOnboarding clientId={query.data.id}/></TabsContent>
+              <TabsContent value="feed" className="mt-5">
+                <FeedPreview
+                  clientId={query.data.id}
+                  name={query.data.name}
+                  logo={query.data.logo_url}
+                />
+              </TabsContent>
+              <TabsContent value="onboarding" className="mt-5">
+                <ClientOnboarding clientId={query.data.id} />
+              </TabsContent>
               <TabsContent value="meetings" className="mt-5">
                 <AccountMeetings clientId={query.data.id} clientName={query.data.name} />
               </TabsContent>
               <TabsContent value="reports" className="mt-5 space-y-4">
-                <MonthlyReports clientId={query.data.id} clientName={query.data.name}/>
+                <MonthlyReports clientId={query.data.id} clientName={query.data.name} />
                 <h3 className="text-base font-medium">Arquivos de relatórios</h3>
                 <AccountFiles clientId={query.data.id} reportsOnly />
               </TabsContent>
@@ -180,7 +193,8 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
   const report = files.data?.find((f) => f.category === "relatorios");
   return (
     <div className="space-y-5">
-      <ClientOnboarding clientId={account.id} compact onOpen={()=>onTab("onboarding")}/>
+      <ClientRequestAttention clientId={account.id} onOpen={() => onTab("support")} />
+      <ClientOnboarding clientId={account.id} compact onOpen={() => onTab("onboarding")} />
       <QueryState loading={posts.isLoading} error={posts.error}>
         <div className="grid gap-3 sm:grid-cols-3">
           <MetricCard
@@ -268,7 +282,11 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
                 className="mt-1 text-left font-medium hover:underline"
                 onClick={() => onTab("reports")}
               >
-                {monthlyReports.data?.[0] ? monthLabel(monthlyReports.data[0].report_month) : monthlyReports.error || files.error ? "Indisponível" : report?.name || "Ainda não disponível"}
+                {monthlyReports.data?.[0]
+                  ? monthLabel(monthlyReports.data[0].report_month)
+                  : monthlyReports.error || files.error
+                    ? "Indisponível"
+                    : report?.name || "Ainda não disponível"}
               </button>
             </div>
             <div>

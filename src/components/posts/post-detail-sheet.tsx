@@ -1,3 +1,4 @@
+import { PostTextVersions } from "@/components/workspace/post-text-versions";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -438,7 +439,8 @@ export function PostDetailSheet({
               </TabsContent>
 
               {/* -------- HISTÓRICO -------- */}
-              <TabsContent value="history" className="mt-0">
+              <TabsContent value="history" className="mt-0 space-y-4">
+                <PostTextVersions postId={post.id}/>
                 <ol className="space-y-3">
                   {activity.map((a) => (
                     <li key={a.id} className="flex gap-3">

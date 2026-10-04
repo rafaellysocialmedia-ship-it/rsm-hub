@@ -1,3 +1,7 @@
+import { AccountHeaderFacts } from "@/components/workspace/account-header-facts";
+import { useFinanceAccess } from "@/hooks/use-finance";
+import { ExitDetails } from "@/components/clients/exit-details";
+import { ClientRequests } from "@/components/workspace/client-requests";
 import { ClientOnboarding } from "@/components/workspace/client-onboarding";
 import { FeedPreview } from "@/components/workspace/feed-preview";
 import { MonthlyReports } from "@/components/workspace/monthly-reports";
@@ -49,6 +53,9 @@ import { ClientBriefingsTab } from "@/components/management/client-briefings-tab
 import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
 
 export const Route = createFileRoute("/_authenticated/management/clients/$clientId")({
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Perfil 360º · RSM Gestão de Marketing" },
@@ -73,8 +80,14 @@ export const Route = createFileRoute("/_authenticated/management/clients/$client
 function ClientMasterPage() {
   const { clientId } = Route.useParams();
   const { hasRole } = useAuth();
+  const financeAccess = useFinanceAccess();
   const canEdit = hasRole("administrator") || hasRole("team");
-  const [tab, setTab] = useState("overview");
+  const { tab: requestedTab } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const tab = requestedTab || "overview";
+  const setTab = (value: string) => {
+    void navigate({ search: { tab: value }, replace: true });
+  };
   const [editOpen, setEditOpen] = useState(false);
   const [postOpen, setPostOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
@@ -144,6 +157,7 @@ function ClientMasterPage() {
         </div>
       </div>
 
+      <AccountHeaderFacts client={client} />
       <div className="mt-6 flex flex-wrap gap-2">
         {!client.churned && (
           <>
@@ -153,6 +167,17 @@ function ClientMasterPage() {
             </Button>
             <Button variant="outline" onClick={() => setTaskOpen(true)}>
               Nova demanda
+            </Button>
+            {financeAccess.canEdit && (
+              <Button variant="outline" onClick={() => setTab("finance")}>
+                Registrar pagamento
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setTab("documents")}>
+              Adicionar arquivo
+            </Button>
+            <Button variant="outline" onClick={() => setTab("contents")}>
+              Enviar para aprovação
             </Button>
             <Button variant="outline" onClick={() => setMeetingOpen(true)}>
               <Video className="mr-2 h-4 w-4" />
@@ -171,6 +196,7 @@ function ClientMasterPage() {
             {[
               ["overview", "Visão geral"],
               ["retention", "Saúde e retenção"],
+              ["support", "Suporte"],
               ["strategy", "Estratégia"],
               ["contents", "Conteúdos"],
               ["calendar", "Calendário"],
@@ -197,8 +223,14 @@ function ClientMasterPage() {
           <OverviewTab client={client} />
           <JourneyCard clientId={client.id} currentStage={journeyStage} />
           <ChurnCard clientId={client.id} />
+          <ExitDetails clientId={client.id} />
         </TabsContent>
-        <TabsContent value="retention" className="mt-5"><RetentionWorkspace clientId={client.id}/></TabsContent>
+        <TabsContent value="support" className="mt-5">
+          <ClientRequests clientId={client.id} canEdit={canEdit} />
+        </TabsContent>
+        <TabsContent value="retention" className="mt-5">
+          <RetentionWorkspace clientId={client.id} />
+        </TabsContent>
         <TabsContent value="strategy" className="mt-5 space-y-4">
           <AccountStrategy clientId={client.id} canEdit={canEdit} />
           <ClientBriefingsTab clientId={client.id} />
@@ -209,8 +241,12 @@ function ClientMasterPage() {
         <TabsContent value="calendar" className="mt-5">
           <AccountContents client={client} calendar canEdit={!client.churned} />
         </TabsContent>
-        <TabsContent value="feed" className="mt-5"><FeedPreview clientId={client.id} name={client.name} logo={client.logo_url}/></TabsContent>
-        <TabsContent value="onboarding" className="mt-5"><ClientOnboarding clientId={client.id} canEdit={canEdit&&!client.churned}/></TabsContent>
+        <TabsContent value="feed" className="mt-5">
+          <FeedPreview clientId={client.id} name={client.name} logo={client.logo_url} />
+        </TabsContent>
+        <TabsContent value="onboarding" className="mt-5">
+          <ClientOnboarding clientId={client.id} canEdit={canEdit && !client.churned} />
+        </TabsContent>
         <TabsContent value="approvals" className="mt-5">
           <AccountContents client={client} approvalOnly canEdit={!client.churned} />
         </TabsContent>
@@ -224,7 +260,11 @@ function ClientMasterPage() {
           <ContractsCard clientId={client.id} />
         </TabsContent>
         <TabsContent value="reports" className="mt-5 space-y-5">
-          <MonthlyReports clientId={client.id} clientName={client.name} canEdit={canEdit&&!client.churned}/>
+          <MonthlyReports
+            clientId={client.id}
+            clientName={client.name}
+            canEdit={canEdit && !client.churned}
+          />
           <h3 className="text-base font-medium">Arquivos de relatórios</h3>
           <AccountFiles clientId={client.id} reportsOnly />
         </TabsContent>

@@ -1,4 +1,17 @@
 export type RetentionAccount = {
+  finance_available: boolean;
+  overdue_payments: number;
+  revisions: number;
+  cancelled_meetings: number;
+  days_without_meeting: number;
+  complaints: number;
+  awaiting_response: number;
+  late_materials: number;
+  no_scheduled: boolean;
+  no_production: boolean;
+  approvals_pending: number;
+  onboarding_pending: number;
+  engagement_drop: boolean;
   client_id: string;
   name: string;
   logo_url: string | null;
@@ -73,6 +86,13 @@ export const SIGNALS: Record<string, string> = {
   no_contact: "Contato de acompanhamento pendente",
   manual_risk: "Risco sinalizado pela equipe",
   renewal: "Contrato a renovar",
+  overdue_payment: "Mensalidade em atraso",
+  many_revisions: "Três ou mais pedidos de alteração nos últimos 30 dias",
+  cancelled_meetings: "Reunião cancelada nos últimos 30 dias",
+  no_meeting: "Reunião de acompanhamento pendente",
+  complaint: "Reclamação aberta",
+  late_materials: "Envio de materiais em atraso",
+  engagement_drop: "Queda superior a 30% no engajamento dos relatórios mensais",
 };
 export const CHANNELS: Record<string, string> = {
   whatsapp: "WhatsApp",

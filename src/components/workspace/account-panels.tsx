@@ -1,3 +1,4 @@
+import { MeetingRecap } from "./meeting-recap";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -106,6 +107,8 @@ export function AccountContents({
   const [month, setMonth] = useState(calendar ? format(new Date(), "yyyy-MM") : "");
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const [contentFormat, setContentFormat] = useState("all");
+  const [network, setNetwork] = useState("all");
   const [detail, setDetail] = useState<Post | null>(null);
   const [editing, setEditing] = useState<Post | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -114,6 +117,8 @@ export function AccountContents({
       (!approvalOnly || ["review", "changes_requested"].includes(p.status)) &&
       (!month || p.scheduled_date?.startsWith(month)) &&
       (status === "all" || p.status === status) &&
+      (contentFormat === "all" || p.format === contentFormat) &&
+      (network === "all" || postNetworks(p).includes(network)) &&
       p.title.toLowerCase().includes(search.toLowerCase()),
   );
   return (
@@ -156,6 +161,34 @@ export function AccountContents({
           {POST_STATUS.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Formato do conteúdo"
+          className="h-10 rounded-md border bg-background px-3 text-sm"
+          value={contentFormat}
+          onChange={(e) => setContentFormat(e.target.value)}
+        >
+          <option value="all">Todos os formatos</option>
+          {[
+            ...new Set((query.data ?? []).map((p) => p.format).filter((f): f is string => !!f)),
+          ].map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Plataforma do conteúdo"
+          className="h-10 rounded-md border bg-background px-3 text-sm"
+          value={network}
+          onChange={(e) => setNetwork(e.target.value)}
+        >
+          <option value="all">Todas as plataformas</option>
+          {[...new Set((query.data ?? []).flatMap((p) => postNetworks(p)))].map((n) => (
+            <option key={n} value={n}>
+              {n}
             </option>
           ))}
         </select>
@@ -288,6 +321,7 @@ export function AccountMeetings({
                   {new Date(m.meeting_date + "T00:00:00").toLocaleDateString("pt-BR")}
                   {m.meeting_time && ` · ${m.meeting_time.slice(0, 5)}`} · {m.duration_minutes} min
                 </p>
+                {m.status === "completed" && <MeetingRecap meetingId={m.id} canEdit={canEdit} />}
                 {m.description && <p className="whitespace-pre-wrap text-sm">{m.description}</p>}
                 <div className="flex flex-wrap gap-2">
                   {safeExternalUrl(m.meeting_url) && m.status === "scheduled" && (

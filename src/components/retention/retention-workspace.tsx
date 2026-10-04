@@ -254,6 +254,24 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                         : "Sem alertas operacionais pelas regras atuais."}
                     </p>
                   )}
+                  <p className="text-sm text-muted-foreground">
+                    {a.finance_available
+                      ? `${a.overdue_payments} mensalidade(s) em atraso.`
+                      : "Financeiro não considerado: seu acesso não permite consultar cobranças."}{" "}
+                    · {a.days_without_meeting} dias sem reunião.
+                  </p>
+                  {a.signals.length > 0 && (
+                    <p className="rounded-lg bg-primary/5 p-3 text-sm">
+                      <strong>Ação sugerida:</strong>{" "}
+                      {a.complaints > 0
+                        ? "Responda à reclamação e combine um plano de resolução."
+                        : a.overdue_payments > 0
+                          ? "Confira a cobrança e combine a regularização com o cliente."
+                          : a.revisions >= 3
+                            ? "Alinhe as expectativas e revise o briefing antes da próxima produção."
+                            : "Agende um alinhamento e priorize as pendências listadas acima."}
+                    </p>
+                  )}
                   {a.risk_reason && (
                     <p className="rounded-lg bg-muted/50 p-3 text-sm whitespace-pre-wrap">
                       {a.risk_reason}
@@ -268,6 +286,9 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                       <Plus className="mr-2 h-4 w-4" />
                       Nova ação
                     </Button>
+                    <Button size="sm" variant="outline" asChild><Link to="/management/clients/$clientId" params={{clientId:a.client_id}} search={{tab:"meetings"}}>Agendar reunião</Link></Button>
+                    <Button size="sm" variant="outline" asChild><Link to="/management/clients/$clientId" params={{clientId:a.client_id}} search={{tab:"demands"}}>Criar tarefa</Link></Button>
+                    <Button size="sm" variant="outline" asChild><Link to="/management/clients/$clientId" params={{clientId:a.client_id}} search={{tab:"contract"}}>Revisar renovação</Link></Button>
                     {!clientId && (
                       <Button size="sm" variant="ghost" asChild>
                         <Link to="/management/clients/$clientId" params={{ clientId: a.client_id }}>
@@ -298,8 +319,12 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
               </p>
               <p>
                 Renovações geram alertas a partir de 30 dias antes do vencimento. Reuniões
-                concluídas e contatos registrados contam como acompanhamento. Dados financeiros não
-                compõem esta pontuação.
+                concluídas e contatos registrados contam como acompanhamento. Pagamentos atrasados
+                reduzem 15 pontos cada (máximo 30), apenas para quem tem acesso financeiro. Três
+                alterações em 30 dias reduzem 10; cancelamentos, 5 cada (máximo 10); reunião fora do
+                intervalo, 10; reclamações, 15 cada (máximo 30); materiais atrasados, 10; queda de
+                engajamento superior a 30%, 10. A comparação de engajamento exige relatórios dos
+                dois meses anteriores com pelo menos três conteúdos medidos em cada mês.
               </p>
             </div>
           </details>
@@ -574,16 +599,14 @@ function AccountFollowup({
   }, "Contato registrado");
   const settings = useRetentionMutation(async () => {
     if (risk !== "normal" && !reason.trim()) throw new Error("Informe o motivo do risco.");
-    const { error } = await supabase
-      .from("client_retention_settings")
-      .upsert({
-        client_id: a.client_id,
-        risk_level: risk,
-        risk_reason: reason.trim(),
-        checkin_days: days,
-        automation_enabled: auto,
-        updated_at: new Date().toISOString(),
-      });
+    const { error } = await supabase.from("client_retention_settings").upsert({
+      client_id: a.client_id,
+      risk_level: risk,
+      risk_reason: reason.trim(),
+      checkin_days: days,
+      automation_enabled: auto,
+      updated_at: new Date().toISOString(),
+    });
     if (error) throw error;
   }, "Configurações salvas");
   return (

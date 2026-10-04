@@ -80,6 +80,7 @@ const staffGroups: NavGroup[] = [
         icon: Briefcase,
         module: "workspace.clients",
       },
+      { title: "Comercial", url: "/commercial", icon: Briefcase, module: "finance.dashboard" },
       { title: "Retenção", url: "/retention", icon: Activity, module: "workspace.clients" },
       { title: "Calendário", url: "/posts", icon: Calendar, module: "social.calendar" },
       { title: "Tarefas", url: "/tasks", icon: KanbanSquare, module: "workspace.tasks" },

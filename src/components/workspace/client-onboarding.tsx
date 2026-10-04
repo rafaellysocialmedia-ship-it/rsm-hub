@@ -40,6 +40,10 @@ export function ClientOnboarding({
     const { error } = await supabase.rpc("initialize_client_onboarding", { _client_id: clientId });
     if (error) throw error;
   }, "Onboarding iniciado");
+  const sync = useExperienceMutation(async () => {
+    const { error } = await supabase.rpc("sync_client_onboarding", { _client_id: clientId });
+    if (error) throw error;
+  }, "Etapas conferidas com os registros da conta");
   const steps = q.data ?? [],
     progress = onboardingProgress(steps);
   if (compact && (!steps.length || progress.percent === 100) && !q.error && !q.isLoading)
@@ -155,10 +159,16 @@ export function ClientOnboarding({
                   })}
                 </div>
               )}
+              {canEdit && !compact && (
+                <Button variant="outline" disabled={sync.isPending} onClick={() => sync.mutate()}>
+                  {sync.isPending ? "Conferindo…" : "Conferir registros da conta"}
+                </Button>
+              )}
               {!compact && (
                 <p className="text-sm text-muted-foreground">
-                  Progresso confirmado pela equipe RSM. Etapas não aplicáveis ficam fora do
-                  percentual.
+                  Contrato assinado, pagamento, briefing concluído, reunião realizada e calendário
+                  aprovado podem confirmar etapas automaticamente. A equipe confirma os demais
+                  itens. Etapas não aplicáveis ficam fora do percentual.
                 </p>
               )}
             </>

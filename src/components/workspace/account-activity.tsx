@@ -10,7 +10,7 @@ export function AccountActivity({ clientId }: { clientId: string }) {
     queryKey: ["account-activity", clientId, finance.canView],
     refetchInterval: 30000,
     queryFn: async () => {
-      const [posts, meetings, payments] = await Promise.all([
+      const [posts, meetings, payments, timeline, tasks] = await Promise.all([
         supabase
           .from("post_activity_log")
           .select("id,action,detail,created_at")
@@ -31,9 +31,21 @@ export function AccountActivity({ clientId }: { clientId: string }) {
               .order("created_at", { ascending: false })
               .limit(100)
           : Promise.resolve({ data: [], error: null }),
+        supabase
+          .from("client_timeline")
+          .select("id,title,detail,created_at")
+          .eq("client_id", clientId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("tasks")
+          .select("id,title,status,updated_at")
+          .eq("client_id", clientId)
+          .order("updated_at", { ascending: false })
+          .limit(100),
       ]);
-      if (posts.error || meetings.error || payments.error)
-        throw posts.error || meetings.error || payments.error;
+      if (posts.error || meetings.error || payments.error || timeline.error || tasks.error)
+        throw posts.error || meetings.error || payments.error || timeline.error || tasks.error;
       const labels: Record<string, string> = {
         approval_approved: "Conteúdo aprovado",
         approval_changes_requested: "Alteração solicitada",
@@ -41,6 +53,26 @@ export function AccountActivity({ clientId }: { clientId: string }) {
         commented: "Comentário registrado",
       };
       return [
+        ...(timeline.data ?? []).map((t) => ({
+          id: `timeline-${t.id}`,
+          title: t.title,
+          detail: t.detail,
+          date: t.created_at,
+        })),
+        ...(tasks.data ?? []).map((t) => ({
+          id: `task-${t.id}`,
+          title: `Demanda: ${t.title}`,
+          detail: (
+            {
+              todo: "A fazer",
+              production: "Em produção",
+              waiting_client: "Aguardando cliente",
+              review: "Em revisão",
+              done: "Concluída",
+            } as Record<string, string>
+          )[t.status],
+          date: t.updated_at,
+        })),
         ...(posts.data ?? []).map((p) => ({
           id: `post-${p.id}`,
           title: labels[p.action] || "Atividade de conteúdo",

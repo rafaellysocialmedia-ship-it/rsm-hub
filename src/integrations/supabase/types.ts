@@ -1,3 +1,4 @@
+import type { CommercialProposal, ClientRequest, ExitDetails, MeetingRecap, RequestMessage } from "@/lib/plan-completion";
 import type { OnboardingStep, ReportDraft, MonthlyReport } from "@/lib/client-experience";
 import type { RetentionAccount, RetentionAction, RetentionSettings, ContactLog } from "@/lib/retention";
 export type Json =
@@ -16,6 +17,13 @@ export type Database = {
   }
   public: {
     Tables: {
+      meeting_recaps: { Row: MeetingRecap; Insert: Pick<MeetingRecap,"meeting_id"|"summary"> & Partial<MeetingRecap>; Update: Partial<MeetingRecap>; Relationships: [] };
+      client_request_messages: { Row: RequestMessage; Insert: Pick<RequestMessage,"request_id"|"body"> & Partial<RequestMessage>; Update: Partial<RequestMessage>; Relationships: [] };
+
+      commercial_proposals: { Row: CommercialProposal; Insert: Pick<CommercialProposal,"prospect_name"|"plan"|"amount"|"start_date"|"first_due_date"> & Partial<CommercialProposal>; Update: Partial<CommercialProposal>; Relationships: [] };
+      client_requests: { Row: ClientRequest; Insert: Pick<ClientRequest,"client_id"|"title"|"description"> & Partial<ClientRequest>; Update: Partial<ClientRequest>; Relationships: [] };
+      client_exit_details: { Row: ExitDetails; Insert: Pick<ExitDetails,"client_id"> & Partial<ExitDetails>; Update: Partial<ExitDetails>; Relationships: [] };
+
       client_onboarding_steps: { Row: OnboardingStep; Insert: Pick<OnboardingStep,"client_id"|"step_key"> & Partial<OnboardingStep>; Update: Partial<OnboardingStep>; Relationships: [] };
       client_report_drafts: { Row: ReportDraft; Insert: Pick<ReportDraft,"client_id"|"report_month"> & Partial<ReportDraft>; Update: Partial<ReportDraft>; Relationships: [] };
       client_monthly_reports: { Row: MonthlyReport; Insert: Pick<MonthlyReport,"client_id"|"report_month"|"analysis"|"metrics"> & Partial<MonthlyReport>; Update: Partial<MonthlyReport>; Relationships: [] };
@@ -2514,6 +2522,7 @@ export type Database = {
           is_internal: boolean
           parent_id: string | null
           post_id: string
+          version_id?: string | null
         }
         Insert: {
           author_id: string
@@ -2523,6 +2532,7 @@ export type Database = {
           is_internal?: boolean
           parent_id?: string | null
           post_id: string
+          version_id?: string | null
         }
         Update: {
           author_id?: string
@@ -2532,6 +2542,7 @@ export type Database = {
           is_internal?: boolean
           parent_id?: string | null
           post_id?: string
+          version_id?: string | null
         }
         Relationships: [
           {
@@ -3440,6 +3451,10 @@ export type Database = {
       retention_overview: { Row: RetentionAccount; Relationships: [] }
     }
     Functions: {
+      get_shared_post_versions: { Args: { _post_id:string }; Returns:Json };
+      convert_commercial_proposal: { Args: { _id:string; _expected_updated_at:string; _existing_client_id?:string; _auto_billing?:boolean }; Returns:string };
+      sync_client_onboarding: { Args: { _client_id:string }; Returns:number };
+
       initialize_client_onboarding: { Args: { _client_id:string }; Returns: undefined };
       get_monthly_report_metrics: { Args: { _client_id:string; _month:string }; Returns: Json };
       publish_monthly_report: { Args: { _client_id:string; _month:string; _expected_updated_at:string }; Returns: string };

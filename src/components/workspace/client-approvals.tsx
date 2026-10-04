@@ -1,3 +1,4 @@
+import { PostTextVersions } from "./post-text-versions";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -756,6 +757,7 @@ export function ClientPortal({ defaultTab = "pending" }: { defaultTab?: Decision
 
                   <Separator className="my-4" />
 
+                  <PostTextVersions postId={openPost.id} />
                   <section id="comments" className="space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-medium uppercase text-muted-foreground">

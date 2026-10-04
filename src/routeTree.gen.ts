@@ -19,6 +19,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRetentionRouteImport } from './routes/_authenticated/retention'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCommercialRouteImport } from './routes/_authenticated/commercial'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
 import { Route as AuthenticatedVaultIndexRouteImport } from './routes/_authenticated/vault.index'
@@ -105,6 +106,11 @@ const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCommercialRoute = AuthenticatedCommercialRouteImport.update({
+  id: '/commercial',
+  path: '/commercial',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
@@ -333,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ai': typeof AuthenticatedAiRouteWithChildren
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/commercial': typeof AuthenticatedCommercialRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/retention': typeof AuthenticatedRetentionRoute
@@ -381,6 +388,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/commercial': typeof AuthenticatedCommercialRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/retention': typeof AuthenticatedRetentionRoute
@@ -432,6 +440,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ai': typeof AuthenticatedAiRouteWithChildren
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/commercial': typeof AuthenticatedCommercialRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/retention': typeof AuthenticatedRetentionRoute
@@ -483,6 +492,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ai'
     | '/analytics'
+    | '/commercial'
     | '/dashboard'
     | '/meetings'
     | '/retention'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/analytics'
+    | '/commercial'
     | '/dashboard'
     | '/meetings'
     | '/retention'
@@ -581,6 +592,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/ai'
     | '/_authenticated/analytics'
+    | '/_authenticated/commercial'
     | '/_authenticated/dashboard'
     | '/_authenticated/meetings'
     | '/_authenticated/retention'
@@ -703,6 +715,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/commercial': {
+      id: '/_authenticated/commercial'
+      path: '/commercial'
+      fullPath: '/commercial'
+      preLoaderRoute: typeof AuthenticatedCommercialRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/analytics': {
@@ -993,6 +1012,7 @@ const AuthenticatedAiRouteWithChildren = AuthenticatedAiRoute._addFileChildren(
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiRoute: typeof AuthenticatedAiRouteWithChildren
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedCommercialRoute: typeof AuthenticatedCommercialRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedRetentionRoute: typeof AuthenticatedRetentionRoute
@@ -1036,6 +1056,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiRoute: AuthenticatedAiRouteWithChildren,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedCommercialRoute: AuthenticatedCommercialRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedRetentionRoute: AuthenticatedRetentionRoute,
