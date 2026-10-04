@@ -7,37 +7,9 @@ import type { PostFile } from "@/lib/posts";
 
 type Signed = { file: PostFile; url: string | null };
 
-export function usePostCreatives(postId: string | undefined) {
-  const { data: files = [] } = useQuery({
-    queryKey: ["post-files", postId],
-    enabled: !!postId,
-    queryFn: async () => {
-      if (!postId) return [] as PostFile[];
-      const { data, error } = await supabase
-        .from("post_files")
-        .select("*")
-        .eq("post_id", postId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as PostFile[];
-    },
-  });
-
-  const [signed, setSigned] = useState<Signed[]>([]);
-  useEffect(() => {
-    let active = true;
-    if (!files.length) { setSigned([]); return; }
-    Promise.all(
-      files.map(async (f) => {
-        const { data } = await supabase.storage.from("post-files").createSignedUrl(f.storage_path, 60 * 60);
-        return { file: f, url: data?.signedUrl ?? null };
-      }),
-    ).then((rows) => { if (active) setSigned(rows); });
-    return () => { active = false; };
-  }, [files]);
-
-  return signed;
-}
+const EMPTY_CREATIVES: Signed[]=[];
+export function usePostCreativeQuery(postId:string|undefined){return useQuery({queryKey:["post-creative-signed",postId],enabled:!!postId,staleTime:240000,refetchInterval:240000,queryFn:async()=>{const {data,error}=await supabase.from("post_files").select("*").eq("post_id",postId!).order("created_at",{ascending:true});if(error)throw error;return Promise.all(data.map(async(file)=>{const {data,error}=await supabase.storage.from("post-files").createSignedUrl(file.storage_path,600);if(error)throw error;return {file,url:data.signedUrl};}));}});}
+export function usePostCreatives(postId:string|undefined){return usePostCreativeQuery(postId).data??EMPTY_CREATIVES;}
 
 export function PostCreativeThumb({ postId }: { postId: string }) {
   const items = usePostCreatives(postId);

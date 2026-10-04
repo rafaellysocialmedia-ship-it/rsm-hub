@@ -65,6 +65,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
   const [form, setForm] = useState<Partial<Post>>(EMPTY);
   const [recurrence, setRecurrence] = useState<RecurrenceRule>({ frequency: "none" });
   const isEdit = !!post;
+  const extras=useQuery({queryKey:["accepted-extras",form.client_id],enabled:!!form.client_id,queryFn:async()=>{const {data,error}=await supabase.from("client_requests").select("id,title,quote_revision,accepted_revision").eq("client_id",form.client_id!).eq("kind","extra").not("accepted_at","is",null);if(error)throw error;return data.filter(r=>r.quote_revision===r.accepted_revision);}});
 
   useEffect(() => {
     if (open) {
@@ -150,6 +151,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
         : null;
       const payload = {
         title: form.title!,
+        extra_request_id: form.extra_request_id || null,
         client_id: form.client_id || null,
         social_network: networks[0] ?? null,
         social_networks: networks,
@@ -282,6 +284,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
         if (insErr) throw insErr;
       }
       qc.invalidateQueries({ queryKey: ["post-files", post.id] });
+    qc.invalidateQueries({queryKey:["post-creative-signed",post.id]});
       toast.success("Arquivo(s) enviado(s)");
     } catch (err) {
       toast.error((err as Error).message);
@@ -292,9 +295,11 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
   };
 
   const removeFile = async (f: PostFile) => {
-    await supabase.storage.from("post-files").remove([f.storage_path]);
+    // Keep immutable media bytes for previous approval snapshots.
+    // Removing the current attachment still increments its content revision.
     await supabase.from("post_files").delete().eq("id", f.id);
     qc.invalidateQueries({ queryKey: ["post-files", post?.id] });
+    qc.invalidateQueries({queryKey:["post-creative-signed",post?.id]});
   };
 
   // ---- Comments
@@ -362,6 +367,7 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
 
         <ScrollArea className="h-[calc(100vh-9rem)]">
           <div className="space-y-6 px-6 py-5">
+      <label className="mb-4 block text-sm font-medium">Entrega do plano ou extra<select className="mt-2 block min-h-11 w-full rounded border bg-background px-3" value={form.extra_request_id??""} onChange={e=>update("extra_request_id",e.target.value||null)}><option value="">Entrega do plano</option>{extras.data?.map(r=><option key={r.id} value={r.id}>{r.title} · orçamento aceito</option>)}</select></label>
             {/* Title + status */}
             <div className="space-y-2">
               <Input
@@ -754,7 +760,8 @@ export function PostEditorSheet({ open, onOpenChange, post, initial, clients, fo
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</Label>
+
+              <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</Label>
       {children}
     </div>
   );

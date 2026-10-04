@@ -98,7 +98,7 @@ export function useAccountFiles(clientId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("files")
-        .select("id,name,category,storage_path,size_bytes,created_at")
+        .select("id,name,category,storage_path,size_bytes,created_at,is_shared")
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
       if (error) throw error;

@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 const TOGGLES: { key: string; label: string; desc: string }[] = [
+  {key:"can_view_finance",label:"Financeiro no portal",desc:"Libera cobranças e valores desta conta."},
+  {key:"can_upload_materials",label:"Enviar materiais",desc:"Permite anexar materiais à biblioteca desta conta."},
   { key: "can_view_posts", label: "Visualizar publicações", desc: "Permite ver os posts do calendário editorial." },
   { key: "can_view_media", label: "Visualizar mídias", desc: "Imagens e vídeos anexados aos posts." },
   { key: "can_view_captions", label: "Ler legendas", desc: "Mostra o texto da legenda, CTA e hashtags." },

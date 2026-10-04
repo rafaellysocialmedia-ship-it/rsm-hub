@@ -138,7 +138,7 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
               <TableRow>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Valor</TableHead>
-                <TableHead>Vencimento</TableHead>
+                <TableHead>Competência</TableHead><TableHead>Vencimento</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Ações</TableHead>
               </TableRow>
@@ -146,7 +146,7 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
             <TableBody>
               {charges.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
                     Nenhuma cobrança registrada.
                   </TableCell>
                 </TableRow>
@@ -157,7 +157,7 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
                     <TableRow key={c.id}>
                       <TableCell className="max-w-[240px] truncate">{c.description}</TableCell>
                       <TableCell>{money(Number(c.amount))}</TableCell>
-                      <TableCell>{dateBR(c.due_date)}</TableCell>
+                      <TableCell>{c.competence?.slice(0,7).split("-").reverse().join("/")||"A definir"}</TableCell><TableCell>{dateBR(c.due_date)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={CHARGE_STATUS_META[st].className}>
                           {CHARGE_STATUS_META[st].label}

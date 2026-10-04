@@ -1,3 +1,4 @@
+import { AccountIntake } from "./account-intake";
 import { useState } from "react";
 import { CheckCircle2, Circle, Clock, ClipboardCheck } from "lucide-react";
 import { useOnboarding, useExperienceMutation } from "@/hooks/use-client-experience";
@@ -50,6 +51,11 @@ export function ClientOnboarding({
     return null;
   return (
     <QueryState loading={q.isLoading} error={q.error}>
+      {!compact && (
+        <div className="mb-5">
+          <AccountIntake clientId={clientId} staff={canEdit} />
+        </div>
+      )}
       <Card className="border-primary/20">
         <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
           <div>

@@ -64,7 +64,7 @@ type NavGroup = {
 
 const staffGroups: NavGroup[] = [
   {
-    label: "Principal",
+    label: "Operação",
     defaultOpen: true,
     items: [
       {
@@ -94,7 +94,7 @@ const staffGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Conteúdo e equipe",
+    label: "Clientes e conteúdo",
     items: [
       { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
       { title: "Biblioteca", url: "/library", icon: FolderOpen, exact: true, module: "workspace.library" },
@@ -159,7 +159,7 @@ const staffGroups: NavGroup[] = [
 
 const clientGroups: NavGroup[] = [
   {
-    label: "Principal",
+    label: "Operação",
     defaultOpen: true,
     items: [
       {

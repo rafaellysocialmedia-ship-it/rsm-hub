@@ -227,7 +227,7 @@ function ReceivablesPage() {
                 <TableHead>Serviço</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Valor</TableHead>
-                <TableHead>Vencimento</TableHead>
+                <TableHead>Competência</TableHead><TableHead>Vencimento</TableHead>
                 <TableHead>Forma</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
@@ -237,13 +237,13 @@ function ReceivablesPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
                     Carregando…
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
                     Nenhuma mensalidade encontrada para este mês.
                   </TableCell>
                 </TableRow>
@@ -256,7 +256,7 @@ function ReceivablesPage() {
                       <TableCell>{c.service_label ?? "—"}</TableCell>
                       <TableCell className="max-w-[220px] truncate">{c.description}</TableCell>
                       <TableCell>{money(c.amount)}</TableCell>
-                      <TableCell>{dateBR(c.due_date)}</TableCell>
+                      <TableCell>{c.competence?.slice(0,7).split("-").reverse().join("/")||"A definir"}</TableCell><TableCell>{dateBR(c.due_date)}</TableCell>
                       <TableCell>{methodName(c.payment_method_id)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={CHARGE_STATUS_META[status].className}>

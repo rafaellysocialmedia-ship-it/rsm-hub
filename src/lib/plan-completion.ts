@@ -24,7 +24,8 @@ export type CommercialProposal = {
 export type ClientRequest = {
   id: string;
   client_id: string;
-  kind: "support" | "complaint" | "material";
+  kind: "support" | "complaint" | "material" | "extra";
+  quote_amount: number|null; quote_scope:string; quote_revision:number; accepted_revision:number|null; accepted_at:string|null; accepted_by:string|null;
   title: string;
   description: string;
   status: "open" | "waiting_client" | "done";

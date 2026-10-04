@@ -94,15 +94,13 @@ function VersionComment({ postId, version }: { postId: string; version: Version 
   const save = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Entre na sua conta");
-      const { error } = await supabase
-        .from("post_comments")
-        .insert({
-          post_id: postId,
-          version_id: version.id,
-          author_id: user.id,
-          is_internal: false,
-          content: `[Versão ${version.version_number}] ${text.trim()}`,
-        });
+      const { error } = await supabase.from("post_comments").insert({
+        post_id: postId,
+        version_id: version.id,
+        author_id: user.id,
+        is_internal: false,
+        content: `[Versão ${version.version_number}] ${text.trim()}`,
+      });
       if (error) throw error;
     },
     onSuccess: () => {

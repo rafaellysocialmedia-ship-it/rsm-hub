@@ -1,3 +1,4 @@
+import {ClientCalendarPage} from "@/components/workspace/client-calendar";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -55,6 +56,9 @@ function PostsPage() {
   const [statusFilter, setStatusFilter] = useStickyState<PostStatus | "all">("posts:status", "all");
   const [clientFilter, setClientFilter] = useStickyState<string>("posts:client", "all");
   const [networkFilter, setNetworkFilter] = useStickyState<string>("posts:network", "all");
+  const [formatFilter,setFormatFilter]=useStickyState<string>("posts:format", "all");
+  const [ownerFilter,setOwnerFilter]=useStickyState<string>("posts:owner", "all");
+  const owners=useQuery({queryKey:["post-responsibles"],queryFn:async()=>{const [tasks,people]=await Promise.all([supabase.from("tasks").select("source_post_id,assignee_id"),supabase.from("profiles").select("id,name")]);if(tasks.error)throw tasks.error;if(people.error)throw people.error;return {tasks:tasks.data,people:people.data};}});
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Post | null>(null);
   const [initial, setInitial] = useState<Partial<Post> | undefined>(undefined);
@@ -157,6 +161,8 @@ function PostsPage() {
     const q = search.trim().toLowerCase();
     return posts.filter((p) => {
       if (!belongsToActiveClient(p, activeIds)) return false;
+      if(formatFilter!=="all"&&p.format!==formatFilter)return false;
+      if(ownerFilter!=="all"&&!owners.data?.tasks.some(t=>t.source_post_id===p.id&&t.assignee_id===ownerFilter))return false;
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
       if (clientFilter !== "all" && p.client_id !== clientFilter) return false;
       if (networkFilter !== "all") {
@@ -171,7 +177,7 @@ function PostsPage() {
       }
       return true;
     });
-  }, [posts, search, statusFilter, clientFilter, networkFilter, activeIds]);
+  }, [posts, search, statusFilter, clientFilter, networkFilter, activeIds,formatFilter,ownerFilter,owners.data]);
 
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: PostStatus }) => {
@@ -235,7 +241,7 @@ function PostsPage() {
   };
 
   const activeFilters =
-    (statusFilter !== "all" ? 1 : 0) + (clientFilter !== "all" ? 1 : 0) + (networkFilter !== "all" ? 1 : 0);
+    (statusFilter !== "all" ? 1 : 0) + (clientFilter !== "all" ? 1 : 0) + (networkFilter !== "all" ? 1 : 0)+(formatFilter!=="all"?1:0)+(ownerFilter!=="all"?1:0);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 px-6 py-8">
@@ -269,7 +275,7 @@ function PostsPage() {
       {/* Toolbar */}
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-soft lg:flex-row lg:items-center">
         <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
-          <TabsList className="h-9">
+          <TabsList className="h-auto flex-wrap justify-start">
             <TabsTrigger value="calendar" className="gap-1.5 text-xs"><CalendarDays className="h-3.5 w-3.5" />Calendário</TabsTrigger>
             <TabsTrigger value="list" className="gap-1.5 text-xs"><ListIcon className="h-3.5 w-3.5" />Lista</TabsTrigger>
             <TabsTrigger value="kanban" className="gap-1.5 text-xs"><KanbanSquare className="h-3.5 w-3.5" />Kanban</TabsTrigger>
@@ -309,12 +315,13 @@ function PostsPage() {
               {SOCIAL_NETWORKS.map((n) => (<SelectItem key={n} value={n}>{n}</SelectItem>))}
             </SelectContent>
           </Select>
+          <select aria-label="Formato" className="min-h-10 rounded border bg-card px-3 text-sm" value={formatFilter} onChange={e=>setFormatFilter(e.target.value)}><option value="all">Todos formatos</option>{[...new Set(posts.map(p=>p.format).filter(Boolean))].map(f=><option key={f!}>{f}</option>)}</select><select aria-label="Responsável pela tarefa vinculada" className="min-h-10 rounded border bg-card px-3 text-sm" value={ownerFilter} onChange={e=>setOwnerFilter(e.target.value)}><option value="all">Todos responsáveis</option>{owners.data?.people.filter(p=>owners.data.tasks.some(t=>t.assignee_id===p.id)).map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
           {activeFilters > 0 && (
             <Button
               size="sm"
               variant="ghost"
               className="h-9 gap-1 text-xs"
-              onClick={() => { setStatusFilter("all"); setClientFilter("all"); setNetworkFilter("all"); }}
+              onClick={() => { setStatusFilter("all"); setClientFilter("all"); setNetworkFilter("all"); setFormatFilter("all");setOwnerFilter("all"); }}
             >
               <X className="h-3 w-3" /> Limpar
               <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">{activeFilters}</Badge>
@@ -365,14 +372,7 @@ function PostsPage() {
             }
           >
             {view === "calendar" && (
-              <CalendarView
-                posts={filtered}
-                clientMap={clientMap}
-                onOpen={openExisting}
-                onAddOn={(iso) => openNew({ scheduled_date: iso })}
-                onMove={(id, iso) => updateDate.mutate({ id, scheduled_date: iso })}
-                onMonthChange={handleMonthChange}
-              />
+              <ClientCalendarPage providedPosts={filtered} onMonthChange={handleMonthChange} />
             )}
             {view === "list" && (
               <ListView

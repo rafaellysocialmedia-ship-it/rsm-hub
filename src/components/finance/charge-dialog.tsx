@@ -56,6 +56,8 @@ export function ChargeDialog({
   const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState(todayISO());
   const [methodId, setMethodId] = useState<string>("none");
+  const [competence,setCompetence]=useState(todayISO().slice(0,7));
+  const [paymentUrl,setPaymentUrl]=useState("");
   const [notes, setNotes] = useState("");
 
   const { data: services = [] } = useClientServices(clientId || null);
@@ -69,7 +71,7 @@ export function ChargeDialog({
       setAmount(String(charge.amount ?? ""));
       setDueDate(charge.due_date);
       setMethodId(charge.payment_method_id ?? "none");
-      setNotes(charge.notes ?? "");
+      setNotes(charge.notes ?? "");setPaymentUrl(charge.payment_url??"");setCompetence((charge.competence??charge.due_date).slice(0,7));
     } else {
       setClientId(fixedClientId ?? "");
       setServiceKey("none");
@@ -77,7 +79,7 @@ export function ChargeDialog({
       setAmount("");
       setDueDate(todayISO());
       setMethodId(methods.find((m) => m.is_default)?.id ?? "none");
-      setNotes("");
+      setNotes("");setPaymentUrl("");setCompetence(todayISO().slice(0,7));
     }
   }, [open, charge, fixedClientId, methods]);
 
@@ -88,7 +90,9 @@ export function ChargeDialog({
       const value = Number(amount.replace(",", "."));
       if (!Number.isFinite(value) || value <= 0) throw new Error("Informe um valor válido");
 
+      if(paymentUrl&&!/^https:\/\/[^\s]+$/.test(paymentUrl))throw new Error("Informe um link HTTPS válido.");
       const payload = {
+        payment_url:paymentUrl.trim()||null,competence:competence+"-01",
         client_id: clientId,
         contract_id: contractId ?? charge?.contract_id ?? null,
         service_key: serviceKey === "none" ? null : serviceKey,
@@ -202,6 +206,8 @@ export function ChargeDialog({
           </div>
         </div>
 
+        <label className="block text-sm font-medium">Competência<Input type="month" required value={competence} onChange={e=>setCompetence(e.target.value)}/></label>
+        <label className="block text-sm font-medium">Link real de pagamento (opcional)<Input type="url" placeholder="https://" value={paymentUrl} onChange={e=>setPaymentUrl(e.target.value)}/></label>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={() => save.mutate()} disabled={save.isPending}>

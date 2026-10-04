@@ -1,3 +1,8 @@
+import {Deliveries} from "@/components/workspace/deliveries";
+import {toast} from "sonner";
+import {GroupedNavigation,profileGroups} from "@/components/workspace/grouped-navigation";
+import {ClientCalendarPage} from "@/components/workspace/client-calendar";
+import {ClientPortal} from "@/components/workspace/client-approvals";
 import { AccountHeaderFacts } from "@/components/workspace/account-header-facts";
 import { useFinanceAccess } from "@/hooks/use-finance";
 import { ExitDetails } from "@/components/clients/exit-details";
@@ -185,45 +190,19 @@ function ClientMasterPage() {
             </Button>
           </>
         )}
+        <Button variant="outline" onClick={()=>{void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(()=>toast.success("Link do portal copiado. O cliente deve entrar com seu próprio acesso."),()=>toast.error("Não foi possível copiar o link."));}}>Copiar acesso ao portal</Button>
         <Button variant="outline" onClick={() => setEditOpen(true)}>
           <Pencil className="mr-2 h-4 w-4" />
           Editar cliente
         </Button>
       </div>
       <Tabs value={tab} onValueChange={setTab} className="mt-6">
-        <div className="sticky top-0 z-10 -mx-1 overflow-x-auto bg-background/95 py-2 backdrop-blur">
-          <TabsList className="inline-flex h-auto min-w-full justify-start gap-1 p-1">
-            {[
-              ["overview", "Visão geral"],
-              ["retention", "Saúde e retenção"],
-              ["support", "Suporte"],
-              ["strategy", "Estratégia"],
-              ["contents", "Conteúdos"],
-              ["calendar", "Calendário"],
-              ["feed", "Prévia do feed"],
-              ["onboarding", "Onboarding"],
-              ["approvals", "Aprovações"],
-              ["demands", "Demandas"],
-              ["finance", "Financeiro"],
-              ["contract", "Contrato"],
-              ["reports", "Relatórios"],
-              ["meetings", "Reuniões"],
-              ["documents", "Arquivos"],
-              ["history", "Histórico"],
-              ["settings", "Configurações"],
-            ].map(([value, label]) => (
-              <TabsTrigger key={value} value={value} className="shrink-0 text-sm">
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
+        <GroupedNavigation groups={profileGroups.filter(g=>g.title!=="Financeiro"||financeAccess.canView)} tab={tab} onTab={setTab}/>
         <TabsContent value="overview" className="mt-5 space-y-4">
-          <AccountOverview client={client} onTab={setTab} />
+          <AccountOverview client={client} onTab={setTab} /><Deliveries clientId={client.id} canEdit={canEdit&&!client.churned}/>
           <OverviewTab client={client} />
           <JourneyCard clientId={client.id} currentStage={journeyStage} />
-          <ChurnCard clientId={client.id} />
-          <ExitDetails clientId={client.id} />
+
         </TabsContent>
         <TabsContent value="support" className="mt-5">
           <ClientRequests clientId={client.id} canEdit={canEdit} />
@@ -239,7 +218,7 @@ function ClientMasterPage() {
           <AccountContents client={client} canEdit={!client.churned} />
         </TabsContent>
         <TabsContent value="calendar" className="mt-5">
-          <AccountContents client={client} calendar canEdit={!client.churned} />
+          <ClientCalendarPage clientId={client.id} />
         </TabsContent>
         <TabsContent value="feed" className="mt-5">
           <FeedPreview clientId={client.id} name={client.name} logo={client.logo_url} />
@@ -248,7 +227,7 @@ function ClientMasterPage() {
           <ClientOnboarding clientId={client.id} canEdit={canEdit && !client.churned} />
         </TabsContent>
         <TabsContent value="approvals" className="mt-5">
-          <AccountContents client={client} approvalOnly canEdit={!client.churned} />
+          <ClientPortal clientId={client.id} />
         </TabsContent>
         <TabsContent value="demands" className="mt-5">
           <AccountDemands client={client} />
@@ -296,6 +275,7 @@ function ClientMasterPage() {
               <TabsTrigger value="chat">Chat interno</TabsTrigger>
             </TabsList>
             <TabsContent value="info">
+              <ChurnCard clientId={client.id} /><ExitDetails clientId={client.id} />
               <InfoTab client={client} canEdit={canEdit} />
             </TabsContent>
             <TabsContent value="services">

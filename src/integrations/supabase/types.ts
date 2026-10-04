@@ -17,6 +17,7 @@ export type Database = {
   }
   public: {
     Tables: {
+      approval_links: {Row:{id:string;post_id:string;revision:number;expires_at:string;revoked_at:string|null;created_at:string;created_by:string;token_hash:string};Insert:never;Update:{revoked_at?:string};Relationships:[]};
       meeting_recaps: { Row: MeetingRecap; Insert: Pick<MeetingRecap,"meeting_id"|"summary"> & Partial<MeetingRecap>; Update: Partial<MeetingRecap>; Relationships: [] };
       client_request_messages: { Row: RequestMessage; Insert: Pick<RequestMessage,"request_id"|"body"> & Partial<RequestMessage>; Update: Partial<RequestMessage>; Relationships: [] };
 
@@ -749,6 +750,9 @@ export type Database = {
       }
       client_portal_settings: {
         Row: {
+          can_view_finance: boolean
+          can_upload_materials: boolean
+
           can_approve: boolean
           can_comment: boolean
           can_request_changes: boolean
@@ -763,6 +767,9 @@ export type Database = {
           visible_statuses: string[]
         }
         Insert: {
+          can_view_finance?: boolean
+          can_upload_materials?: boolean
+
           can_approve?: boolean
           can_comment?: boolean
           can_request_changes?: boolean
@@ -777,6 +784,9 @@ export type Database = {
           visible_statuses?: string[]
         }
         Update: {
+          can_view_finance?: boolean
+          can_upload_materials?: boolean
+
           can_approve?: boolean
           can_comment?: boolean
           can_request_changes?: boolean
@@ -1040,6 +1050,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          format_quotas: Json
           churned: boolean
           churn_date: string | null
           churn_reason: string | null
@@ -1080,6 +1091,7 @@ export type Database = {
           zip_code: string | null
         }
         Insert: {
+          format_quotas?: Json
           churned?: boolean
           churn_date?: string | null
           churn_reason?: string | null
@@ -1120,6 +1132,7 @@ export type Database = {
           zip_code?: string | null
         }
         Update: {
+          format_quotas?: Json
           churned?: boolean
           churn_date?: string | null
           churn_reason?: string | null
@@ -1464,6 +1477,8 @@ export type Database = {
       }
       files: {
         Row: {
+          is_shared: boolean
+
           category: Database["public"]["Enums"]["file_category"]
           client_id: string | null
           created_at: string
@@ -1479,6 +1494,8 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          is_shared?: boolean
+
           category?: Database["public"]["Enums"]["file_category"]
           client_id?: string | null
           created_at?: string
@@ -1494,6 +1511,8 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          is_shared?: boolean
+
           category?: Database["public"]["Enums"]["file_category"]
           client_id?: string | null
           created_at?: string
@@ -1527,6 +1546,9 @@ export type Database = {
       }
       finance_charges: {
         Row: {
+          competence: string | null
+          payment_url: string | null
+
           amount: number
           amount_received: number | null
           client_id: string
@@ -1546,6 +1568,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          competence?: string | null
+          payment_url?: string | null
+
           amount?: number
           amount_received?: number | null
           client_id: string
@@ -1565,6 +1590,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          competence?: string | null
+          payment_url?: string | null
+
           amount?: number
           amount_received?: number | null
           client_id?: string
@@ -2713,6 +2741,10 @@ export type Database = {
       }
       posts: {
         Row: {
+          publication_confirmed_at: string | null
+          publication_source: string | null
+          extra_request_id: string | null
+          content_revision: number
           caption: string | null
           client_id: string | null
           created_at: string
@@ -2740,6 +2772,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          publication_confirmed_at?: string | null
+          publication_source?: string | null
+          extra_request_id?: string | null
+          content_revision?: number
           caption?: string | null
           client_id?: string | null
           created_at?: string
@@ -2767,6 +2803,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          publication_confirmed_at?: string | null
+          publication_source?: string | null
+          extra_request_id?: string | null
+          content_revision?: number
           caption?: string | null
           client_id?: string | null
           created_at?: string
@@ -3448,9 +3488,18 @@ export type Database = {
       }
     }
     Views: {
+      portal_posts: { Row: Database["public"]["Tables"]["posts"]["Row"]; Relationships: [] };
       retention_overview: { Row: RetentionAccount; Relationships: [] }
     }
     Functions: {
+      save_account_intake: {Args:{_client_id:string;_step:string;_responses:Json};Returns:undefined};
+      accept_extra_quote: {Args:{_id:string;_revision:number};Returns:undefined};
+      can_access_portal_post: {Args:{_post_id:string;_permission?:string};Returns:boolean};
+      decide_my_account_posts: {Args:{_items:Json};Returns:number};
+      create_approval_link: {Args:{_post_id:string;_days?:number};Returns:Json};
+      get_approval_link_post: {Args:{_token:string};Returns:Json};
+      decide_approval_link: {Args:{_token:string;_expected_updated_at:string;_decision:Database["public"]["Enums"]["approval_decision"];_feedback?:string};Returns:Json};
+      get_post_review_history: {Args:{_post_id:string};Returns:Json};
       get_shared_post_versions: { Args: { _post_id:string }; Returns:Json };
       convert_commercial_proposal: { Args: { _id:string; _expected_updated_at:string; _existing_client_id?:string; _auto_billing?:boolean }; Returns:string };
       sync_client_onboarding: { Args: { _client_id:string }; Returns:number };

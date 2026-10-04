@@ -1,296 +1,233 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   addDays,
   addMonths,
+  startOfMonth,
   endOfMonth,
+  startOfWeek,
   endOfWeek,
   format,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
-import { statusMeta, type Post } from "@/lib/posts";
-import { cn } from "@/lib/utils";
-import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
-
-export function ClientCalendarPage() {
-  const { user } = useAuth();
-  const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
-  const [openPost, setOpenPost] = useState<Post | null>(null);
-
-  const {
-    data: client,
-    isLoading: clientLoading,
-    error: clientError,
-  } = useQuery({
-    queryKey: ["portal-client", user?.id],
-    enabled: !!user?.id,
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ReviewDialog } from "@/components/approval/review-dialog";
+import { PostCreativeThumb } from "@/components/posts/post-creative-viewer";
+import { QueryState } from "./account-panels";
+import { statusMeta, postNetworks, POST_STATUS, type Post } from "@/lib/posts";
+export function ClientCalendarPage({
+  clientId,
+  providedPosts,
+  onMonthChange,
+}: {
+  clientId?: string;
+  providedPosts?: Post[];
+  onMonthChange?: (date: Date) => void;
+}) {
+  const [cursor, setCursor] = useState(new Date()),
+    [view, setView] = useState("month"),
+    [channel, setChannel] = useState(""),
+    [kind, setKind] = useState(""),
+    [status, setStatus] = useState(""),
+    [search, setSearch] = useState(""),
+    [open, setOpen] = useState<Post | null>(null);
+  useEffect(() => {
+    onMonthChange?.(cursor);
+  }, [cursor, onMonthChange]);
+  const q = useQuery({
+    enabled: !providedPosts,
+    queryKey: ["portal-calendar-posts", clientId],
+    refetchInterval: 15000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("id,name")
-        .eq("user_id", user!.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const {
-    data: posts = [],
-    refetch,
-    isLoading: postsLoading,
-    error: postsError,
-  } = useQuery({
-    queryKey: ["portal-calendar-posts", client?.id],
-    refetchInterval: 30000,
-    enabled: !!client?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("posts")
-        .select(
-          "id,client_id,title,headline,subheadline,slides,script,caption,cta,hashtags,theme,objective,format,status,scheduled_date,scheduled_time,social_network,social_networks,created_at,updated_at",
-        )
-        .eq("client_id", client!.id)
-        .in("status", [
-          "production",
-          "recording",
-          "editing",
-          "review",
-          "changes_requested",
-          "approved",
-          "to_schedule",
-          "scheduled",
-          "published",
-        ])
-        .order("scheduled_date", { ascending: true, nullsFirst: false });
+      let request = supabase
+        .from("portal_posts")
+        .select("*")
+        .order("scheduled_date", { nullsFirst: false });
+      if (clientId) request = request.eq("client_id", clientId);
+      const { data, error } = await request;
       if (error) throw error;
       return data as Post[];
     },
   });
-
-  useEffect(() => {
-    if (!client?.id) return;
-    const ch = supabase
-      .channel(`portal-cal-${client.id}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "posts", filter: `client_id=eq.${client.id}` },
-        () => refetch(),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
-  }, [client?.id, refetch]);
-
-  const days = useMemo(() => {
-    const start = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
-    const end = endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 });
-    const out: Date[] = [];
-    let d = start;
-    while (d <= end) {
-      out.push(d);
-      d = addDays(d, 1);
-    }
-    return out;
-  }, [cursor]);
-
-  const byDate = useMemo(() => {
-    const m = new Map<string, Post[]>();
-    posts.forEach((p) => {
-      if (!p.scheduled_date) return;
-      const arr = m.get(p.scheduled_date) ?? [];
-      arr.push(p);
-      m.set(p.scheduled_date, arr);
-    });
-    return m;
-  }, [posts]);
-
-  if (clientLoading || postsLoading)
-    return <p className="p-6 text-sm text-muted-foreground">Carregando calendário…</p>;
-  if (clientError || postsError)
-    return (
-      <p role="alert" className="p-6 text-sm text-destructive">
-        Não foi possível carregar o calendário.
+  const all = providedPosts ?? q.data ?? [];
+  const start = view === "week" ? startOfWeek(cursor, { weekStartsOn: 1 }) : startOfMonth(cursor),
+    end = view === "week" ? endOfWeek(cursor, { weekStartsOn: 1 }) : endOfMonth(cursor);
+  const from = format(start, "yyyy-MM-dd"),
+    to = format(end, "yyyy-MM-dd");
+  const list = all.filter(
+    (p) =>
+      (!channel || postNetworks(p).includes(channel)) &&
+      (!kind || p.format === kind) &&
+      (!status || p.status === status) &&
+      p.title.toLowerCase().includes(search.toLowerCase()) &&
+      p.scheduled_date &&
+      p.scheduled_date >= from &&
+      p.scheduled_date <= to,
+  );
+  const days: Date[] = [];
+  for (
+    let d = view === "week" ? start : startOfWeek(start, { weekStartsOn: 1 });
+    d <= (view === "week" ? end : endOfWeek(end, { weekStartsOn: 1 }));
+    d = addDays(d, 1)
+  )
+    days.push(d);
+  const selectClass = "min-h-11 rounded-md border bg-card px-3 text-sm";
+  const item = (p: Post, thumb = false) => (
+    <button
+      key={p.id}
+      onClick={() => setOpen(p)}
+      className="block w-full min-w-0 space-y-2 rounded-lg border bg-card p-3 text-left hover:border-primary/40"
+    >
+      {thumb && <PostCreativeThumb postId={p.id} />}
+      <p className="break-words text-sm font-medium">{p.title}</p>
+      <p className="text-xs text-muted-foreground">
+        {postNetworks(p).join(" · ")} · {p.format}
       </p>
-    );
-  if (!client) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-10">
-        <Card className="max-w-md text-center">
-          <CardHeader>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gradient-brand">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <CardTitle>Área do Cliente</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Sua conta ainda não está vinculada a um cliente. Solicite à equipe a associação do seu
-            acesso.
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+      <p className="text-xs">
+        {p.scheduled_date?.split("-").reverse().join("/")} {p.scheduled_time?.slice(0, 5)}
+      </p>
+      <span
+        className={`inline-block rounded border px-2 py-1 text-xs ${statusMeta(p.status).tone}`}
+      >
+        {statusMeta(p.status).label}
+      </span>
+    </button>
+  );
   return (
-    <div className="flex flex-col gap-5">
-      <header className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Portal
-          </span>
-          <span className="text-xs text-muted-foreground">· {client.name}</span>
+    <section className="space-y-4">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold">Calendário compartilhado</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Aprovação e publicação são etapas distintas. As datas mostram a previsão registrada pela
+            equipe.
+          </p>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Calendário editorial</h1>
-        <p className="text-sm text-muted-foreground">
-          Todas as publicações programadas para a sua marca — produção, aprovação, agendadas e
-          publicadas.
-        </p>
+        <select
+          aria-label="Visualização do calendário"
+          className={selectClass}
+          value={view}
+          onChange={(e) => setView(e.target.value)}
+        >
+          <option value="month">Mês</option>
+          <option value="week">Semana</option>
+          <option value="list">Lista</option>
+          <option value="grid">Grade de prévias</option>
+        </select>
       </header>
-
-      <div className="rounded-xl border border-border bg-card shadow-soft">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h3 className="text-sm font-semibold capitalize">
-            {format(cursor, "MMMM yyyy", { locale: ptBR })}
-          </h3>
-          <div className="flex items-center gap-1">
-            <Button size="sm" variant="ghost" onClick={() => setCursor(startOfMonth(new Date()))}>
-              Hoje
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-9 w-9"
-              onClick={() => setCursor((c) => subMonths(c, 1))}
-            >
-              <ChevronLeft aria-label="Mês anterior" className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-9 w-9"
-              onClick={() => setCursor((c) => addMonths(c, 1))}
-            >
-              <ChevronRight aria-label="Próximo mês" className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        <div className="hidden grid-cols-7 border-b sm:grid border-border bg-muted/30">
-          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (
-            <div
-              key={d}
-              className="px-2 py-1.5 text-sm font-medium uppercase tracking-wider text-muted-foreground"
-            >
-              {d}
-            </div>
+      <div className="flex flex-wrap gap-2">
+        <Input
+          className="sm:max-w-56"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar conteúdo"
+          aria-label="Buscar conteúdo"
+        />
+        <select
+          aria-label="Canal"
+          className={selectClass}
+          value={channel}
+          onChange={(e) => setChannel(e.target.value)}
+        >
+          <option value="">Todos os canais</option>
+          {[...new Set(all.flatMap(postNetworks))].map((n) => (
+            <option key={n}>{n}</option>
           ))}
-        </div>
-
-        <div className="hidden grid-cols-7 sm:grid">
-          {days.map((d) => {
-            const iso = format(d, "yyyy-MM-dd");
-            const list = byDate.get(iso) ?? [];
-            const inMonth = isSameMonth(d, cursor);
-            const today = isSameDay(d, new Date());
-            return (
-              <div
-                key={iso}
-                className={cn(
-                  "relative min-h-[110px] border-b border-r border-border p-1.5",
-                  !inMonth && "bg-muted/20",
-                )}
-              >
-                <div className="mb-1">
-                  <span
-                    className={cn(
-                      "text-xs font-medium",
-                      !inMonth && "text-muted-foreground/50",
-                      today &&
-                        "flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground",
-                    )}
-                  >
-                    {format(d, "d")}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {list.slice(0, 3).map((p) => {
-                    const meta = statusMeta(p.status);
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => setOpenPost(p)}
-                        className="block w-full truncate rounded border-l-2 bg-muted/60 px-1.5 py-0.5 text-left text-sm hover:bg-muted"
-                        style={{ borderLeftColor: `var(--${meta.value})` }}
-                      >
-                        <div className="flex items-center gap-1">
-                          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", meta.dot)} />
-                          {p.scheduled_time && (
-                            <span className="text-muted-foreground">
-                              {p.scheduled_time.slice(0, 5)}
-                            </span>
-                          )}
-                          <span className="truncate font-medium">{p.title}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                  {list.length > 3 && (
-                    <p className="px-1 text-sm text-muted-foreground">+{list.length - 3} mais</p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        </select>
+        <select
+          aria-label="Formato"
+          className={selectClass}
+          value={kind}
+          onChange={(e) => setKind(e.target.value)}
+        >
+          <option value="">Todos os formatos</option>
+          {[...new Set(all.map((p) => p.format).filter(Boolean))].map((n) => (
+            <option key={n!}>{n}</option>
+          ))}
+        </select>
+        <select
+          aria-label="Status"
+          className={selectClass}
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">Todos os status</option>
+          {POST_STATUS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
       </div>
-
-      <div className="space-y-3 sm:hidden">
-        {posts
-          .filter((p) => p.scheduled_date?.startsWith(format(cursor, "yyyy-MM")))
-          .map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setOpenPost(p)}
-              className="w-full rounded-xl border p-4 text-left"
-            >
-              <p className="font-medium">{p.title}</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {p.scheduled_date &&
-                  new Date(p.scheduled_date + "T00:00:00").toLocaleDateString("pt-BR")}
-                {p.scheduled_time && ` · ${p.scheduled_time.slice(0, 5)}`} ·{" "}
-                {p.status === "review" ? "Aguardando aprovação" : statusMeta(p.status).label}
-              </p>
-            </button>
-          ))}
-        {!posts.some((p) => p.scheduled_date?.startsWith(format(cursor, "yyyy-MM"))) && (
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Button
+            aria-label="Período anterior"
+            variant="outline"
+            onClick={() => setCursor((d) => (view === "week" ? addDays(d, -7) : addMonths(d, -1)))}
+          >
+            ←
+          </Button>
+          <h3 className="text-sm font-semibold capitalize">
+            {view === "week"
+              ? `${format(start, "dd/MM")} – ${format(end, "dd/MM/yyyy")}`
+              : format(cursor, "MMMM yyyy", { locale: ptBR })}
+          </h3>
+          <Button
+            aria-label="Próximo período"
+            variant="outline"
+            onClick={() => setCursor((d) => (view === "week" ? addDays(d, 7) : addMonths(d, 1)))}
+          >
+            →
+          </Button>
+          <Button variant="ghost" onClick={() => setCursor(new Date())}>
+            Hoje
+          </Button>
+        </div>
+        <input
+          type="date"
+          className={selectClass}
+          aria-label="Ir para período"
+          value={format(cursor, "yyyy-MM-dd")}
+          onChange={(e) => {
+            if (e.target.value) setCursor(new Date(e.target.value + "T12:00:00"));
+          }}
+        />
+      </div>
+      <QueryState loading={!providedPosts && q.isLoading} error={q.error}>
+        {view === "month" || view === "week" ? (
+          <>
+            <div className="hidden overflow-hidden rounded-xl border bg-card lg:grid lg:grid-cols-7">
+              {days.map((d) => (
+                <div
+                  className="min-h-32 min-w-0 space-y-2 border-b border-r p-2"
+                  key={d.toISOString()}
+                >
+                  <p className="text-sm font-medium">{format(d, "EEE dd", { locale: ptBR })}</p>
+                  {list
+                    .filter((p) => p.scheduled_date === format(d, "yyyy-MM-dd"))
+                    .map((p) => item(p))}
+                </div>
+              ))}
+            </div>
+            <div className="space-y-3 lg:hidden">{list.map((p) => item(p))}</div>
+          </>
+        ) : (
+          <div
+            className={view === "grid" ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-3" : "space-y-3"}
+          >
+            {list.map((p) => item(p, view === "grid"))}
+          </div>
+        )}
+        {!list.length && (
           <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-            Nenhuma publicação com data prevista neste mês.
+            Nenhum conteúdo neste período com os filtros selecionados.
           </p>
         )}
-      </div>
-
-      <PostDetailSheet
-        post={openPost}
-        open={!!openPost}
-        onOpenChange={(o) => {
-          if (!o) setOpenPost(null);
-        }}
-        clientName={client.name}
-      />
-    </div>
+      </QueryState>
+      {open && <ReviewDialog key={open.id} post={open} onClose={() => setOpen(null)} />}
+    </section>
   );
 }

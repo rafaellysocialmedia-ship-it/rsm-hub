@@ -34,7 +34,7 @@ export function FeedPreview({
     refetchInterval: 30000,
     queryFn: async () => {
       let req = supabase
-        .from("posts")
+        .from("portal_posts")
         .select("id,title,caption,scheduled_date,scheduled_time,format,status", { count: "exact" })
         .eq("client_id", clientId)
         .or("social_network.ilike.Instagram,social_networks.cs.{Instagram}")

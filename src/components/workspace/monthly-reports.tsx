@@ -91,11 +91,13 @@ export function MonthlyReports({
             Resultados das publicações, análise da RSM e próximos passos.
           </p>
         </div>
-        {(
+        {
           <Button variant="outline" asChild>
-            <Link to="/analytics">{canEdit ? "Registrar métricas" : "Ver métricas detalhadas"}</Link>
+            <Link to="/analytics">
+              {canEdit ? "Registrar métricas" : "Ver métricas detalhadas"}
+            </Link>
           </Button>
-        )}
+        }
       </div>
       {canEdit ? (
         <Tabs defaultValue="published">
@@ -155,8 +157,9 @@ function MetricSummary({ metrics: m }: { metrics: ReportMetrics }) {
         ))}
       </div>
       <p className="text-sm text-muted-foreground">
-        Cobertura: {m.posts_with_metrics} de {m.published_posts} publicações com métricas. Última
-        coleta: {dateLabel(m.latest_collection)}.
+        Origem: métricas registradas na conta pela equipe; não representam uma conexão automática
+        com as redes. Cobertura: {m.posts_with_metrics} de {m.published_posts} publicações com
+        métricas. Última coleta: {dateLabel(m.latest_collection)}.
       </p>
       {m.posts_with_metrics < m.published_posts && (
         <p className="rounded-lg bg-amber-500/10 p-3 text-sm">
@@ -245,6 +248,12 @@ function PublishedReport({
           <h4 className="font-semibold">Análise da RSM</h4>
           <p className="mt-3 whitespace-pre-wrap leading-relaxed">{r.analysis}</p>
         </section>
+        {r.learnings && (
+          <section className="rounded-xl border bg-card p-5">
+            <h3 className="font-semibold">O que aprendemos</h3>
+            <p className="mt-3 whitespace-pre-wrap">{r.learnings}</p>
+          </section>
+        )}
         {r.next_steps && (
           <section>
             <h4 className="font-semibold">Próximos passos</h4>
@@ -304,6 +313,7 @@ function ReportEditor({
 }) {
   const qc = useQueryClient(),
     [analysis, setAnalysis] = useState(""),
+    [learnings, setLearnings] = useState(""),
     [next, setNext] = useState(""),
     [dirty, setDirty] = useState(false);
   const key = ["experience", "draft", clientId, month];
@@ -334,11 +344,16 @@ function ReportEditor({
   useEffect(() => {
     if (!dirty && draft.data) {
       setAnalysis(draft.data.analysis);
+      setLearnings(draft.data.learnings);
       setNext(draft.data.next_steps);
     }
   }, [draft.data, dirty]);
   const save = useExperienceMutation(async () => {
-    const fields = { analysis: analysis.trim(), next_steps: next.trim() };
+    const fields = {
+      learnings: learnings.trim(),
+      analysis: analysis.trim(),
+      next_steps: next.trim(),
+    };
     const result = draft.data
       ? await supabase
           .from("client_report_drafts")
@@ -397,7 +412,7 @@ function ReportEditor({
             Atualizar prévia das métricas
           </Button>
           <div>
-            <Label htmlFor="report-analysis">Análise da RSM</Label>
+            <Label htmlFor="report-analysis">O que aconteceu</Label>
             <Textarea
               id="report-analysis"
               rows={6}
@@ -408,6 +423,19 @@ function ReportEditor({
                 setDirty(true);
               }}
               placeholder="O que os resultados mostram? Quais aprendizados devem orientar o próximo mês?"
+            />
+          </div>
+          <div>
+            <Label htmlFor="report-learnings">O que aprendemos</Label>
+            <Textarea
+              id="report-learnings"
+              rows={4}
+              maxLength={8000}
+              value={learnings}
+              onChange={(e) => {
+                setLearnings(e.target.value);
+                setDirty(true);
+              }}
             />
           </div>
           <div>

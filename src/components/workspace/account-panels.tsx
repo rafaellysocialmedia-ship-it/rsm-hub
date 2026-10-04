@@ -1,3 +1,4 @@
+import { useAuth } from "@/hooks/use-auth";
 import { MeetingRecap } from "./meeting-recap";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -373,6 +374,8 @@ export function AccountFiles({
   reportsOnly?: boolean;
 }) {
   const query = useAccountFiles(clientId);
+  const { hasRole } = useAuth();
+  const staff = hasRole("administrator") || hasRole("team");
   const files = (query.data ?? []).filter((f) => !reportsOnly || f.category === "relatorios");
   const [downloading, setDownloading] = useState<string | null>(null);
   async function download(path: string, id: string) {
@@ -396,6 +399,26 @@ export function AccountFiles({
               <FileText className="h-5 w-5 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{f.name}</p>
+                {staff && (
+                  <label className="mt-2 flex items-center gap-2 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={f.is_shared}
+                      onChange={async (e) => {
+                        const { error } = await supabase
+                          .from("files")
+                          .update({ is_shared: e.target.checked })
+                          .eq("id", f.id);
+                        if (error) toast.error("Não foi possível alterar a visibilidade.");
+                        else {
+                          void query.refetch();
+                          toast.success("Visibilidade atualizada");
+                        }
+                      }}
+                    />
+                    Visível no portal
+                  </label>
+                )}
                 <p className="text-sm text-muted-foreground">
                   {formatBytes(f.size_bytes)} · {new Date(f.created_at).toLocaleDateString("pt-BR")}
                 </p>

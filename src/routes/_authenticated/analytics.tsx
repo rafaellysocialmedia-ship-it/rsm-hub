@@ -39,7 +39,7 @@ function AnalyticsPage() {
     queryFn: async () => {
       // Apenas os campos usados nesta tela — payload muito menor.
       const { data, error } = await supabase
-        .from("posts")
+        .from("portal_posts")
         .select("id,title,status,scheduled_date,client_id,social_network,social_networks")
         .in("status", ["published"])
         .order("scheduled_date", { ascending: false })

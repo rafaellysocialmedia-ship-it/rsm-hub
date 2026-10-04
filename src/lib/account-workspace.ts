@@ -46,6 +46,7 @@ export const STRATEGY_FIELDS = [
   ["cta", "CTAs"],
 ] as const;
 export type PortalAccount = {
+  can_view_finance: boolean;
   id: string;
   name: string;
   logo_url: string | null;
@@ -59,6 +60,7 @@ export type PortalAccount = {
     due_date: string;
     status: string;
     paid_date: string | null;
+    payment_url: string | null;
   }[];
   contracts: {
     id: string;

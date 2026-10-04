@@ -1,3 +1,6 @@
+import { Deliveries } from "./deliveries";
+import { GroupedNavigation, portalGroups } from "./grouped-navigation";
+import { MaterialUpload } from "./material-upload";
 import { ClientRequests, ClientRequestAttention } from "./client-requests";
 import { ClientOnboarding } from "./client-onboarding";
 import { FeedPreview } from "./feed-preview";
@@ -67,28 +70,13 @@ export function ClientWorkspace() {
               </div>
             </header>
             <Tabs value={tab} onValueChange={setTab} className="mt-6">
-              <div className="overflow-x-auto">
-                <TabsList className="inline-flex h-auto min-w-full justify-start gap-1 p-1">
-                  {[
-                    ["home", "Início"],
-                    ["contents", "Conteúdos"],
-                    ["approvals", "Aprovações"],
-                    ["calendar", "Calendário"],
-                    ["feed", "Prévia do feed"],
-                    ["onboarding", "Onboarding"],
-                    ["meetings", "Reuniões"],
-                    ["reports", "Relatórios"],
-                    ["files", "Arquivos"],
-                    ["contract", "Contrato"],
-                    ["finance", "Financeiro"],
-                    ["support", "Suporte"],
-                  ].map(([value, label]) => (
-                    <TabsTrigger className="shrink-0 text-sm" key={value} value={value}>
-                      {label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
+              <GroupedNavigation
+                groups={portalGroups.filter(
+                  (g) => g.title !== "Financeiro" || query.data?.can_view_finance,
+                )}
+                tab={tab}
+                onTab={setTab}
+              />
               <TabsContent value="support" className="mt-5">
                 <ClientRequests clientId={query.data.id} />
               </TabsContent>
@@ -123,13 +111,14 @@ export function ClientWorkspace() {
                 <AccountFiles clientId={query.data.id} reportsOnly />
               </TabsContent>
               <TabsContent value="files" className="mt-5">
+                <MaterialUpload clientId={query.data.id} />
                 <AccountFiles clientId={query.data.id} />
               </TabsContent>
               <TabsContent value="contract" className="mt-5">
                 <ClientContracts account={query.data} />
               </TabsContent>
               <TabsContent value="finance" className="mt-5">
-                <ClientFinance account={query.data} />
+                {query.data.can_view_finance && <ClientFinance account={query.data} />}
               </TabsContent>
             </Tabs>
           </>
@@ -144,7 +133,7 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
     refetchInterval: 30000,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("posts")
+        .from("portal_posts")
         .select("id,title,status,scheduled_date,scheduled_time")
         .eq("client_id", account.id)
         .in("status", [
@@ -193,6 +182,15 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
   const report = files.data?.find((f) => f.category === "relatorios");
   return (
     <div className="space-y-5">
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => onTab("approvals")}>Revisar conteúdos</Button>
+        <Button variant="outline" onClick={() => onTab("files")}>
+          Enviar materiais
+        </Button>
+        <Button variant="outline" onClick={() => onTab("calendar")}>
+          Ver calendário
+        </Button>
+      </div>
       <ClientRequestAttention clientId={account.id} onOpen={() => onTab("support")} />
       <ClientOnboarding clientId={account.id} compact onOpen={() => onTab("onboarding")} />
       <QueryState loading={posts.isLoading} error={posts.error}>
@@ -216,7 +214,7 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
       </QueryState>
       <Card className="border-primary/20">
         <CardHeader>
-          <CardTitle className="text-lg">O que precisa da sua atenção</CardTitle>
+          <CardTitle className="text-lg">O que precisa de você</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {summary.pending > 0 ? (
@@ -238,6 +236,7 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
           )}
         </CardContent>
       </Card>
+      <Deliveries clientId={account.id} />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
@@ -372,6 +371,19 @@ function ClientFinance({ account }: { account: PortalAccount }) {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="font-medium">{money(c.amount)}</span>
+                    {safeExternalUrl(c.payment_url) &&
+                      c.status !== "paid" &&
+                      c.status !== "cancelled" && (
+                        <Button asChild size="sm">
+                          <a
+                            href={safeExternalUrl(c.payment_url)!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Pagar
+                          </a>
+                        </Button>
+                      )}
                     <Badge variant="outline">
                       {(
                         {

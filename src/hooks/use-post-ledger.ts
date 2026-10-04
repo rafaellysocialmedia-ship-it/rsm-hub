@@ -59,7 +59,7 @@ export function usePostUsage(clientId?: string | null) {
   return useQuery({
     queryKey: ["post-usage", usageClientKey],
     queryFn: async () => {
-      let q = supabase.from("posts").select("client_id,status,scheduled_date");
+      let q = supabase.from("portal_posts").select("client_id,status,scheduled_date");
       if (clientId) q = q.eq("client_id", clientId);
       const { data, error } = await q;
       if (error) throw error;

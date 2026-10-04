@@ -5,12 +5,14 @@ export type OnboardingStep = {
   owner_scope: "rsm" | "client";
   due_date: string | null;
   shared_note: string;
+  responses: Record<string,string>;
   updated_at: string;
 };
 export type ReportDraft = {
   client_id: string;
   report_month: string;
   analysis: string;
+  learnings: string;
   next_steps: string;
   updated_at: string;
 };
@@ -38,12 +40,15 @@ export type MonthlyReport = {
   client_id: string;
   report_month: string;
   analysis: string;
+  learnings: string;
   next_steps: string;
   metrics: ReportMetrics;
   published_at: string;
   published_by: string | null;
 };
 export const ONBOARDING_STEPS = [
+  {key:"account",label:"Dados da conta",description:"Contato e informações iniciais."},
+  {key:"approvers",label:"Aprovadores",description:"Validar a indicação e vincular o acesso autorizado."},
   { key: "contract", label: "Contrato", description: "Assinatura e condições confirmadas." },
   { key: "payment", label: "Pagamento inicial", description: "Confirmação do início do serviço." },
   { key: "briefing", label: "Briefing", description: "Informações e objetivos da sua marca." },

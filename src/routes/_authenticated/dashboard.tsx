@@ -1,3 +1,4 @@
+import {OperationalDashboard} from "@/components/workspace/operational-dashboard";
 import { AttentionToday } from "@/components/workspace/attention-today";
 import { RetentionDashboardCard } from "@/components/retention/retention-workspace";
 import { ClientWorkspace } from "@/components/workspace/client-workspace";
@@ -83,7 +84,7 @@ function DashboardPage() {
     return <ClientWorkspace />;
   }
 
-  return <StaffDashboard qc={qc} name={name} />;
+  return <OperationalDashboard name={name} />;
 }
 
 function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; name: string }) {

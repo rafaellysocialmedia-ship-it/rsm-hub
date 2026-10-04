@@ -37,6 +37,7 @@ import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTrafficLandingPagesRouteImport } from './routes/_authenticated/traffic.landing-pages'
 import { Route as AuthenticatedTrafficCrmRouteImport } from './routes/_authenticated/traffic.crm'
 import { Route as AuthenticatedTrafficAnalyticsRouteImport } from './routes/_authenticated/traffic.analytics'
+import { Route as AuthenticatedReviewTokenRouteImport } from './routes/_authenticated/review.$token'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
 import { Route as AuthenticatedLibraryBriefingsRouteImport } from './routes/_authenticated/library.briefings'
 import { Route as AuthenticatedFinanceSettingsRouteImport } from './routes/_authenticated/finance.settings'
@@ -208,6 +209,12 @@ const AuthenticatedTrafficAnalyticsRoute =
     path: '/traffic/analytics',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReviewTokenRoute =
+  AuthenticatedReviewTokenRouteImport.update({
+    id: '/review/$token',
+    path: '/review/$token',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPortalCalendarRoute =
   AuthenticatedPortalCalendarRouteImport.update({
     id: '/portal/calendar',
@@ -362,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
   '/library/briefings': typeof AuthenticatedLibraryBriefingsRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/review/$token': typeof AuthenticatedReviewTokenRoute
   '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
   '/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
   '/library/briefings': typeof AuthenticatedLibraryBriefingsRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/review/$token': typeof AuthenticatedReviewTokenRoute
   '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
   '/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
@@ -463,6 +472,7 @@ export interface FileRoutesById {
   '/_authenticated/finance/settings': typeof AuthenticatedFinanceSettingsRoute
   '/_authenticated/library/briefings': typeof AuthenticatedLibraryBriefingsRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/_authenticated/review/$token': typeof AuthenticatedReviewTokenRoute
   '/_authenticated/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
   '/_authenticated/traffic/crm': typeof AuthenticatedTrafficCrmRoute
   '/_authenticated/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/finance/settings'
     | '/library/briefings'
     | '/portal/calendar'
+    | '/review/$token'
     | '/traffic/analytics'
     | '/traffic/crm'
     | '/traffic/landing-pages'
@@ -564,6 +575,7 @@ export interface FileRouteTypes {
     | '/finance/settings'
     | '/library/briefings'
     | '/portal/calendar'
+    | '/review/$token'
     | '/traffic/analytics'
     | '/traffic/crm'
     | '/traffic/landing-pages'
@@ -615,6 +627,7 @@ export interface FileRouteTypes {
     | '/_authenticated/finance/settings'
     | '/_authenticated/library/briefings'
     | '/_authenticated/portal/calendar'
+    | '/_authenticated/review/$token'
     | '/_authenticated/traffic/analytics'
     | '/_authenticated/traffic/crm'
     | '/_authenticated/traffic/landing-pages'
@@ -843,6 +856,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrafficAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/review/$token': {
+      id: '/_authenticated/review/$token'
+      path: '/review/$token'
+      fullPath: '/review/$token'
+      preLoaderRoute: typeof AuthenticatedReviewTokenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/portal/calendar': {
       id: '/_authenticated/portal/calendar'
       path: '/portal/calendar'
@@ -1032,6 +1052,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceSettingsRoute: typeof AuthenticatedFinanceSettingsRoute
   AuthenticatedLibraryBriefingsRoute: typeof AuthenticatedLibraryBriefingsRoute
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
+  AuthenticatedReviewTokenRoute: typeof AuthenticatedReviewTokenRoute
   AuthenticatedTrafficAnalyticsRoute: typeof AuthenticatedTrafficAnalyticsRoute
   AuthenticatedTrafficCrmRoute: typeof AuthenticatedTrafficCrmRoute
   AuthenticatedTrafficLandingPagesRoute: typeof AuthenticatedTrafficLandingPagesRoute
@@ -1077,6 +1098,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceSettingsRoute: AuthenticatedFinanceSettingsRoute,
   AuthenticatedLibraryBriefingsRoute: AuthenticatedLibraryBriefingsRoute,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
+  AuthenticatedReviewTokenRoute: AuthenticatedReviewTokenRoute,
   AuthenticatedTrafficAnalyticsRoute: AuthenticatedTrafficAnalyticsRoute,
   AuthenticatedTrafficCrmRoute: AuthenticatedTrafficCrmRoute,
   AuthenticatedTrafficLandingPagesRoute: AuthenticatedTrafficLandingPagesRoute,

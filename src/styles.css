@@ -10,7 +10,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Aileron", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -52,8 +52,8 @@
 :root {
   --radius: 0.75rem;
 
-  --background: oklch(0.99 0.002 250);
-  --foreground: oklch(0.18 0.015 260);
+  --background: #f6f5f8;
+  --foreground: #25212b;
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.015 260);
@@ -61,26 +61,26 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.015 260);
 
-  --primary: oklch(0.22 0.02 260);
-  --primary-foreground: oklch(0.98 0.003 250);
+  --primary: #42145d;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.96 0.005 250);
-  --secondary-foreground: oklch(0.22 0.02 260);
+  --secondary: #f0eaf5;
+  --secondary-foreground: #42145d;
 
-  --muted: oklch(0.96 0.005 250);
-  --muted-foreground: oklch(0.52 0.012 260);
+  --muted: #f3f1f5;
+  --muted-foreground: #696171;
 
-  --accent: oklch(0.95 0.008 250);
-  --accent-foreground: oklch(0.22 0.02 260);
+  --accent: #ede3fb;
+  --accent-foreground: #42145d;
 
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.98 0.003 250);
 
-  --border: oklch(0.92 0.005 250);
-  --input: oklch(0.94 0.005 250);
-  --ring: oklch(0.62 0.18 265);
+  --border: #e5e0e9;
+  --input: #d8d0df;
+  --ring: #69139b;
 
-  --brand: oklch(0.62 0.18 265);
+  --brand: #69139b;
   --brand-foreground: oklch(0.98 0.003 250);
 
   --chart-1: oklch(0.62 0.18 265);
@@ -89,17 +89,17 @@
   --chart-4: oklch(0.6 0.2 320);
   --chart-5: oklch(0.65 0.18 140);
 
-  --sidebar: oklch(0.985 0.003 250);
+  --sidebar: #ffffff;
   --sidebar-foreground: oklch(0.25 0.015 260);
-  --sidebar-primary: oklch(0.22 0.02 260);
+  --sidebar-primary: #42145d;
   --sidebar-primary-foreground: oklch(0.98 0.003 250);
-  --sidebar-accent: oklch(0.95 0.008 250);
-  --sidebar-accent-foreground: oklch(0.22 0.02 260);
-  --sidebar-border: oklch(0.92 0.005 250);
-  --sidebar-ring: oklch(0.62 0.18 265);
+  --sidebar-accent: #f0e8fa;
+  --sidebar-accent-foreground: #42145d;
+  --sidebar-border: #e5e0e9;
+  --sidebar-ring: #69139b;
 
-  --gradient-brand: linear-gradient(135deg, oklch(0.62 0.18 265), oklch(0.55 0.2 295));
-  --gradient-surface: linear-gradient(180deg, oklch(1 0 0 / 0), oklch(0.62 0.18 265 / 0.04));
+  --gradient-brand: linear-gradient(#42145d,#42145d);
+  --gradient-surface: none;
   --shadow-soft: 0 1px 2px oklch(0.2 0.02 260 / 0.04), 0 4px 16px oklch(0.2 0.02 260 / 0.04);
   --shadow-elevated: 0 8px 32px -8px oklch(0.2 0.02 260 / 0.12);
 }
@@ -187,3 +187,19 @@
 @utility shadow-elevated {
   box-shadow: var(--shadow-elevated);
 }
+
+/* Account workspaces share a quiet, accessible visual system. */
+@layer base {
+ body { overflow-x: clip; }
+ button, a, input, textarea, select { touch-action: manipulation; }
+ :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+ input, textarea, select { min-width: 0; }
+}
+.rsm-tabs { display:flex; flex-wrap:wrap; gap:.35rem; padding:.5rem 0; border-bottom:1px solid var(--border); }
+.rsm-tabs button { min-height:44px; padding:.6rem 1rem; border-radius:.55rem; font-size:.875rem; font-weight:600; color:var(--muted-foreground); }
+.rsm-tabs button[aria-current="page"] { background:var(--accent);color:var(--accent-foreground); }
+.rsm-subnav { display:flex; flex-wrap:wrap;gap:.4rem; padding:.8rem 0; }
+.rsm-subnav button { min-height:40px; padding:.45rem .8rem; border-radius:.5rem; font-size:.875rem; }
+.rsm-subnav button[data-state="active"] { color:var(--primary);background:var(--card);box-shadow:0 1px 3px #42145d12; }
+.rsm-approval-media img,.rsm-approval-media video { max-height:65vh; width:100%;object-fit:contain; }
+@media(max-width:640px) { .rsm-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));} .rsm-tabs button {padding:.5rem .3rem;} .rsm-approval-actions {padding-bottom:max(1rem,env(safe-area-inset-bottom));} }

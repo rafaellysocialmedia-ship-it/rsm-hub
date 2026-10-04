@@ -1,3 +1,4 @@
+import {ClientWorkspace} from "@/components/workspace/client-workspace";
 import { ClientPortal } from "@/components/workspace/client-approvals";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -104,7 +105,7 @@ function PortalRouter() {
       </div>
     );
   const isStaff = hasRole("administrator") || hasRole("team");
-  return isStaff ? <StaffApprovals /> : <ClientPortal />;
+  return isStaff ? <div className="mx-auto w-full max-w-7xl p-4 sm:p-6"><ClientPortal /></div> : <ClientWorkspace />;
 }
 
 /* ---------------- STAFF VIEW ---------------- */

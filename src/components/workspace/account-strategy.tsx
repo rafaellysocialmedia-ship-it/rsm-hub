@@ -1,3 +1,4 @@
+import { AccountIntake } from "./account-intake";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -46,6 +47,9 @@ export function AccountStrategy({ clientId, canEdit }: { clientId: string; canEd
   });
   return (
     <QueryState loading={query.isLoading} error={query.error}>
+      <div className="mb-5">
+        <AccountIntake clientId={clientId} staff />
+      </div>
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <div>

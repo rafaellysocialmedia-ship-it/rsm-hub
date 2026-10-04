@@ -1,3 +1,4 @@
+import { ExtraQuote } from "./extra-quote";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -88,6 +89,7 @@ export function ClientRequests({
                 onChange={(e) => setKind(e.target.value as ClientRequest["kind"])}
               >
                 <option value="support">Dúvida / solicitação</option>
+                <option value="extra">Serviço extra / orçamento</option>
                 <option value="complaint">Reclamação</option>
                 {canEdit && <option value="material">Solicitar material ao cliente</option>}
               </select>
@@ -174,6 +176,9 @@ function RequestCard({
           {r.due_date && ` · Prazo: ${dateLabel(r.due_date)}`}
         </p>
         <p className="whitespace-pre-wrap text-sm">{r.description}</p>
+        {r.kind === "extra" && (
+          <ExtraQuote key={r.id + String(r.updated_at)} request={r} canEdit={canEdit} />
+        )}
         <RequestThread request={r} onSave={onSave} />
         {r.response && (
           <div className="rounded-lg bg-primary/5 p-4">
