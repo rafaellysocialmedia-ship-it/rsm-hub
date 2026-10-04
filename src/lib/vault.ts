@@ -40,7 +40,7 @@ export type VaultHistoryEntry = {
 
 // Typed proxies (vault tables/RPCs may not be in generated types yet)
 const sb = supabase as unknown as {
-  from: (t: string) => ReturnType<typeof supabase.from>;
+  from: typeof supabase.from;
   rpc: (fn: string, args?: Record<string, unknown>) => ReturnType<typeof supabase.rpc>;
   channel: typeof supabase.channel;
   removeChannel: typeof supabase.removeChannel;

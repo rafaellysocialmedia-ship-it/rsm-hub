@@ -1,3 +1,4 @@
+import type { RetentionAccount, RetentionAction, RetentionSettings, ContactLog } from "@/lib/retention";
 export type Json =
   | string
   | number
@@ -14,6 +15,10 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_retention_settings: { Row: RetentionSettings; Insert: Pick<RetentionSettings,"client_id"> & Partial<RetentionSettings>; Update: Partial<RetentionSettings>; Relationships: [] };
+      client_contact_log: { Row: ContactLog; Insert: Pick<ContactLog,"client_id"|"contact_date"|"channel"|"summary"> & Partial<ContactLog>; Update: Partial<ContactLog>; Relationships: [] };
+      retention_actions: { Row: RetentionAction; Insert: Pick<RetentionAction,"client_id"|"title"|"due_date"> & Partial<RetentionAction>; Update: Partial<RetentionAction>; Relationships: [] };
+
       client_strategies: {
         Row: { client_id: string; fields: Json; updated_at: string };
         Insert: { client_id: string; fields?: Json; updated_at?: string };
@@ -3427,9 +3432,11 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      retention_overview: { Row: RetentionAccount; Relationships: [] }
     }
     Functions: {
+      get_retention_staff: { Args: Record<PropertyKey, never>; Returns: { id: string; name: string }[] };
+      refresh_retention_queue: { Args: Record<PropertyKey, never>; Returns: number };
       decide_my_account_post: { Args: { _post_id: string; _expected_updated_at: string; _decision: Database["public"]["Enums"]["approval_decision"]; _feedback?: string }; Returns: Json };
       get_my_account_workspace: { Args: Record<PropertyKey, never>; Returns: Json };
       auto_publish_scheduled_posts: { Args: never; Returns: undefined }

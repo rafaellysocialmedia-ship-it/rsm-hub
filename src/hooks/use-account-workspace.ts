@@ -10,6 +10,7 @@ export function useAccountSync(clientId?: string) {
     if (!clientId) return;
     let channel = supabase.channel(`account-workspace-${clientId}-${crypto.randomUUID()}`);
     const keys = [
+      "retention",
       "posts",
       "portal-posts",
       "portal-home-posts",

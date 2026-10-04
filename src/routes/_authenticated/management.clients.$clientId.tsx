@@ -1,3 +1,4 @@
+import { RetentionWorkspace } from "@/components/retention/retention-workspace";
 import { AccountActivity } from "@/components/workspace/account-activity";
 import { ContractsCard } from "@/components/clients/contracts-card";
 import { ChurnCard } from "@/components/clients/churn-card";
@@ -166,6 +167,7 @@ function ClientMasterPage() {
           <TabsList className="inline-flex h-auto min-w-full justify-start gap-1 p-1">
             {[
               ["overview", "Visão geral"],
+              ["retention", "Saúde e retenção"],
               ["strategy", "Estratégia"],
               ["contents", "Conteúdos"],
               ["calendar", "Calendário"],
@@ -191,6 +193,7 @@ function ClientMasterPage() {
           <JourneyCard clientId={client.id} currentStage={journeyStage} />
           <ChurnCard clientId={client.id} />
         </TabsContent>
+        <TabsContent value="retention" className="mt-5"><RetentionWorkspace clientId={client.id}/></TabsContent>
         <TabsContent value="strategy" className="mt-5 space-y-4">
           <AccountStrategy clientId={client.id} canEdit={canEdit} />
           <ClientBriefingsTab clientId={client.id} />

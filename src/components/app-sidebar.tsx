@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  Activity,
   BarChart3,
   Bot,
   Briefcase,
@@ -79,6 +80,7 @@ const staffGroups: NavGroup[] = [
         icon: Briefcase,
         module: "workspace.clients",
       },
+      { title: "Retenção", url: "/retention", icon: Activity, module: "workspace.clients" },
       { title: "Calendário", url: "/posts", icon: Calendar, module: "social.calendar" },
       { title: "Tarefas", url: "/tasks", icon: KanbanSquare, module: "workspace.tasks" },
       {

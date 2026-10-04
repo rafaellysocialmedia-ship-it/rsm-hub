@@ -1,3 +1,4 @@
+import { RetentionDashboardCard } from "@/components/retention/retention-workspace";
 import { ClientWorkspace } from "@/components/workspace/client-workspace";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useEffect, useMemo } from "react";
@@ -260,6 +261,7 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-10 space-y-8">
+      <RetentionDashboardCard />
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
