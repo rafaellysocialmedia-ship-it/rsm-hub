@@ -1,3 +1,8 @@
+import { ClientOnboarding } from "./client-onboarding";
+import { FeedPreview } from "./feed-preview";
+import { MonthlyReports } from "./monthly-reports";
+import { useMonthlyReports } from "@/hooks/use-client-experience";
+import { monthLabel } from "@/lib/client-experience";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -68,6 +73,8 @@ export function ClientWorkspace() {
                     ["contents", "Conteúdos"],
                     ["approvals", "Aprovações"],
                     ["calendar", "Calendário"],
+                    ["feed", "Prévia do feed"],
+                    ["onboarding", "Onboarding"],
                     ["meetings", "Reuniões"],
                     ["reports", "Relatórios"],
                     ["files", "Arquivos"],
@@ -92,16 +99,14 @@ export function ClientWorkspace() {
               <TabsContent value="calendar" className="mt-5">
                 <ClientCalendarPage />
               </TabsContent>
+              <TabsContent value="feed" className="mt-5"><FeedPreview clientId={query.data.id} name={query.data.name} logo={query.data.logo_url}/></TabsContent>
+              <TabsContent value="onboarding" className="mt-5"><ClientOnboarding clientId={query.data.id}/></TabsContent>
               <TabsContent value="meetings" className="mt-5">
                 <AccountMeetings clientId={query.data.id} clientName={query.data.name} />
               </TabsContent>
               <TabsContent value="reports" className="mt-5 space-y-4">
-                <div className="flex flex-wrap justify-between gap-3">
-                  <h2 className="text-lg font-semibold">Seus relatórios</h2>
-                  <Button asChild variant="outline">
-                    <Link to="/analytics">Ver resultados</Link>
-                  </Button>
-                </div>
+                <MonthlyReports clientId={query.data.id} clientName={query.data.name}/>
+                <h3 className="text-base font-medium">Arquivos de relatórios</h3>
                 <AccountFiles clientId={query.data.id} reportsOnly />
               </TabsContent>
               <TabsContent value="files" className="mt-5">
@@ -171,9 +176,11 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
         ["approved", "to_schedule", "scheduled"].includes(p.status),
     )
     .slice(0, 4);
+  const monthlyReports = useMonthlyReports(account.id);
   const report = files.data?.find((f) => f.category === "relatorios");
   return (
     <div className="space-y-5">
+      <ClientOnboarding clientId={account.id} compact onOpen={()=>onTab("onboarding")}/>
       <QueryState loading={posts.isLoading} error={posts.error}>
         <div className="grid gap-3 sm:grid-cols-3">
           <MetricCard
@@ -261,7 +268,7 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
                 className="mt-1 text-left font-medium hover:underline"
                 onClick={() => onTab("reports")}
               >
-                {files.error ? "Indisponível" : report?.name || "Ainda não disponível"}
+                {monthlyReports.data?.[0] ? monthLabel(monthlyReports.data[0].report_month) : monthlyReports.error || files.error ? "Indisponível" : report?.name || "Ainda não disponível"}
               </button>
             </div>
             <div>

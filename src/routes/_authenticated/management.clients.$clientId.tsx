@@ -1,3 +1,6 @@
+import { ClientOnboarding } from "@/components/workspace/client-onboarding";
+import { FeedPreview } from "@/components/workspace/feed-preview";
+import { MonthlyReports } from "@/components/workspace/monthly-reports";
 import { RetentionWorkspace } from "@/components/retention/retention-workspace";
 import { AccountActivity } from "@/components/workspace/account-activity";
 import { ContractsCard } from "@/components/clients/contracts-card";
@@ -171,6 +174,8 @@ function ClientMasterPage() {
               ["strategy", "Estratégia"],
               ["contents", "Conteúdos"],
               ["calendar", "Calendário"],
+              ["feed", "Prévia do feed"],
+              ["onboarding", "Onboarding"],
               ["approvals", "Aprovações"],
               ["demands", "Demandas"],
               ["finance", "Financeiro"],
@@ -204,6 +209,8 @@ function ClientMasterPage() {
         <TabsContent value="calendar" className="mt-5">
           <AccountContents client={client} calendar canEdit={!client.churned} />
         </TabsContent>
+        <TabsContent value="feed" className="mt-5"><FeedPreview clientId={client.id} name={client.name} logo={client.logo_url}/></TabsContent>
+        <TabsContent value="onboarding" className="mt-5"><ClientOnboarding clientId={client.id} canEdit={canEdit&&!client.churned}/></TabsContent>
         <TabsContent value="approvals" className="mt-5">
           <AccountContents client={client} approvalOnly canEdit={!client.churned} />
         </TabsContent>
@@ -216,7 +223,9 @@ function ClientMasterPage() {
         <TabsContent value="contract" className="mt-5">
           <ContractsCard clientId={client.id} />
         </TabsContent>
-        <TabsContent value="reports" className="mt-5">
+        <TabsContent value="reports" className="mt-5 space-y-5">
+          <MonthlyReports clientId={client.id} clientName={client.name} canEdit={canEdit&&!client.churned}/>
+          <h3 className="text-base font-medium">Arquivos de relatórios</h3>
           <AccountFiles clientId={client.id} reportsOnly />
         </TabsContent>
         <TabsContent value="meetings" className="mt-5">

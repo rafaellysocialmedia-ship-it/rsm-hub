@@ -1,3 +1,4 @@
+import type { OnboardingStep, ReportDraft, MonthlyReport } from "@/lib/client-experience";
 import type { RetentionAccount, RetentionAction, RetentionSettings, ContactLog } from "@/lib/retention";
 export type Json =
   | string
@@ -15,6 +16,10 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_onboarding_steps: { Row: OnboardingStep; Insert: Pick<OnboardingStep,"client_id"|"step_key"> & Partial<OnboardingStep>; Update: Partial<OnboardingStep>; Relationships: [] };
+      client_report_drafts: { Row: ReportDraft; Insert: Pick<ReportDraft,"client_id"|"report_month"> & Partial<ReportDraft>; Update: Partial<ReportDraft>; Relationships: [] };
+      client_monthly_reports: { Row: MonthlyReport; Insert: Pick<MonthlyReport,"client_id"|"report_month"|"analysis"|"metrics"> & Partial<MonthlyReport>; Update: Partial<MonthlyReport>; Relationships: [] };
+
       client_retention_settings: { Row: RetentionSettings; Insert: Pick<RetentionSettings,"client_id"> & Partial<RetentionSettings>; Update: Partial<RetentionSettings>; Relationships: [] };
       client_contact_log: { Row: ContactLog; Insert: Pick<ContactLog,"client_id"|"contact_date"|"channel"|"summary"> & Partial<ContactLog>; Update: Partial<ContactLog>; Relationships: [] };
       retention_actions: { Row: RetentionAction; Insert: Pick<RetentionAction,"client_id"|"title"|"due_date"> & Partial<RetentionAction>; Update: Partial<RetentionAction>; Relationships: [] };
@@ -3435,6 +3440,10 @@ export type Database = {
       retention_overview: { Row: RetentionAccount; Relationships: [] }
     }
     Functions: {
+      initialize_client_onboarding: { Args: { _client_id:string }; Returns: undefined };
+      get_monthly_report_metrics: { Args: { _client_id:string; _month:string }; Returns: Json };
+      publish_monthly_report: { Args: { _client_id:string; _month:string; _expected_updated_at:string }; Returns: string };
+
       get_retention_staff: { Args: Record<PropertyKey, never>; Returns: { id: string; name: string }[] };
       refresh_retention_queue: { Args: Record<PropertyKey, never>; Returns: number };
       decide_my_account_post: { Args: { _post_id: string; _expected_updated_at: string; _decision: Database["public"]["Enums"]["approval_decision"]; _feedback?: string }; Returns: Json };
