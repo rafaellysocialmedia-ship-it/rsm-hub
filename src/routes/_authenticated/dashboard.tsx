@@ -1,3 +1,4 @@
+import { ClientWorkspace } from "@/components/workspace/client-workspace";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useEffect, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -77,7 +78,7 @@ function DashboardPage() {
   const isStaff = hasRole("administrator") || hasRole("team");
 
   if (!isStaff) {
-    return <ClientDashboard name={name} />;
+    return <ClientWorkspace />;
   }
 
   return <StaffDashboard qc={qc} name={name} />;

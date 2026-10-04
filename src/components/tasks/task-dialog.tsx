@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -42,9 +48,17 @@ type Props = {
   task: Task | null;
   defaultStatus?: TaskStatus;
   clients: Client[];
+  defaultClientId?: string;
 };
 
-export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", clients }: Props) {
+export function TaskDialog({
+  open,
+  onOpenChange,
+  task,
+  defaultStatus = "todo",
+  clients,
+  defaultClientId,
+}: Props) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const isEdit = !!task;
@@ -55,7 +69,9 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [clientId, setClientId] = useState<string>("none");
   const [dueDate, setDueDate] = useState<string>("");
-  const [recFreq, setRecFreq] = useState<"none" | "daily" | "weekly" | "biweekly" | "monthly">("none");
+  const [recFreq, setRecFreq] = useState<"none" | "daily" | "weekly" | "biweekly" | "monthly">(
+    "none",
+  );
   const [recCount, setRecCount] = useState<number>(4);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -65,13 +81,14 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
       setDescription(task?.description ?? "");
       setStatus(task?.status ?? defaultStatus);
       setPriority(task?.priority ?? "medium");
-      setClientId(task?.client_id ?? "none");
+      setClientId(task?.client_id ?? defaultClientId ?? "none");
       setDueDate(task?.due_date ? task.due_date.slice(0, 10) : "");
-      const r = (task as unknown as { recurrence?: { frequency?: string; count?: number } } | null)?.recurrence;
+      const r = (task as unknown as { recurrence?: { frequency?: string; count?: number } } | null)
+        ?.recurrence;
       setRecFreq((r?.frequency as typeof recFreq) ?? "none");
       setRecCount(r?.count ?? 4);
     }
-  }, [open, task, defaultStatus]);
+  }, [open, task, defaultStatus, defaultClientId]);
 
   const checklist = useQuery({
     queryKey: ["task-checklist", task?.id],
@@ -191,7 +208,11 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
         <div className="mt-6 space-y-5">
           <div className="space-y-1.5">
             <Label>Título</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Roteiro reels julho" />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Ex: Roteiro reels julho"
+            />
           </div>
           <div className="space-y-1.5">
             <Label>Descrição</Label>
@@ -207,10 +228,14 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
             <div className="space-y-1.5">
               <Label>Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {STATUS_COLUMNS.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -218,10 +243,14 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
             <div className="space-y-1.5">
               <Label>Prioridade</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(PRIORITY_META) as TaskPriority[]).map((p) => (
-                    <SelectItem key={p} value={p}>{PRIORITY_META[p].label}</SelectItem>
+                    <SelectItem key={p} value={p}>
+                      {PRIORITY_META[p].label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -229,26 +258,36 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
             <div className="space-y-1.5">
               <Label>Cliente</Label>
               <Select value={clientId} onValueChange={setClientId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Nenhum</SelectItem>
                   {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="flex items-center gap-1.5"><CalendarIcon className="h-3.5 w-3.5" /> Prazo</Label>
+              <Label className="flex items-center gap-1.5">
+                <CalendarIcon className="h-3.5 w-3.5" /> Prazo
+              </Label>
               <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5"><Repeat className="h-3.5 w-3.5" /> Recorrência</Label>
+            <Label className="flex items-center gap-1.5">
+              <Repeat className="h-3.5 w-3.5" /> Recorrência
+            </Label>
             <div className="flex flex-wrap items-center gap-2">
               <Select value={recFreq} onValueChange={(v) => setRecFreq(v as typeof recFreq)}>
-                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Sem recorrência</SelectItem>
                   <SelectItem value="daily">Diária</SelectItem>
@@ -271,7 +310,9 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
                 </>
               )}
               {recFreq !== "none" && isEdit && (
-                <span className="text-xs text-muted-foreground">Edite ocorrências individualmente</span>
+                <span className="text-xs text-muted-foreground">
+                  Edite ocorrências individualmente
+                </span>
               )}
             </div>
             {recFreq !== "none" && !dueDate && !isEdit && (
@@ -286,12 +327,17 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
                 <Label>Checklist</Label>
                 <div className="space-y-1.5">
                   {(checklist.data ?? []).map((item) => (
-                    <div key={item.id} className="group flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60">
+                    <div
+                      key={item.id}
+                      className="group flex items-center gap-2 rounded-md px-2 py-1 hover:bg-muted/60"
+                    >
                       <Checkbox
                         checked={item.done}
                         onCheckedChange={(v) => toggle.mutate({ id: item.id, done: !!v })}
                       />
-                      <span className={`flex-1 text-sm ${item.done ? "text-muted-foreground line-through" : ""}`}>
+                      <span
+                        className={`flex-1 text-sm ${item.done ? "text-muted-foreground line-through" : ""}`}
+                      >
                         {item.content}
                       </span>
                       <Button
@@ -327,10 +373,16 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
 
               <Separator />
               <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Paperclip className="h-3.5 w-3.5" /> Arquivos</Label>
+                <Label className="flex items-center gap-1.5">
+                  <Paperclip className="h-3.5 w-3.5" /> Arquivos
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   {(files.data ?? []).map((f) => (
-                    <Badge key={f.id} variant="secondary" className="cursor-pointer gap-1 pl-2 pr-1">
+                    <Badge
+                      key={f.id}
+                      variant="secondary"
+                      className="cursor-pointer gap-1 pl-2 pr-1"
+                    >
                       <span onClick={() => openFile(f.storage_path)}>{f.name}</span>
                       <button
                         onClick={() => removeFileMut.mutate(f)}
@@ -361,7 +413,10 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
                 <Label>Comentários</Label>
                 <div className="space-y-2">
                   {(comments.data ?? []).map((c) => (
-                    <div key={c.id} className="rounded-md border border-border bg-muted/30 p-2 text-sm">
+                    <div
+                      key={c.id}
+                      className="rounded-md border border-border bg-muted/30 p-2 text-sm"
+                    >
                       <div className="mb-1 text-[11px] text-muted-foreground">
                         {new Date(c.created_at).toLocaleString("pt-BR")}
                       </div>
@@ -376,10 +431,7 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
                     placeholder="Escreva um comentário..."
                     rows={2}
                   />
-                  <Button
-                    disabled={!newComment.trim()}
-                    onClick={() => postComment.mutate()}
-                  >
+                  <Button disabled={!newComment.trim()} onClick={() => postComment.mutate()}>
                     Enviar
                   </Button>
                 </div>
@@ -393,10 +445,16 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
             <Button variant="ghost" className="text-destructive" onClick={() => remove.mutate()}>
               <Trash2 className="mr-2 h-4 w-4" /> Excluir
             </Button>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button onClick={() => save.mutate()} disabled={save.isPending}>Salvar</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => save.mutate()} disabled={save.isPending}>
+              Salvar
+            </Button>
           </div>
         </div>
       </SheetContent>
@@ -404,7 +462,11 @@ export function TaskDialog({ open, onOpenChange, task, defaultStatus = "todo", c
   );
 }
 
-function buildTaskRecurrenceDates(start: string, freq: "daily" | "weekly" | "biweekly" | "monthly", count: number): string[] {
+function buildTaskRecurrenceDates(
+  start: string,
+  freq: "daily" | "weekly" | "biweekly" | "monthly",
+  count: number,
+): string[] {
   const out: string[] = [start];
   const d = new Date(start + "T00:00:00");
   const n = Math.max(1, Math.min(52, count));

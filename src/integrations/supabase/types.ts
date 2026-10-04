@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_strategies: {
+        Row: { client_id: string; fields: Json; updated_at: string };
+        Insert: { client_id: string; fields?: Json; updated_at?: string };
+        Update: { client_id?: string; fields?: Json; updated_at?: string };
+        Relationships: [];
+      };
       _vault_master: {
         Row: {
           created_at: string
@@ -3424,6 +3430,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decide_my_account_post: { Args: { _post_id: string; _expected_updated_at: string; _decision: Database["public"]["Enums"]["approval_decision"]; _feedback?: string }; Returns: Json };
+      get_my_account_workspace: { Args: Record<PropertyKey, never>; Returns: Json };
       auto_publish_scheduled_posts: { Args: never; Returns: undefined }
       can_finance: { Args: { _action?: string }; Returns: boolean }
       close_post_month: {

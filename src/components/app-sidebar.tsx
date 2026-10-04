@@ -184,6 +184,7 @@ const clientGroups: NavGroup[] = [
   {
     label: "Recursos",
     items: [
+      { title: "Reuniões", url: "/meetings", icon: Video, module: "workspace.meetings" },
       { title: "Biblioteca", url: "/library", icon: FolderOpen, module: "workspace.library" },
       { title: "Resultados", url: "/analytics", icon: BarChart3, module: "social.analytics" },
       { title: "Cursos", url: "/courses", icon: GraduationCap, module: "academy.courses" },

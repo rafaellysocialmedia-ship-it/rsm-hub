@@ -10,10 +10,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type Meeting = {
   id: string;
@@ -46,16 +63,17 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   meeting: Meeting | null;
   clients: { id: string; name: string }[];
+  defaultClientId?: string;
 };
 
-export function MeetingDialog({ open, onOpenChange, meeting, clients }: Props) {
+export function MeetingDialog({ open, onOpenChange, meeting, clients, defaultClientId }: Props) {
   const qc = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: "",
       description: "",
-      client_id: null,
+      client_id: defaultClientId ?? null,
       meeting_date: new Date().toISOString().slice(0, 10),
       meeting_time: "10:00",
       duration_minutes: 30,
@@ -83,7 +101,7 @@ export function MeetingDialog({ open, onOpenChange, meeting, clients }: Props) {
       form.reset({
         title: "",
         description: "",
-        client_id: null,
+        client_id: defaultClientId ?? null,
         meeting_date: new Date().toISOString().slice(0, 10),
         meeting_time: "10:00",
         duration_minutes: 30,
@@ -92,7 +110,7 @@ export function MeetingDialog({ open, onOpenChange, meeting, clients }: Props) {
         status: "scheduled",
       });
     }
-  }, [open, meeting, form]);
+  }, [open, meeting, form, defaultClientId]);
 
   const save = useMutation({
     mutationFn: async (v: FormValues) => {
@@ -131,85 +149,161 @@ export function MeetingDialog({ open, onOpenChange, meeting, clients }: Props) {
           <DialogTitle>{meeting ? "Editar reunião" : "Nova reunião"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((v) => save.mutate(v))} className="grid grid-cols-2 gap-4">
-            <FormField control={form.control} name="title" render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Título</FormLabel>
-                <FormControl><Input {...field} placeholder="Ex.: Kickoff mensal" /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+          <form
+            onSubmit={form.handleSubmit((v) => save.mutate(v))}
+            className="grid grid-cols-2 gap-4"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>Título</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex.: Kickoff mensal" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <FormField control={form.control} name="client_id" render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Cliente</FormLabel>
-                <Select value={field.value ?? "none"} onValueChange={(v) => field.onChange(v === "none" ? null : v)}>
-                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Sem cliente</SelectItem>
-                    {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="client_id"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>Cliente</FormLabel>
+                  <Select
+                    value={field.value ?? "none"}
+                    onValueChange={(v) => field.onChange(v === "none" ? null : v)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Sem cliente</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
 
-            <FormField control={form.control} name="meeting_date" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data</FormLabel>
-                <FormControl><Input type="date" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="meeting_time" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora</FormLabel>
-                <FormControl><Input type="time" {...field} value={field.value ?? ""} /></FormControl>
-              </FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="meeting_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="meeting_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hora</FormLabel>
+                  <FormControl>
+                    <Input type="time" {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-            <FormField control={form.control} name="duration_minutes" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Duração (min)</FormLabel>
-                <FormControl><Input type="number" min={5} max={600} {...field} /></FormControl>
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="status" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Agendada</SelectItem>
-                    <SelectItem value="completed">Concluída</SelectItem>
-                    <SelectItem value="cancelled">Cancelada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="duration_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Duração (min)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={5} max={600} {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="scheduled">Agendada</SelectItem>
+                      <SelectItem value="completed">Concluída</SelectItem>
+                      <SelectItem value="cancelled">Cancelada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
 
-            <FormField control={form.control} name="location" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Local</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} placeholder="Escritório, presencial..." /></FormControl>
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="meeting_url" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Link (Meet/Zoom)</FormLabel>
-                <FormControl><Input {...field} value={field.value ?? ""} placeholder="https://..." /></FormControl>
-              </FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Local</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      placeholder="Escritório, presencial..."
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="meeting_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link (Meet/Zoom)</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ""} placeholder="https://..." />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-            <FormField control={form.control} name="description" render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>Pauta / observações</FormLabel>
-                <FormControl><Textarea rows={4} {...field} value={field.value ?? ""} /></FormControl>
-              </FormItem>
-            )} />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>Pauta / observações</FormLabel>
+                  <FormControl>
+                    <Textarea rows={4} {...field} value={field.value ?? ""} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="col-span-2">
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit" disabled={save.isPending}>{save.isPending ? "Salvando..." : "Salvar"}</Button>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={save.isPending}>
+                {save.isPending ? "Salvando..." : "Salvar"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

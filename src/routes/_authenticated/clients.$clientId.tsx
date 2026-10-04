@@ -1,6 +1,6 @@
 import { ChurnCard } from "@/components/clients/churn-card";
 import { useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -44,6 +44,7 @@ import { JourneyCard } from "@/components/clients/journey-card";
 import { ContractsCard } from "@/components/clients/contracts-card";
 
 export const Route = createFileRoute("/_authenticated/clients/$clientId")({
+  beforeLoad: ({ params }) => { throw redirect({ to: "/management/clients/$clientId", params: { clientId: params.clientId } }); },
   head: () => ({ meta: [{ title: "Cliente · Social Media Hub" }] }),
   component: ClientDetailPage,
   errorComponent: ({ error }) => (
