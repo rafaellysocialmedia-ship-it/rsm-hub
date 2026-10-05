@@ -17,6 +17,7 @@ export type Database = {
   }
   public: {
     Tables: {
+      navigation_preferences: {Row:{user_id:string;sidebar_open:boolean;favorites:Json};Insert:{user_id:string;sidebar_open?:boolean;favorites?:Json};Update:{sidebar_open?:boolean;favorites?:Json};Relationships:[]};
       approval_links: {Row:{id:string;post_id:string;revision:number;expires_at:string;revoked_at:string|null;created_at:string;created_by:string;token_hash:string};Insert:never;Update:{revoked_at?:string};Relationships:[]};
       meeting_recaps: { Row: MeetingRecap; Insert: Pick<MeetingRecap,"meeting_id"|"summary"> & Partial<MeetingRecap>; Update: Partial<MeetingRecap>; Relationships: [] };
       client_request_messages: { Row: RequestMessage; Insert: Pick<RequestMessage,"request_id"|"body"> & Partial<RequestMessage>; Update: Partial<RequestMessage>; Relationships: [] };

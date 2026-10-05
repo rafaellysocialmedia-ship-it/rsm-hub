@@ -8,7 +8,7 @@ import { MonthlyReports } from "./monthly-reports";
 import { useMonthlyReports } from "@/hooks/use-client-experience";
 import { monthLabel } from "@/lib/client-experience";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, CheckCircle2, ExternalLink, FileSignature } from "lucide-react";
 import { toast } from "sonner";
@@ -40,7 +40,17 @@ export function ClientWorkspace() {
   const { profile, user, loading } = useAuth();
   const query = usePortalAccount(!loading && !!user);
   useAccountSync(query.data?.id);
-  const [tab, setTab] = useState("home");
+  const request = useRouterState({
+    select: (s) => String((s.location.search as Record<string, unknown>).request ?? ""),
+  });
+  const router = useRouter();
+  const requested = useRouterState({
+    select: (s) => String((s.location.search as Record<string, unknown>).tab ?? "home"),
+  });
+  const tab = portalGroups.some((g) => g.items.some((i) => i[0] === requested))
+    ? String(requested)
+    : "home";
+  const setTab = (tab: string) => void router.navigate({ to: "/portal", search: { tab } });
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
       <QueryState loading={loading || query.isLoading} error={query.error}>
@@ -71,6 +81,7 @@ export function ClientWorkspace() {
             </header>
             <Tabs value={tab} onValueChange={setTab} className="mt-6">
               <GroupedNavigation
+                hidePrimary
                 groups={portalGroups.filter(
                   (g) => g.title !== "Financeiro" || query.data?.can_view_finance,
                 )}
@@ -78,7 +89,11 @@ export function ClientWorkspace() {
                 onTab={setTab}
               />
               <TabsContent value="support" className="mt-5">
-                <ClientRequests clientId={query.data.id} />
+                <ClientRequests
+                  key={request}
+                  clientId={query.data.id}
+                  defaultKind={request === "content" ? "extra" : "support"}
+                />
               </TabsContent>
               <TabsContent value="home" className="mt-5">
                 <ClientHome account={query.data} onTab={setTab} />

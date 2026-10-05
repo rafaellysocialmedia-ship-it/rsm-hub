@@ -1,3 +1,5 @@
+import { useAuth } from "@/hooks/use-auth";
+import { localDate } from "@/lib/account-workspace";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -7,7 +9,13 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { supabase } from "@/integrations/supabase/client";
 import { KanbanBoard } from "@/components/tasks/kanban-board";
@@ -16,6 +24,10 @@ import { listTasks, updateTask, type Task, type TaskStatus, PRIORITY_META } from
 import type { Client } from "@/lib/clients";
 
 export const Route = createFileRoute("/_authenticated/tasks/")({
+  validateSearch: (s: Record<string, unknown>): { scope?: string; overdue?: string } => ({
+    scope: s.scope === "mine" ? "mine" : "all",
+    overdue: s.overdue === "1" ? "1" : undefined,
+  }),
   component: TasksPage,
   errorComponent: ({ error }) => (
     <div className="p-8 text-sm text-destructive">Erro: {error.message}</div>
@@ -24,6 +36,9 @@ export const Route = createFileRoute("/_authenticated/tasks/")({
 });
 
 function TasksPage() {
+  const { user } = useAuth();
+  const { scope, overdue } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
@@ -48,12 +63,16 @@ function TasksPage() {
   useEffect(() => {
     const ch = supabase
       .channel("tasks-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () => qc.invalidateQueries({ queryKey: ["clients"] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "clients" }, () =>
+        qc.invalidateQueries({ queryKey: ["clients"] }),
+      )
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
         qc.invalidateQueries({ queryKey: ["tasks"] });
       })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [qc]);
 
   const move = useMutation({
@@ -64,29 +83,45 @@ function TasksPage() {
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
+      if (scope === "mine" && t.assignee_id !== user?.id) return false;
+      if (overdue === "1" && (!t.due_date || t.due_date >= localDate() || t.status === "done"))
+        return false;
       if (!belongsToActiveClient(t, activeIds)) return false;
       if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
       if (clientFilter !== "all" && t.client_id !== clientFilter) return false;
       if (priorityFilter !== "all" && t.priority !== priorityFilter) return false;
       return true;
     });
-  }, [tasks, search, clientFilter, priorityFilter, activeIds]);
+  }, [tasks, search, clientFilter, priorityFilter, activeIds, scope, overdue, user?.id]);
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight">
-            <KanbanSquare className="h-6 w-6" /> Tarefas
+            <KanbanSquare className="h-6 w-6" />{" "}
+            {scope === "mine" ? "Minhas tarefas" : "Todas as tarefas"}
           </h1>
           <p className="text-sm text-muted-foreground">Gestão completa do seu fluxo de produção.</p>
         </div>
-        <Button onClick={() => { setEditing(null); setDefaultStatus("todo"); setDialogOpen(true); }}>
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setDefaultStatus("todo");
+            setDialogOpen(true);
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" /> Nova tarefa
         </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={() => void navigate({ search: { scope, overdue: overdue ? undefined : "1" } })}
+        >
+          {overdue ? "Mostrar todas" : "Somente vencidas"}
+        </Button>
         <div className="relative max-w-sm flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -97,20 +132,28 @@ function TasksPage() {
           />
         </div>
         <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Cliente" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[180px]">
+            <SelectValue placeholder="Cliente" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os clientes</SelectItem>
             {clients.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="h-9 w-[160px]"><SelectValue placeholder="Prioridade" /></SelectTrigger>
+          <SelectTrigger className="h-9 w-[160px]">
+            <SelectValue placeholder="Prioridade" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas prioridades</SelectItem>
             {(Object.keys(PRIORITY_META) as Array<keyof typeof PRIORITY_META>).map((p) => (
-              <SelectItem key={p} value={p}>{PRIORITY_META[p].label}</SelectItem>
+              <SelectItem key={p} value={p}>
+                {PRIORITY_META[p].label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -120,8 +163,15 @@ function TasksPage() {
         tasks={filtered}
         clients={clients}
         onMove={(id, status) => move.mutate({ id, status })}
-        onAdd={(status) => { setEditing(null); setDefaultStatus(status); setDialogOpen(true); }}
-        onOpen={(t) => { setEditing(t); setDialogOpen(true); }}
+        onAdd={(status) => {
+          setEditing(null);
+          setDefaultStatus(status);
+          setDialogOpen(true);
+        }}
+        onOpen={(t) => {
+          setEditing(t);
+          setDialogOpen(true);
+        }}
       />
 
       <TaskDialog

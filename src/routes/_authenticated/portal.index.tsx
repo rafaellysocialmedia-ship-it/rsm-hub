@@ -1,4 +1,4 @@
-import {ClientWorkspace} from "@/components/workspace/client-workspace";
+import { ClientWorkspace } from "@/components/workspace/client-workspace";
 import { ClientPortal } from "@/components/workspace/client-approvals";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -69,6 +69,11 @@ export const Route = createFileRoute("/_authenticated/portal/")({
       { name: "description", content: "Acompanhe e aprove suas publicações em um único lugar." },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { tab?: string; request?: string } => ({
+    ...s,
+    request: s.request === "content" ? "content" : undefined,
+    tab: typeof s.tab === "string" ? s.tab : undefined,
+  }),
   component: PortalRouter,
 });
 
@@ -105,7 +110,13 @@ function PortalRouter() {
       </div>
     );
   const isStaff = hasRole("administrator") || hasRole("team");
-  return isStaff ? <div className="mx-auto w-full max-w-7xl p-4 sm:p-6"><ClientPortal /></div> : <ClientWorkspace />;
+  return isStaff ? (
+    <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+      <ClientPortal />
+    </div>
+  ) : (
+    <ClientWorkspace />
+  );
 }
 
 /* ---------------- STAFF VIEW ---------------- */

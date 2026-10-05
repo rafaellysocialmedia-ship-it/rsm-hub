@@ -1,8 +1,9 @@
-import {Deliveries} from "@/components/workspace/deliveries";
-import {toast} from "sonner";
-import {GroupedNavigation,profileGroups} from "@/components/workspace/grouped-navigation";
-import {ClientCalendarPage} from "@/components/workspace/client-calendar";
-import {ClientPortal} from "@/components/workspace/client-approvals";
+import { ClientSwitcher } from "@/components/navigation/client-switcher";
+import { Deliveries } from "@/components/workspace/deliveries";
+import { toast } from "sonner";
+import { GroupedNavigation, profileGroups } from "@/components/workspace/grouped-navigation";
+import { ClientCalendarPage } from "@/components/workspace/client-calendar";
+import { ClientPortal } from "@/components/workspace/client-approvals";
 import { AccountHeaderFacts } from "@/components/workspace/account-header-facts";
 import { useFinanceAccess } from "@/hooks/use-finance";
 import { ExitDetails } from "@/components/clients/exit-details";
@@ -71,7 +72,7 @@ export const Route = createFileRoute("/_authenticated/management/clients/$client
       },
     ],
   }),
-  component: ClientMasterPage,
+  component: ClientMasterRoute,
   errorComponent: ({ error }) => (
     <div className="px-6 py-16 text-center text-sm text-muted-foreground">{error.message}</div>
   ),
@@ -82,6 +83,10 @@ export const Route = createFileRoute("/_authenticated/management/clients/$client
   ),
 });
 
+function ClientMasterRoute() {
+  const { clientId } = Route.useParams();
+  return <ClientMasterPage key={clientId} />;
+}
 function ClientMasterPage() {
   const { clientId } = Route.useParams();
   const { hasRole } = useAuth();
@@ -149,6 +154,7 @@ function ClientMasterPage() {
         Clientes
       </Link>
 
+      <ClientSwitcher id={client.id} name={client.name} tab={tab} />
       <div className="mt-4 flex items-start gap-4">
         <ClientLogo path={client.logo_url} name={client.name} className="h-16 w-16" />
         <div>
@@ -190,19 +196,36 @@ function ClientMasterPage() {
             </Button>
           </>
         )}
-        <Button variant="outline" onClick={()=>{void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(()=>toast.success("Link do portal copiado. O cliente deve entrar com seu próprio acesso."),()=>toast.error("Não foi possível copiar o link."));}}>Copiar acesso ao portal</Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(
+              () =>
+                toast.success(
+                  "Link do portal copiado. O cliente deve entrar com seu próprio acesso.",
+                ),
+              () => toast.error("Não foi possível copiar o link."),
+            );
+          }}
+        >
+          Copiar acesso ao portal
+        </Button>
         <Button variant="outline" onClick={() => setEditOpen(true)}>
           <Pencil className="mr-2 h-4 w-4" />
           Editar cliente
         </Button>
       </div>
       <Tabs value={tab} onValueChange={setTab} className="mt-6">
-        <GroupedNavigation groups={profileGroups.filter(g=>g.title!=="Financeiro"||financeAccess.canView)} tab={tab} onTab={setTab}/>
+        <GroupedNavigation
+          groups={profileGroups.filter((g) => g.title !== "Financeiro" || financeAccess.canView)}
+          tab={tab}
+          onTab={setTab}
+        />
         <TabsContent value="overview" className="mt-5 space-y-4">
-          <AccountOverview client={client} onTab={setTab} /><Deliveries clientId={client.id} canEdit={canEdit&&!client.churned}/>
+          <AccountOverview client={client} onTab={setTab} />
+          <Deliveries clientId={client.id} canEdit={canEdit && !client.churned} />
           <OverviewTab client={client} />
           <JourneyCard clientId={client.id} currentStage={journeyStage} />
-
         </TabsContent>
         <TabsContent value="support" className="mt-5">
           <ClientRequests clientId={client.id} canEdit={canEdit} />
@@ -275,7 +298,8 @@ function ClientMasterPage() {
               <TabsTrigger value="chat">Chat interno</TabsTrigger>
             </TabsList>
             <TabsContent value="info">
-              <ChurnCard clientId={client.id} /><ExitDetails clientId={client.id} />
+              <ChurnCard clientId={client.id} />
+              <ExitDetails clientId={client.id} />
               <InfoTab client={client} canEdit={canEdit} />
             </TabsContent>
             <TabsContent value="services">

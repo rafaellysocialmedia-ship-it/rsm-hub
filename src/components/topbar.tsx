@@ -1,4 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
+import { navForPath, navigation, activeNavigation, portalNavigation } from "@/lib/navigation";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Eye, Gauge, LogOut, User as UserIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -23,7 +24,7 @@ const roleLabel: Record<string, string> = {
   client: "Cliente",
 };
 
-export function Topbar() {
+export function AccountMenu({ compact = false }: { compact?: boolean }) {
   const { profile, roles, signOut, user, hasRole } = useAuth();
   const isStaff = hasRole("administrator") || hasRole("team");
   const isAdmin = hasRole("administrator");
@@ -42,55 +43,71 @@ export function Topbar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4">
-      {isStaff ? <SidebarTrigger className="h-11 w-11" /> : <span className="font-semibold text-primary">RSM Marketing</span>}
-      <Separator orientation="vertical" className="h-5" />
-      <div className="ml-auto flex items-center gap-2">
-        {primaryRole && (
-          <Badge variant="secondary" className="hidden sm:inline-flex">
-            {roleLabel[primaryRole]}
-          </Badge>
-        )}
-        <NotificationsMenu />
-        <ThemeToggle />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-9 gap-2 px-2">
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.name ?? ""} />
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-              </Avatar>
-              <span className="hidden text-sm font-medium md:inline-block">{profile?.name ?? user?.email}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="flex flex-col">
-              <span className="text-sm font-medium">{profile?.name ?? "Sem nome"}</span>
-              <span className="text-xs font-normal text-muted-foreground">{user?.email}</span>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate({to:"/settings"})}>
-              <UserIcon className="mr-2 h-4 w-4" /> Perfil
-            </DropdownMenuItem>
-            {isAdmin && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate({ to: "/admin/visibility" })}>
-                  <Eye className="mr-2 h-4 w-4" /> Gerenciar Visualizações
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate({ to: "/admin/posts-control" })}>
-                  <Gauge className="mr-2 h-4 w-4" /> Controle de Posts
-                </DropdownMenuItem>
-              </>
+    <div className={compact ? "flex flex-col items-start gap-1" : "flex items-center gap-1"}>
+      <ThemeToggle />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" aria-label="Menu do perfil" className="h-11 gap-2 px-2">
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.name ?? ""} />
+              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            </Avatar>
+            {!compact && (
+              <span className="max-w-32 truncate text-sm font-medium">
+                {profile?.name ?? user?.email}
+              </span>
             )}
-            <DropdownMenuSeparator />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="flex flex-col">
+            <span className="text-sm font-medium">{profile?.name ?? "Sem nome"}</span>
+            <span className="text-xs font-normal text-muted-foreground">{user?.email}</span>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
+            <UserIcon className="mr-2 h-4 w-4" /> Perfil
+          </DropdownMenuItem>
+          {isAdmin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate({ to: "/admin/visibility" })}>
+                <Eye className="mr-2 h-4 w-4" /> Gerenciar Visualizações
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/admin/posts-control" })}>
+                <Gauge className="mr-2 h-4 w-4" /> Controle de Posts
+              </DropdownMenuItem>
+            </>
+          )}
+          <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" /> Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className="text-destructive focus:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" /> Sair
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+export function Topbar() {
+  const loc = useRouterState({ select: (s) => s.location });
+  const { hasRole } = useAuth();
+  const staff = hasRole("administrator") || hasRole("team");
+  const tab = String((loc.search as Record<string, unknown>).tab ?? "home");
+  const label = staff
+    ? (navigation.find((n) =>
+        activeNavigation(n.href, loc.pathname, loc.search as Record<string, unknown>),
+      )?.label ?? navForPath(loc.pathname)?.label)
+    : (portalNavigation.find(([, t]) => t === tab)?.[0] ??
+      (["approvals", "calendar", "feed"].includes(tab) ? "Conteúdos" : "Portal do cliente"));
+  return (
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-card px-4">
+      <SidebarTrigger className="h-11 w-11" />
+      <span className="truncate text-sm font-medium">{label ?? "RSM Marketing"}</span>
     </header>
   );
 }

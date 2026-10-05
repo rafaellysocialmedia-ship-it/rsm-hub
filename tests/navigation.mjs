@@ -1,0 +1,20 @@
+import ts from 'typescript';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const code=ts.transpileModule(readFileSync('src/lib/navigation.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext}}).outputText;
+const {navigation,activeNavigation,navForPath,isSafeFavorite}=await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+assert(activeNavigation('/posts?view=calendar','/posts',{view:'calendar'}));
+assert(!activeNavigation('/posts?view=kanban','/posts',{view:'calendar'}));
+for(const view of ['kanban','list','table','timeline'])assert(activeNavigation('/posts?view=kanban','/posts',{view}));
+assert(activeNavigation('/tasks?scope=mine','/tasks',{scope:'mine'}));
+assert(!activeNavigation('/tasks?scope=all','/tasks',{scope:'mine'}));
+assert.equal(navForPath('/management/clients/account-1').label,'Clientes');
+assert.equal(navForPath('/clients/account-1').label,'Clientes');
+assert.equal(navForPath('/briefings/briefing-1').label,'Briefings');
+assert.equal(navForPath('/finance/receivables').module,'finance.receivables');
+assert(!activeNavigation('/finance','/finance/receivables',{}));
+assert(!activeNavigation('/ai','/ai/tools',{}));
+for(const href of ['//evil.test','https://evil.test','/\\evil.test','/review/token','/posts\n'])assert(!isSafeFavorite(href));
+const routes=readFileSync('src/routeTree.gen.ts','utf8');
+for(const n of navigation){assert(routes.includes("'"+n.href.split('?')[0]+"'"),`Missing route ${n.href}`);}
+console.log('PASS: destinations exist; active navigation, aliases and favorite URL boundaries');

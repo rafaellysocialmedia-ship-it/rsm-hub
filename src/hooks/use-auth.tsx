@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -37,20 +39,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    let previousUser: string | null | undefined;
 
     const handleConnectionError = (cause: unknown) => {
       console.error("Erro ao conectar com a autenticação", cause);
       if (!active) return;
       setProfile(null);
       setRoles([]);
-      setError(
-        "Não foi possível conectar ao banco de dados. Tente novamente em alguns instantes.",
-      );
+      setError("Não foi possível conectar ao banco de dados. Tente novamente em alguns instantes.");
       setLoading(false);
     };
 
     const hydrateSession = async (sess: Session | null) => {
       if (!active) return;
+      if (previousUser !== undefined && previousUser !== (sess?.user.id ?? null)) {
+        await queryClient.cancelQueries();
+        queryClient.clear();
+      }
+      previousUser = sess?.user.id ?? null;
       setSession(sess);
       setUser(sess?.user ?? null);
       setError(null);
@@ -98,10 +104,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function loadUserData(userId: string) {
-    const [{ data: prof, error: profileError }, { data: rs, error: rolesError }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-    ]);
+    const [{ data: prof, error: profileError }, { data: rs, error: rolesError }] =
+      await Promise.all([
+        supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+      ]);
 
     if (profileError) console.error("Erro ao carregar perfil", profileError);
     if (rolesError) console.error("Erro ao carregar permissões", rolesError);
@@ -135,7 +142,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasRole = (role: AppRole) => roles.includes(role);
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, roles, loading, error, hasRole, signOut }}>
+    <AuthContext.Provider
+      value={{ user, session, profile, roles, loading, error, hasRole, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

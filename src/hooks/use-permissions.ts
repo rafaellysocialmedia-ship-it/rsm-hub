@@ -30,7 +30,11 @@ export function usePermissions() {
   const isAdmin = hasRole("administrator");
   const isStaff = isAdmin || hasRole("team");
 
-  const { data: modules, isLoading: loadingModules } = useQuery({
+  const {
+    data: modules,
+    isLoading: loadingModules,
+    error: modulesError,
+  } = useQuery({
     queryKey: ["app-modules"],
     enabled: !!user?.id,
     staleTime: 10 * 60 * 1000,
@@ -44,7 +48,11 @@ export function usePermissions() {
     },
   });
 
-  const { data: perms, isLoading: loadingPerms } = useQuery({
+  const {
+    data: perms,
+    isLoading: loadingPerms,
+    error: permsError,
+  } = useQuery({
     queryKey: ["my-permissions", user?.id],
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
@@ -60,14 +68,16 @@ export function usePermissions() {
    * ("Gerenciar Visualizações"). RLS only returns the rows that apply to the
    * current user (own role, own user id, own client).
    */
-  const { data: visibility } = useQuery({
+  const {
+    data: visibility,
+    isLoading: loadingVisibility,
+    error: visibilityError,
+  } = useQuery({
     queryKey: ["module-visibility-mine", user?.id],
     enabled: !!user?.id,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("module_visibility")
-        .select("module_key,visible");
+      const { data, error } = await supabase.from("module_visibility").select("module_key,visible");
       if (error) throw error;
       return (data ?? []) as { module_key: string; visible: boolean }[];
     },
@@ -75,12 +85,13 @@ export function usePermissions() {
 
   const hidden = useMemo(() => {
     const s = new Set<string>();
-    (visibility ?? []).forEach((v) => { if (!v.visible) s.add(v.module_key); });
+    (visibility ?? []).forEach((v) => {
+      if (!v.visible) s.add(v.module_key);
+    });
     return s;
   }, [visibility]);
 
-  const loading = authLoading || loadingModules || loadingPerms;
-
+  const loading = authLoading || loadingModules || loadingPerms || loadingVisibility;
 
   const granted = useMemo(() => {
     const s = new Set<string>();
@@ -117,17 +128,15 @@ export function usePermissions() {
     // visibility rules apply to everyone except the administrator
     if (isHidden(moduleKey)) return false;
     // catalog / permissions not loaded yet → keep legacy behaviour
-    if (loading) return true;
+    if (loading || modulesError || permsError || visibilityError) return false;
     // user has no dynamic role assignment yet → keep legacy behaviour
     if (granted.size === 0) return isStaff || action === "view";
     if (granted.has(`${moduleKey}:${action}`)) return true;
-
 
     // module unknown to the catalog → legacy fallback
     if (!catalog.has(moduleKey)) return isStaff || action === "view";
     return false;
   };
-
 
   return {
     can,
@@ -136,5 +145,6 @@ export function usePermissions() {
     isAdmin,
     isStaff,
     loading,
+    error: modulesError || permsError || visibilityError,
   };
 }

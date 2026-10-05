@@ -1,3 +1,4 @@
+import { useStickyState } from "@/hooks/use-sticky-state";
 import { isActiveClient } from "@/lib/active-clients";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -51,9 +52,9 @@ type SortKey = "name" | "start_date" | "updated_at";
 function ManagementClientsPage() {
   const { hasRole } = useAuth();
   const canManage = hasRole("administrator") || hasRole("team");
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("active");
-  const [sort, setSort] = useState<SortKey>("updated_at");
+  const [search, setSearch] = useStickyState("client-list-search", "");
+  const [status, setStatus] = useStickyState("client-list-status", "active");
+  const [sort, setSort] = useStickyState<SortKey>("client-list-sort", "updated_at");
   const [newClientOpen, setNewClientOpen] = useState(false);
   const { data: staff = [] } = useStaffMembers();
 
@@ -76,14 +77,19 @@ function ManagementClientsPage() {
         .from("client_services")
         .select("client_id, label, service_key, situation");
       if (error) throw error;
-      return (data ?? []) as Pick<ClientService, "client_id" | "label" | "service_key" | "situation">[];
+      return (data ?? []) as Pick<
+        ClientService,
+        "client_id" | "label" | "service_key" | "situation"
+      >[];
     },
   });
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (clients ?? [])
-      .filter((c) => status === "active" ? isActiveClient(c) : status === "all" || c.status === status)
+      .filter((c) =>
+        status === "active" ? isActiveClient(c) : status === "all" || c.status === status,
+      )
       .filter((c) =>
         !q
           ? true
@@ -114,7 +120,8 @@ function ManagementClientsPage() {
             <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Cadastro mestre da operação — dados, serviços, cobrança, briefings e histórico em uma única ficha.
+            Cadastro mestre da operação — dados, serviços, cobrança, briefings e histórico em uma
+            única ficha.
           </p>
         </div>
         {canManage && (
@@ -141,7 +148,9 @@ function ManagementClientsPage() {
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
             {CLIENT_STATUS.map((s) => (
-              <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -159,7 +168,9 @@ function ManagementClientsPage() {
       </div>
 
       {isLoading ? (
-        <div className="mt-6"><ListSkeleton /></div>
+        <div className="mt-6">
+          <ListSkeleton />
+        </div>
       ) : rows.length === 0 ? (
         <Card className="mt-6 border-dashed p-10 text-center text-sm text-muted-foreground">
           Nenhum cliente encontrado com os filtros atuais.
@@ -186,7 +197,8 @@ function ManagementClientsPage() {
                     <StatusBadge status={c.status} />
                   </div>
                   <p className="truncate text-xs text-muted-foreground">
-                    {extra.trade_name || c.legal_name || "Sem empresa"} · {c.responsible || "Sem responsável"}
+                    {extra.trade_name || c.legal_name || "Sem empresa"} ·{" "}
+                    {c.responsible || "Sem responsável"}
                   </p>
                 </div>
                 <div className="flex min-w-0 flex-wrap gap-1.5 sm:w-[220px]">
@@ -199,18 +211,28 @@ function ManagementClientsPage() {
                       </Badge>
                     ))
                   )}
-                  {svc.length > 3 && <Badge variant="secondary" className="text-[10px]">+{svc.length - 3}</Badge>}
+                  {svc.length > 3 && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      +{svc.length - 3}
+                    </Badge>
+                  )}
                 </div>
                 <div className="sm:w-[160px]">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Responsável interno</p>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Responsável interno
+                  </p>
                   <p className="truncate text-xs">{nameOf(extra.account_manager_id)}</p>
                 </div>
                 <div className="sm:w-[130px]">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Início</p>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Início
+                  </p>
                   <p className="text-xs">{formatDate(c.start_date)}</p>
                 </div>
                 <div className="sm:w-[150px]">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Atualizado</p>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Atualizado
+                  </p>
                   <p className="text-xs">{formatDateTime(c.updated_at)}</p>
                 </div>
               </Link>

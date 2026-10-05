@@ -17,14 +17,16 @@ const selectClass = "h-10 rounded-md border bg-background px-3 text-sm";
 export function ClientRequests({
   clientId,
   canEdit = false,
+  defaultKind = "support",
 }: {
   clientId: string;
   canEdit?: boolean;
+  defaultKind?: ClientRequest["kind"];
 }) {
   const qc = useQueryClient();
   const [title, setTitle] = useState(""),
     [description, setDescription] = useState(""),
-    [kind, setKind] = useState<ClientRequest["kind"]>("support"),
+    [kind, setKind] = useState<ClientRequest["kind"]>(defaultKind),
     [due, setDue] = useState("");
   const q = useQuery({
     queryKey: ["client-requests", clientId],
