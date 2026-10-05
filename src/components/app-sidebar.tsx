@@ -192,6 +192,15 @@ export function AppSidebar() {
             <SidebarGroup>
               <SidebarMenuButton
                 tooltip="Mais módulos"
+                isActive={allowed.some(
+                  (n) =>
+                    n.group === "Mais" &&
+                    activeNavigation(
+                      n.href,
+                      location.pathname,
+                      location.search as Record<string, unknown>,
+                    ),
+                )}
                 aria-expanded={more}
                 onClick={() => {
                   if (collapsed) toggleSidebar();
@@ -272,7 +281,9 @@ export function AppSidebar() {
                 )
                 .map(([label, tab], i) => {
                   const selected = String(
-                    (location.search as Record<string, unknown>).tab ?? "home",
+                    (location.pathname === "/portal/calendar"
+                      ? "calendar"
+                      : (location.search as Record<string, unknown>).tab) ?? "home",
                   );
                   const active =
                     tab === "contents"
@@ -295,7 +306,10 @@ export function AppSidebar() {
                     <SidebarMenuItem key={tab}>
                       <SidebarMenuButton
                         tooltip={label}
-                        isActive={active}
+                        isActive={
+                          active &&
+                          ["/portal", "/dashboard", "/portal/calendar"].includes(location.pathname)
+                        }
                         onClick={() =>
                           go(
                             "/portal?tab=" +
@@ -336,6 +350,7 @@ export function AppSidebar() {
             )}
             <SidebarMenuButton
               tooltip="Outros recursos"
+              isActive={!["/portal", "/dashboard", "/portal/calendar"].includes(location.pathname)}
               aria-expanded={more}
               onClick={() => {
                 if (collapsed) toggleSidebar();
@@ -364,7 +379,11 @@ export function AppSidebar() {
             {!collapsed && <span className="text-sm">Notificações</span>}
           </div>
           {can("management.settings") && (
-            <SidebarMenuButton tooltip="Configurações" onClick={() => go("/settings")}>
+            <SidebarMenuButton
+              tooltip="Configurações"
+              isActive={location.pathname === "/settings"}
+              onClick={() => go("/settings")}
+            >
               <Settings />
               <span>Configurações</span>
             </SidebarMenuButton>

@@ -10,6 +10,8 @@ assert(activeNavigation('/tasks?scope=mine','/tasks',{scope:'mine'}));
 assert(!activeNavigation('/tasks?scope=all','/tasks',{scope:'mine'}));
 assert.equal(navForPath('/management/clients/account-1').label,'Clientes');
 assert.equal(navForPath('/clients/account-1').label,'Clientes');
+assert(activeNavigation('/management/clients','/clients/account-1',{}));
+assert(activeNavigation('/library/briefings','/briefings/briefing-1',{}));
 assert.equal(navForPath('/briefings/briefing-1').label,'Briefings');
 assert.equal(navForPath('/finance/receivables').module,'finance.receivables');
 assert(!activeNavigation('/finance','/finance/receivables',{}));

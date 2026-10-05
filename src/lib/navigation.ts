@@ -130,6 +130,10 @@ export const portalNavigation = [
   ["Financeiro", "finance"],
 ] as const;
 export function activeNavigation(href: string, path: string, search: Record<string, unknown>) {
+  if (path === "/clients" || path.startsWith("/clients/"))
+    path = path.replace("/clients", "/management/clients");
+  if ((path === "/briefings" || path.startsWith("/briefings/")) && path !== "/briefings/template")
+    path = "/library/briefings";
   const u = new URL(href, "https://rsm.local");
   const p = path.replace(/\/$/, "") || "/";
   if (u.pathname === "/posts")
