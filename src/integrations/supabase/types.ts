@@ -17,7 +17,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      navigation_preferences: {Row:{user_id:string;sidebar_open:boolean;favorites:Json};Insert:{user_id:string;sidebar_open?:boolean;favorites?:Json};Update:{sidebar_open?:boolean;favorites?:Json};Relationships:[]};
+      navigation_preferences: {Row:{user_id:string;sidebar_open:boolean;favorites:Json;calendar_density:string;calendar_filters_open:boolean};Insert:{user_id:string;sidebar_open?:boolean;favorites?:Json;calendar_density?:string;calendar_filters_open?:boolean};Update:{sidebar_open?:boolean;favorites?:Json;calendar_density?:string;calendar_filters_open?:boolean};Relationships:[]};
       approval_links: {Row:{id:string;post_id:string;revision:number;expires_at:string;revoked_at:string|null;created_at:string;created_by:string;token_hash:string};Insert:never;Update:{revoked_at?:string};Relationships:[]};
       meeting_recaps: { Row: MeetingRecap; Insert: Pick<MeetingRecap,"meeting_id"|"summary"> & Partial<MeetingRecap>; Update: Partial<MeetingRecap>; Relationships: [] };
       client_request_messages: { Row: RequestMessage; Insert: Pick<RequestMessage,"request_id"|"body"> & Partial<RequestMessage>; Update: Partial<RequestMessage>; Relationships: [] };
@@ -2592,6 +2592,7 @@ export type Database = {
       }
       post_files: {
         Row: {
+          sort_order: number;
           created_at: string
           file_name: string
           id: string
@@ -3493,6 +3494,11 @@ export type Database = {
       retention_overview: { Row: RetentionAccount; Relationships: [] }
     }
     Functions: {
+      can_edit_calendar: { Args: Record<PropertyKey, never>; Returns: boolean };
+      calendar_timezone: { Args: Record<PropertyKey, never>; Returns: string };
+      save_calendar_post: { Args: { _post_id: string; _expected_updated_at: string; _patch: Json }; Returns: Json };
+      change_calendar_media: { Args: { _post_id: string; _expected_updated_at: string; _action: string; _file: Json }; Returns: Json };
+
       save_account_intake: {Args:{_client_id:string;_step:string;_responses:Json};Returns:undefined};
       accept_extra_quote: {Args:{_id:string;_revision:number};Returns:undefined};
       can_access_portal_post: {Args:{_post_id:string;_permission?:string};Returns:boolean};

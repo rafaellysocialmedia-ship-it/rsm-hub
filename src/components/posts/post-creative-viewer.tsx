@@ -7,13 +7,41 @@ import type { PostFile } from "@/lib/posts";
 
 type Signed = { file: PostFile; url: string | null };
 
-const EMPTY_CREATIVES: Signed[]=[];
-export function usePostCreativeQuery(postId:string|undefined){return useQuery({queryKey:["post-creative-signed",postId],enabled:!!postId,staleTime:240000,refetchInterval:240000,queryFn:async()=>{const {data,error}=await supabase.from("post_files").select("*").eq("post_id",postId!).order("created_at",{ascending:true});if(error)throw error;return Promise.all(data.map(async(file)=>{const {data,error}=await supabase.storage.from("post-files").createSignedUrl(file.storage_path,600);if(error)throw error;return {file,url:data.signedUrl};}));}});}
-export function usePostCreatives(postId:string|undefined){return usePostCreativeQuery(postId).data??EMPTY_CREATIVES;}
+const EMPTY_CREATIVES: Signed[] = [];
+export function usePostCreativeQuery(postId: string | undefined) {
+  return useQuery({
+    queryKey: ["post-creative-signed", postId],
+    enabled: !!postId,
+    staleTime: 240000,
+    refetchInterval: 240000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("post_files")
+        .select("*")
+        .eq("post_id", postId!)
+        .order("sort_order")
+        .order("created_at", { ascending: true })
+        .order("id");
+      if (error) throw error;
+      return Promise.all(
+        data.map(async (file) => {
+          const { data, error } = await supabase.storage
+            .from("post-files")
+            .createSignedUrl(file.storage_path, 600);
+          if (error) throw error;
+          return { file, url: data.signedUrl };
+        }),
+      );
+    },
+  });
+}
+export function usePostCreatives(postId: string | undefined) {
+  return usePostCreativeQuery(postId).data ?? EMPTY_CREATIVES;
+}
 
 export function PostCreativeThumb({ postId }: { postId: string }) {
   const items = usePostCreatives(postId);
-  const first = items.find((i) => (i.file.mime_type ?? "").startsWith("image/")) ?? items[0];
+  const first = items[0];
   if (!items.length) return null;
   const mime = first?.file.mime_type ?? "";
   return (
@@ -36,7 +64,13 @@ export function PostCreativeThumb({ postId }: { postId: string }) {
   );
 }
 
-export function PostCreativeGallery({ postId, previewOnly = false }: { postId: string; previewOnly?: boolean }) {
+export function PostCreativeGallery({
+  postId,
+  previewOnly = false,
+}: {
+  postId: string;
+  previewOnly?: boolean;
+}) {
   const items = usePostCreatives(postId);
   if (!items.length) {
     return (
@@ -49,32 +83,51 @@ export function PostCreativeGallery({ postId, previewOnly = false }: { postId: s
     <div className="grid grid-cols-2 gap-2">
       {items.map(({ file, url }) => {
         const mime = file.mime_type ?? "";
-        const media = url && mime.startsWith("image/") ? (
-          <img src={url} alt={file.file_name} className="aspect-square w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
-        ) : url && mime.startsWith("video/") ? (
-          <video src={url} controls={!previewOnly} muted={previewOnly} className="aspect-square w-full object-cover" />
-        ) : url ? (
-          <div className="flex aspect-square flex-col items-center justify-center gap-1 p-2 text-center text-xs text-muted-foreground">
-            <FileIcon className="h-6 w-6" />
-            <span className="line-clamp-2">{file.file_name}</span>
-          </div>
-        ) : (
-          <div className="flex aspect-square items-center justify-center">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          </div>
-        );
+        const media =
+          url && mime.startsWith("image/") ? (
+            <img
+              src={url}
+              alt={file.file_name}
+              className="aspect-square w-full object-cover transition-transform group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : url && mime.startsWith("video/") ? (
+            <video
+              src={url}
+              controls={!previewOnly}
+              muted={previewOnly}
+              className="aspect-square w-full object-cover"
+            />
+          ) : url ? (
+            <div className="flex aspect-square flex-col items-center justify-center gap-1 p-2 text-center text-xs text-muted-foreground">
+              <FileIcon className="h-6 w-6" />
+              <span className="line-clamp-2">{file.file_name}</span>
+            </div>
+          ) : (
+            <div className="flex aspect-square items-center justify-center">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          );
 
         if (previewOnly) {
           return (
-            <div key={file.id} className="group relative block overflow-hidden rounded-md border border-border bg-muted">
+            <div
+              key={file.id}
+              className="group relative block overflow-hidden rounded-md border border-border bg-muted"
+            >
               {media}
             </div>
           );
         }
 
         return (
-          <a key={file.id} href={url ?? "#"} target="_blank" rel="noreferrer"
-            className="group relative block overflow-hidden rounded-md border border-border bg-muted">
+          <a
+            key={file.id}
+            href={url ?? "#"}
+            target="_blank"
+            rel="noreferrer"
+            className="group relative block overflow-hidden rounded-md border border-border bg-muted"
+          >
             {media}
           </a>
         );

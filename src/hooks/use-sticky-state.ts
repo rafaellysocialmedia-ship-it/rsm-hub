@@ -1,33 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SetStateAction } from "react";
 
-/**
- * useStickyState — mantém o estado da tela (filtros, busca, visualização)
- * ao navegar entre páginas e voltar, usando sessionStorage.
- * Transparente para o usuário: nada muda visualmente.
- */
+/** Session preferences are scoped by the caller; never carry values across keys. */
 export function useStickyState<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial);
-  const [hydrated, setHydrated] = useState(false);
-
+  const [state, setState] = useState<{ key: string; value: T; loaded: boolean }>({
+    key,
+    value: initial,
+    loaded: false,
+  });
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    let value = initial;
     try {
       const raw = sessionStorage.getItem(`sticky:${key}`);
-      if (raw !== null) setValue(JSON.parse(raw) as T);
+      if (raw !== null) value = JSON.parse(raw) as T;
     } catch {
-      /* ignora payload inválido */
+      /* Storage may be unavailable. */
     }
-    setHydrated(true);
+    setState({ key, value, loaded: true });
   }, [key]);
-
   useEffect(() => {
-    if (!hydrated || typeof window === "undefined") return;
+    if (!state.loaded || state.key !== key) return;
     try {
-      sessionStorage.setItem(`sticky:${key}`, JSON.stringify(value));
+      sessionStorage.setItem(`sticky:${key}`, JSON.stringify(state.value));
     } catch {
-      /* storage indisponível */
+      /* Keep in-memory state. */
     }
-  }, [key, value, hydrated]);
-
-  return [value, setValue] as const;
+  }, [key, state]);
+  const setValue = (next: SetStateAction<T>) =>
+    setState((old) => ({
+      key,
+      loaded: true,
+      value:
+        typeof next === "function"
+          ? (next as (value: T) => T)(old.key === key ? old.value : initial)
+          : next,
+    }));
+  return [state.key === key ? state.value : initial, setValue] as const;
 }

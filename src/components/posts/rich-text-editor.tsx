@@ -1,8 +1,20 @@
+import { useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
-import { Bold, Italic, Strikethrough, List, ListOrdered, Quote, Heading2, Link2, Undo2, Redo2 } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  Strikethrough,
+  List,
+  ListOrdered,
+  Quote,
+  Heading2,
+  Link2,
+  Undo2,
+  Redo2,
+} from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -12,9 +24,16 @@ type Props = {
   onChange: (html: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 };
 
-export function RichTextEditor({ value, onChange, placeholder, className }: Props) {
+export function RichTextEditor({
+  value,
+  onChange,
+  placeholder,
+  className,
+  disabled = false,
+}: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
@@ -31,31 +50,66 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Prop
     },
   });
 
+  useEffect(() => {
+    if (editor && editor.getHTML() !== (value || "<p></p>"))
+      editor.commands.setContent(value || "", { emitUpdate: false });
+  }, [editor, value]);
+  useEffect(() => {
+    editor?.setEditable(!disabled);
+  }, [editor, disabled]);
   if (!editor) return null;
 
   return (
     <div className={cn("rounded-md border border-input bg-background", className)}>
       <div className="flex flex-wrap items-center gap-0.5 border-b border-border px-1.5 py-1">
-        <Toggle size="sm" pressed={editor.isActive("bold")} onPressedChange={() => editor.chain().focus().toggleBold().run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("bold")}
+          onPressedChange={() => editor.chain().focus().toggleBold().run()}
+        >
           <Bold className="h-3.5 w-3.5" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive("italic")} onPressedChange={() => editor.chain().focus().toggleItalic().run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("italic")}
+          onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+        >
           <Italic className="h-3.5 w-3.5" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive("strike")} onPressedChange={() => editor.chain().focus().toggleStrike().run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("strike")}
+          onPressedChange={() => editor.chain().focus().toggleStrike().run()}
+        >
           <Strikethrough className="h-3.5 w-3.5" />
         </Toggle>
         <Separator orientation="vertical" className="mx-1 h-5" />
-        <Toggle size="sm" pressed={editor.isActive("heading", { level: 2 })} onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("heading", { level: 2 })}
+          onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        >
           <Heading2 className="h-3.5 w-3.5" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive("bulletList")} onPressedChange={() => editor.chain().focus().toggleBulletList().run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("bulletList")}
+          onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+        >
           <List className="h-3.5 w-3.5" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive("orderedList")} onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("orderedList")}
+          onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+        >
           <ListOrdered className="h-3.5 w-3.5" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive("blockquote")} onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}>
+        <Toggle
+          size="sm"
+          pressed={editor.isActive("blockquote")}
+          onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
+        >
           <Quote className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
@@ -71,10 +125,18 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Prop
           <Link2 className="h-3.5 w-3.5" />
         </Toggle>
         <Separator orientation="vertical" className="mx-1 h-5" />
-        <Toggle size="sm" pressed={false} onPressedChange={() => editor.chain().focus().undo().run()}>
+        <Toggle
+          size="sm"
+          pressed={false}
+          onPressedChange={() => editor.chain().focus().undo().run()}
+        >
           <Undo2 className="h-3.5 w-3.5" />
         </Toggle>
-        <Toggle size="sm" pressed={false} onPressedChange={() => editor.chain().focus().redo().run()}>
+        <Toggle
+          size="sm"
+          pressed={false}
+          onPressedChange={() => editor.chain().focus().redo().run()}
+        >
           <Redo2 className="h-3.5 w-3.5" />
         </Toggle>
       </div>

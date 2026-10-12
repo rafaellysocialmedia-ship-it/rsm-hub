@@ -1,3 +1,4 @@
+import { useNavigationPreferences } from "@/hooks/use-navigation";
 import { useId, useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,8 @@ export function ContentFilters({
 }) {
   const [expanded, setExpanded] = useState(false);
   const id = useId();
+  const prefs = useNavigationPreferences();
+  const visible = prefs.data?.calendar_filters_open ?? true;
   const active = filters.filter((f) => f.value !== f.empty);
   const advanced = filters.filter((f) => !f.primary);
   const advancedCount = advanced.filter((f) => f.value !== f.empty).length;
@@ -76,75 +79,86 @@ export function ContentFilters({
   );
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:flex xl:items-end">
-        <div className="min-w-0 space-y-1.5 sm:col-span-2 xl:flex-1">
-          <label
-            htmlFor={`${id}-search`}
-            className="block text-xs font-medium text-muted-foreground"
-          >
-            Buscar conteúdo
-          </label>
-          <div className="relative">
-            <Search
-              aria-hidden
-              className="pointer-events-none absolute left-3 top-3.5 size-4 text-muted-foreground"
-            />
-            <Input
-              id={`${id}-search`}
-              placeholder="Título da publicação…"
-              value={search}
-              onChange={(e) => onSearch(e.target.value)}
-              className="h-11 bg-background pl-9 pr-10 shadow-none"
-            />
-            {search && (
-              <button
-                type="button"
-                aria-label="Limpar busca"
-                className="absolute right-1 top-1 rounded p-2.5 text-muted-foreground hover:text-primary focus-visible:ring-2"
-                onClick={() => onSearch("")}
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-        </div>
-        {filters
-          .filter((f) => f.primary)
-          .map((f) => (
-            <div key={f.key} className="min-w-0 xl:w-52">
-              {field(f)}
+      <Button
+        variant="ghost"
+        size="sm"
+        aria-expanded={visible}
+        aria-controls={`${id}-fields`}
+        onClick={() => prefs.update.mutate({ calendar_filters_open: !visible })}
+      >
+        {visible ? "Recolher filtros" : "Mostrar filtros"}
+      </Button>
+      <div id={`${id}-fields`} hidden={!visible}>
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:flex xl:items-end">
+          <div className="min-w-0 space-y-1.5 sm:col-span-2 xl:flex-1">
+            <label
+              htmlFor={`${id}-search`}
+              className="block text-xs font-medium text-muted-foreground"
+            >
+              Buscar conteúdo
+            </label>
+            <div className="relative">
+              <Search
+                aria-hidden
+                className="pointer-events-none absolute left-3 top-3.5 size-4 text-muted-foreground"
+              />
+              <Input
+                id={`${id}-search`}
+                placeholder="Título da publicação…"
+                value={search}
+                onChange={(e) => onSearch(e.target.value)}
+                className="h-11 bg-background pl-9 pr-10 shadow-none"
+              />
+              {search && (
+                <button
+                  type="button"
+                  aria-label="Limpar busca"
+                  className="absolute right-1 top-1 rounded p-2.5 text-muted-foreground hover:text-primary focus-visible:ring-2"
+                  onClick={() => onSearch("")}
+                >
+                  <X className="size-4" />
+                </button>
+              )}
             </div>
-          ))}
-        {advanced.length > 0 && (
-          <Button
-            type="button"
-            variant="outline"
-            className={`h-11 gap-2 self-end shadow-none ${expanded ? "border-primary/30 bg-primary/5 text-primary" : ""}`}
-            aria-expanded={expanded}
-            aria-controls={`${id}-more`}
-            onClick={() => setExpanded(!expanded)}
+          </div>
+          {filters
+            .filter((f) => f.primary)
+            .map((f) => (
+              <div key={f.key} className="min-w-0 xl:w-52">
+                {field(f)}
+              </div>
+            ))}
+          {advanced.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              className={`h-11 gap-2 self-end shadow-none ${expanded ? "border-primary/30 bg-primary/5 text-primary" : ""}`}
+              aria-expanded={expanded}
+              aria-controls={`${id}-more`}
+              onClick={() => setExpanded(!expanded)}
+            >
+              <SlidersHorizontal className="size-4" />
+              Mais filtros
+              {advancedCount > 0 && (
+                <span className="rounded-full bg-primary/10 px-1.5 text-xs text-primary">
+                  {advancedCount}
+                </span>
+              )}
+              <ChevronDown
+                className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+              />
+            </Button>
+          )}
+        </div>
+        {expanded && (
+          <div
+            id={`${id}-more`}
+            className="grid grid-cols-1 gap-3 border-t border-border/60 pt-3 sm:grid-cols-2 lg:grid-cols-3"
           >
-            <SlidersHorizontal className="size-4" />
-            Mais filtros
-            {advancedCount > 0 && (
-              <span className="rounded-full bg-primary/10 px-1.5 text-xs text-primary">
-                {advancedCount}
-              </span>
-            )}
-            <ChevronDown
-              className={`size-4 transition-transform ${expanded ? "rotate-180" : ""}`}
-            />
-          </Button>
+            {advanced.map(field)}
+          </div>
         )}
       </div>
-      {expanded && (
-        <div
-          id={`${id}-more`}
-          className="grid grid-cols-1 gap-3 border-t border-border/60 pt-3 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {advanced.map(field)}
-        </div>
-      )}
       {(active.length > 0 || search) && (
         <div
           className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-3"
@@ -186,7 +200,7 @@ export function ContentFilters({
               filters.forEach((f) => f.onChange(f.empty));
             }}
           >
-            Limpar tudo
+            Limpar filtros
           </Button>
         </div>
       )}

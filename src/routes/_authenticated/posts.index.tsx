@@ -1,3 +1,4 @@
+import { usePostWorkspace } from "@/components/posts/post-workspace";
 import { ContentFilters } from "@/components/posts/content-filters";
 import { ClientCalendarPage } from "@/components/workspace/client-calendar";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
@@ -75,17 +76,25 @@ type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
 
 function PostsPage() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const workspace = usePostWorkspace();
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const { view } = Route.useSearch();
   const navigate = Route.useNavigate();
   const setView = (value: ViewMode) =>
     void navigate({ search: (old) => ({ ...old, view: value }), replace: true });
-  const [search, setSearch] = useStickyState<string>("posts:search", "");
-  const [statusFilter, setStatusFilter] = useStickyState<PostStatus | "all">("posts:status", "all");
-  const [clientFilter, setClientFilter] = useStickyState<string>("posts:client", "all");
-  const [networkFilter, setNetworkFilter] = useStickyState<string>("posts:network", "all");
-  const [formatFilter, setFormatFilter] = useStickyState<string>("posts:format", "all");
-  const [ownerFilter, setOwnerFilter] = useStickyState<string>("posts:owner", "all");
+  const [search, setSearch] = useStickyState<string>(`posts:${user?.id}:search`, "");
+  const [statusFilter, setStatusFilter] = useStickyState<PostStatus | "all">(
+    `posts:${user?.id}:status`,
+    "all",
+  );
+  const [clientFilter, setClientFilter] = useStickyState<string>(`posts:${user?.id}:client`, "all");
+  const [networkFilter, setNetworkFilter] = useStickyState<string>(
+    `posts:${user?.id}:network`,
+    "all",
+  );
+  const [formatFilter, setFormatFilter] = useStickyState<string>(`posts:${user?.id}:format`, "all");
+  const [ownerFilter, setOwnerFilter] = useStickyState<string>(`posts:${user?.id}:owner`, "all");
   const owners = useQuery({
     queryKey: ["post-responsibles"],
     queryFn: async () => {
@@ -313,9 +322,7 @@ function PostsPage() {
   };
   const editFromDetail = (p: Post) => {
     setDetailOpen(false);
-    setEditing(p);
-    setInitial(undefined);
-    setEditorOpen(true);
+    workspace.openPost(p);
   };
 
   return (

@@ -20,24 +20,48 @@ export function useNavigationPreferences() {
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
-      return data ?? { user_id: user!.id, sidebar_open: true, favorites: [] };
+      return (
+        data ?? {
+          user_id: user!.id,
+          sidebar_open: true,
+          favorites: [],
+          calendar_density: "standard",
+          calendar_filters_open: true,
+        }
+      );
     },
   });
   const update = useMutation({
-    mutationFn: async (patch: { sidebar_open?: boolean; favorites?: Favorite[] }) => {
+    mutationFn: async (patch: {
+      sidebar_open?: boolean;
+      favorites?: Favorite[];
+      calendar_density?: string;
+      calendar_filters_open?: boolean;
+    }) => {
       if (!user) throw Error("Entre novamente.");
-      const { data, error } = await supabase
+      const updateExisting = () =>
+        supabase
+          .from("navigation_preferences")
+          .update(patch)
+          .eq("user_id", user.id)
+          .select("*")
+          .maybeSingle();
+      const existing = await updateExisting();
+      if (existing.error) throw existing.error;
+      if (existing.data) return existing.data;
+      const created = await supabase
         .from("navigation_preferences")
-        .upsert({
-          user_id: user.id,
-          sidebar_open: q.data?.sidebar_open ?? true,
-          favorites: q.data?.favorites ?? [],
-          ...patch,
-        })
+        .insert({ user_id: user.id, ...patch })
         .select("*")
         .single();
-      if (error) throw error;
-      return data;
+      if (created.error?.code === "23505") {
+        const retried = await updateExisting();
+        if (retried.error || !retried.data)
+          throw retried.error ?? Error("Preferência indisponível");
+        return retried.data;
+      }
+      if (created.error) throw created.error;
+      return created.data;
     },
     onSuccess: (data) => qc.setQueryData(key, data),
     onError: () => toast.error("Não foi possível salvar sua preferência. Tente novamente."),

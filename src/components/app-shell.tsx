@@ -1,3 +1,4 @@
+import { PostWorkspaceProvider } from "./posts/post-workspace";
 import { QuickActionsProvider } from "./navigation/quick-actions";
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
@@ -9,7 +10,7 @@ import { navForPath } from "@/lib/navigation";
 import { AppSidebar } from "./app-sidebar";
 import { Topbar } from "./topbar";
 export function AppShell({ children }: { children: ReactNode }) {
-  const { hasRole } = useAuth();
+  const { hasRole, user } = useAuth();
   const staff = hasRole("administrator") || hasRole("team");
   const prefs = useNavigationPreferences();
   const [open, setOpen] = useState(true);
@@ -43,29 +44,31 @@ export function AppShell({ children }: { children: ReactNode }) {
         prefs.update.mutate({ sidebar_open: value });
       }}
     >
-      <QuickActionsProvider>
-        <div className="flex min-h-screen w-full bg-[#f7f7f9]">
-          <AppSidebar />
-          <SidebarInset className="flex min-w-0 flex-1 flex-col bg-transparent">
-            <Topbar />
-            <main className="min-w-0 flex-1">
-              {permissions.loading ? (
-                <p className="p-8">Carregando permissões…</p>
-              ) : permissions.error ? (
-                <p role="alert" className="p-8">
-                  Não foi possível verificar seu acesso. Atualize a página para tentar novamente.
-                </p>
-              ) : forbidden ? (
-                <p role="alert" className="p-8">
-                  Seu perfil não tem acesso a esta área.
-                </p>
-              ) : (
-                children
-              )}
-            </main>
-          </SidebarInset>
-        </div>
-      </QuickActionsProvider>
+      <PostWorkspaceProvider key={user?.id}>
+        <QuickActionsProvider>
+          <div className="flex min-h-screen w-full bg-[#f7f7f9]">
+            <AppSidebar />
+            <SidebarInset className="flex min-w-0 flex-1 flex-col bg-transparent">
+              <Topbar />
+              <main className="min-w-0 flex-1">
+                {permissions.loading ? (
+                  <p className="p-8">Carregando permissões…</p>
+                ) : permissions.error ? (
+                  <p role="alert" className="p-8">
+                    Não foi possível verificar seu acesso. Atualize a página para tentar novamente.
+                  </p>
+                ) : forbidden ? (
+                  <p role="alert" className="p-8">
+                    Seu perfil não tem acesso a esta área.
+                  </p>
+                ) : (
+                  children
+                )}
+              </main>
+            </SidebarInset>
+          </div>
+        </QuickActionsProvider>
+      </PostWorkspaceProvider>
     </SidebarProvider>
   );
 }
