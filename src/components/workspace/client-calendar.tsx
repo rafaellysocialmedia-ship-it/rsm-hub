@@ -1,3 +1,4 @@
+import { ContentFilters } from "@/components/posts/content-filters";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -12,7 +13,6 @@ import {
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ReviewDialog } from "@/components/approval/review-dialog";
 import { PostCreativeThumb } from "@/components/posts/post-creative-viewer";
 import { QueryState } from "./account-panels";
@@ -58,10 +58,10 @@ export function ClientCalendarPage({
     to = format(end, "yyyy-MM-dd");
   const list = all.filter(
     (p) =>
-      (!channel || postNetworks(p).includes(channel)) &&
-      (!kind || p.format === kind) &&
-      (!status || p.status === status) &&
-      p.title.toLowerCase().includes(search.toLowerCase()) &&
+      (providedPosts !== undefined || !channel || postNetworks(p).includes(channel)) &&
+      (providedPosts !== undefined || !kind || p.format === kind) &&
+      (providedPosts !== undefined || !status || p.status === status) &&
+      (providedPosts !== undefined || p.title.toLowerCase().includes(search.toLowerCase())) &&
       p.scheduled_date &&
       p.scheduled_date >= from &&
       p.scheduled_date <= to,
@@ -117,50 +117,46 @@ export function ClientCalendarPage({
           <option value="grid">Grade de prévias</option>
         </select>
       </header>
-      <div className="flex flex-wrap gap-2">
-        <Input
-          className="sm:max-w-56"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar conteúdo"
-          aria-label="Buscar conteúdo"
-        />
-        <select
-          aria-label="Canal"
-          className={selectClass}
-          value={channel}
-          onChange={(e) => setChannel(e.target.value)}
-        >
-          <option value="">Todos os canais</option>
-          {[...new Set(all.flatMap(postNetworks))].map((n) => (
-            <option key={n}>{n}</option>
-          ))}
-        </select>
-        <select
-          aria-label="Formato"
-          className={selectClass}
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-        >
-          <option value="">Todos os formatos</option>
-          {[...new Set(all.map((p) => p.format).filter(Boolean))].map((n) => (
-            <option key={n!}>{n}</option>
-          ))}
-        </select>
-        <select
-          aria-label="Status"
-          className={selectClass}
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">Todos os status</option>
-          {POST_STATUS.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {providedPosts === undefined && (
+        <div className="rounded-xl border bg-card p-4">
+          <ContentFilters
+            search={search}
+            onSearch={setSearch}
+            filters={[
+              {
+                key: "status",
+                label: "Status",
+                value: status || "all",
+                empty: "all",
+                primary: true,
+                onChange: (v) => setStatus(v === "all" ? "" : v),
+                options: POST_STATUS.map((s) => ({ value: s.value, label: s.label })),
+              },
+              {
+                key: "channel",
+                label: "Canal",
+                value: channel || "all",
+                empty: "all",
+                onChange: (v) => setChannel(v === "all" ? "" : v),
+                options: [...new Set(all.flatMap(postNetworks))].map((n) => ({
+                  value: n,
+                  label: n,
+                })),
+              },
+              {
+                key: "format",
+                label: "Formato",
+                value: kind || "all",
+                empty: "all",
+                onChange: (v) => setKind(v === "all" ? "" : v),
+                options: [...new Set(all.map((p) => p.format).filter((f): f is string => !!f))].map(
+                  (f) => ({ value: f, label: f }),
+                ),
+              },
+            ]}
+          />
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Button

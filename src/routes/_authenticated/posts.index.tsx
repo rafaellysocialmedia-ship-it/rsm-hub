@@ -1,3 +1,4 @@
+import { ContentFilters } from "@/components/posts/content-filters";
 import { ClientCalendarPage } from "@/components/workspace/client-calendar";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
@@ -10,7 +11,6 @@ import {
   GanttChart,
   Table2,
   Plus,
-  Search,
   Filter,
   X,
   Download,
@@ -20,15 +20,7 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { POST_STATUS, SOCIAL_NETWORKS, type Post, type PostStatus } from "@/lib/posts";
@@ -326,13 +318,6 @@ function PostsPage() {
     setEditorOpen(true);
   };
 
-  const activeFilters =
-    (statusFilter !== "all" ? 1 : 0) +
-    (clientFilter !== "all" ? 1 : 0) +
-    (networkFilter !== "all" ? 1 : 0) +
-    (formatFilter !== "all" ? 1 : 0) +
-    (ownerFilter !== "all" ? 1 : 0);
-
   return (
     <div className="mx-auto w-full max-w-7xl space-y-5 px-6 py-8">
       {/* Header */}
@@ -366,8 +351,12 @@ function PostsPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-soft lg:flex-row lg:items-center">
-        <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+        <Tabs
+          className="border-b border-border/60 pb-3"
+          value={view}
+          onValueChange={(v) => setView(v as ViewMode)}
+        >
           <TabsList className="h-auto flex-wrap justify-start">
             <TabsTrigger value="calendar" className="gap-1.5 text-xs">
               <CalendarDays className="h-3.5 w-3.5" />
@@ -392,104 +381,61 @@ function PostsPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex flex-1 flex-wrap items-center gap-2 lg:justify-end">
-          <div className="relative w-full sm:w-56">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar publicações..."
-              className="h-9 pl-8"
-            />
-          </div>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as PostStatus | "all")}
-          >
-            <SelectTrigger className="h-9 w-36">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos status</SelectItem>
-              {POST_STATUS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger className="h-9 w-36">
-              <SelectValue placeholder="Cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos clientes</SelectItem>
-              {clients.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={networkFilter} onValueChange={setNetworkFilter}>
-            <SelectTrigger className="h-9 w-36">
-              <SelectValue placeholder="Rede" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas redes</SelectItem>
-              {SOCIAL_NETWORKS.map((n) => (
-                <SelectItem key={n} value={n}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <select
-            aria-label="Formato"
-            className="min-h-10 rounded border bg-card px-3 text-sm"
-            value={formatFilter}
-            onChange={(e) => setFormatFilter(e.target.value)}
-          >
-            <option value="all">Todos formatos</option>
-            {[...new Set(posts.map((p) => p.format).filter(Boolean))].map((f) => (
-              <option key={f!}>{f}</option>
-            ))}
-          </select>
-          <select
-            aria-label="Responsável pela tarefa vinculada"
-            className="min-h-10 rounded border bg-card px-3 text-sm"
-            value={ownerFilter}
-            onChange={(e) => setOwnerFilter(e.target.value)}
-          >
-            <option value="all">Todos responsáveis</option>
-            {owners.data?.people
-              .filter((p) => owners.data.tasks.some((t) => t.assignee_id === p.id))
-              .map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-          </select>
-          {activeFilters > 0 && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-9 gap-1 text-xs"
-              onClick={() => {
-                setStatusFilter("all");
-                setClientFilter("all");
-                setNetworkFilter("all");
-                setFormatFilter("all");
-                setOwnerFilter("all");
-              }}
-            >
-              <X className="h-3 w-3" /> Limpar
-              <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
-                {activeFilters}
-              </Badge>
-            </Button>
-          )}
-        </div>
+        <ContentFilters
+          search={search}
+          onSearch={setSearch}
+          filters={[
+            {
+              key: "client",
+              label: "Cliente",
+              value: clientFilter,
+              empty: "all",
+              primary: true,
+              onChange: setClientFilter,
+              options: clients.map((c) => ({ value: c.id, label: c.name })),
+            },
+            {
+              key: "status",
+              label: "Status",
+              value: statusFilter,
+              empty: "all",
+              primary: true,
+              onChange: (v) => setStatusFilter(v as PostStatus | "all"),
+              options: POST_STATUS.map((s) => ({ value: s.value, label: s.label })),
+            },
+            {
+              key: "channel",
+              label: "Canal",
+              value: networkFilter,
+              empty: "all",
+              onChange: setNetworkFilter,
+              options: SOCIAL_NETWORKS.map((n) => ({ value: n, label: n })),
+            },
+            {
+              key: "format",
+              label: "Formato",
+              value: formatFilter,
+              empty: "all",
+              onChange: setFormatFilter,
+              options: [...new Set(posts.map((p) => p.format).filter((f): f is string => !!f))].map(
+                (f) => ({ value: f, label: f }),
+              ),
+            },
+            {
+              key: "owner",
+              label: "Responsável",
+              value: ownerFilter,
+              empty: "all",
+              onChange: setOwnerFilter,
+              loading: owners.isLoading,
+              error: !!owners.error,
+              options:
+                owners.data?.people
+                  .filter((p) => owners.data.tasks.some((t) => t.assignee_id === p.id))
+                  .map((p) => ({ value: p.id, label: p.name ?? "Sem nome" })) ?? [],
+            },
+          ]}
+        />
       </div>
 
       {/* Calendar balance control bar — tied to the displayed month and selected client */}
