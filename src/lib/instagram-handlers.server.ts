@@ -47,8 +47,21 @@ export async function startInstagram(request: Request) {
 export async function callbackInstagram(request: Request) {
   let consumedState: string | undefined;
   let clientId: string | undefined;
+  let diagnostic = "callback_unexpected";
+  const diagnosticCodes: Record<string, string> = {
+    "Instagram configuration unavailable": "configuration_missing",
+    "Instagram disabled": "configuration_disabled",
+    "Invalid Instagram redirect configuration": "configuration_redirect",
+    "Invalid Instagram encryption configuration": "configuration_encryption",
+    "Permission verification unavailable": "permission_check",
+    "Instagram request failed": "instagram_request",
+    "Invalid Instagram account response": "token_response",
+    "Instagram permissions missing": "permissions_missing",
+    "Invalid Instagram token response": "long_token_response",
+    "Invalid Instagram profile response": "profile_response",
+  };
   const result = (status: string) => new Response(null, { status: 303, headers: {
-    ...headers, Location: `${clientId ? `/management/clients/${clientId}` : "/management/clients"}?tab=settings&instagram_connection=${status}`,
+    ...headers, Location: `${clientId ? `/management/clients/${clientId}` : "/management/clients"}?tab=settings&instagram_connection=${status}${status === "error" && process.env.RSM_ENVIRONMENT === "staging" ? `&instagram_diagnostic=${diagnostic}` : ""}`,
     ...(consumedState ? { "Set-Cookie": cookie(consumedState, "", 0) } : {}),
   } });
   try {
@@ -71,9 +84,11 @@ export async function callbackInstagram(request: Request) {
     if (url.searchParams.has("error")) return result("denied");
     const code = url.searchParams.get("code");
     if (!code || code.length > 4096) return result("invalid");
+    diagnostic = "token_exchange";
     const account = await exchangeInstagramCode(code);
     // Recheck immediately before writing, in case access/churn changed during consent.
     if (!await allowed(db, data.user_id, data.client_id)) return result("forbidden");
+    diagnostic = "connection_save";
     const { error: saveError } = await db.from("instagram_connections").upsert({
       user_id: data.user_id, client_id: data.client_id, instagram_user_id: account.instagramUserId,
       username: account.username, encrypted_access_token: await encryptToken(account.token),
@@ -81,8 +96,10 @@ export async function callbackInstagram(request: Request) {
     }, { onConflict: "client_id,instagram_user_id" });
     if (saveError) return result("error");
     return result("connected");
-  } catch {
-    // Deliberately no error object, message, URL, code or token in logs.
+  } catch (error) {
+    // Only fixed diagnostic labels in staging. Never expose messages, URLs or tokens.
+    if (error instanceof Error && Object.hasOwn(diagnosticCodes, error.message))
+      diagnostic = diagnosticCodes[error.message];
     return result("error");
   }
 }
