@@ -15,11 +15,14 @@ let upstreamFailure: string;
 let grantedScopes: string[];
 let calls: string[];
 let databaseFailure: boolean;
+let shortTokenShape: "flat" | "wrapped" | "empty" | "multiple" | "mixed";
+let permissionsAsString: boolean;
 beforeEach(() => {
   Object.assign(process.env, { INSTAGRAM_OAUTH_ENABLED: "true", INSTAGRAM_REDIRECT_URI: `${origin}/api/integrations/instagram/callback`,
     INSTAGRAM_APP_ID: "test-app", INSTAGRAM_APP_SECRET: "test-secret", INSTAGRAM_TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
     SUPABASE_URL: "https://database-test.example", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" });
   states = {}; saved = []; permitted = true; upstreamFailure = ""; grantedScopes = scopes.split(","); calls = []; databaseFailure = false;
+  shortTokenShape = "flat"; permissionsAsString = false;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input)); calls.push(url.pathname);
     const ok = (body: unknown) => Response.json(body);
@@ -43,7 +46,13 @@ beforeEach(() => {
     if (url.hostname === "api.instagram.com") {
       if (upstreamFailure === "code") throw new Error("Sensitive test-secret must never be logged");
       assert.equal(new URLSearchParams(String(init?.body)).get("redirect_uri"), process.env.INSTAGRAM_REDIRECT_URI);
-      return ok({ access_token: "test-short-token", user_id: "12345678901234567", permissions: grantedScopes });
+      const short = { access_token: "test-short-token", user_id: "12345678901234567",
+        permissions: permissionsAsString ? grantedScopes.join(", ") : grantedScopes };
+      if (shortTokenShape === "wrapped") return ok({ data: [short] });
+      if (shortTokenShape === "empty") return ok({ data: [] });
+      if (shortTokenShape === "multiple") return ok({ data: [short, short] });
+      if (shortTokenShape === "mixed") return ok({ ...short, data: [short] });
+      return ok(short);
     }
     if (url.pathname === "/access_token") return upstreamFailure === "long" ? new Response(null, { status: 400 }) : ok({ access_token: "test-long-token", expires_in: 5184000 });
     if (url.pathname === "/me") return upstreamFailure === "profile" ? ok({ user_id: 123, username: "bad" }) : ok({ user_id: "12345678901234567", username: "test_profile" });
@@ -80,6 +89,52 @@ test("complete simulated flow saves encrypted token for client and exact string 
   assert.equal(saved[0].client_id, client); assert.equal(saved[0].user_id, user); assert.equal(saved[0].instagram_user_id, "12345678901234567");
   assert.ok(!JSON.stringify(saved).includes("test-long-token")); assert.equal(JSON.parse(saved[0].encrypted_access_token).version, 1);
   assert.match(response.headers.get("Set-Cookie")!, /Max-Age=0/); assert.equal(response.headers.get("Referrer-Policy"), "no-referrer");
+});
+test("single wrapped Instagram Login response connects the intended client", async () => {
+  shortTokenShape = "wrapped";
+  const b = await begin(); const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "connected");
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].instagram_user_id, "12345678901234567");
+});
+test("comma-separated permissions with whitespace are accepted", async () => {
+  permissionsAsString = true;
+  const b = await begin();
+  assert.equal(result(await callback(b.state, b.cookie)), "connected");
+  assert.equal(saved.length, 1);
+});
+for (const shape of ["empty", "multiple", "mixed"] as const) {
+  test(`ambiguous or malformed ${shape} token response never saves a connection`, async () => {
+    shortTokenShape = shape; process.env.RSM_ENVIRONMENT = "staging";
+    const b = await begin(); const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    const redirect = new URL(response.headers.get("Location")!, origin);
+    assert.equal(redirect.searchParams.get("instagram_diagnostic"), "token_response");
+    assert.equal(saved.length, 0);
+  });
+}
+for (const [failure, expected] of [
+  ["code", "authorization_exchange"], ["long", "long_token_exchange"],
+  ["profile", "profile_response"],
+] as const) {
+  test(`staging callback reports sanitized ${failure} failure`, async () => {
+    process.env.RSM_ENVIRONMENT = "staging";
+    const b = await begin(); upstreamFailure = failure;
+    const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    const location = response.headers.get("Location")!;
+    assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), expected);
+    assert.ok(!location.includes("test-secret") && !location.includes("test-short-token"));
+    assert.ok(!location.includes("Sensitive"));
+    assert.equal(saved.length, 0);
+  });
+}
+test("production callback never discloses diagnostic labels", async () => {
+  process.env.RSM_ENVIRONMENT = "production";
+  const b = await begin(); upstreamFailure = "code";
+  const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "error");
+  assert.equal(new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_diagnostic"), null);
 });
 test("missing browser cookie cannot consume state", async () => { const b = await begin(); assert.equal(result(await callback(b.state)), "invalid"); assert.equal(Object.keys(states).length, 1); });
 test("wrong browser cannot consume state", async () => { const b = await begin(); assert.equal(result(await callback(b.state, b.cookie.replace(/=.*/, `=${"b".repeat(64)}`))), "expired"); assert.equal(Object.keys(states).length, 1); });
