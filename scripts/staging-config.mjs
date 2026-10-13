@@ -35,7 +35,9 @@ export function workerConfig(base, config) {
       RSM_ENVIRONMENT: 'staging', SUPABASE_URL: config.supabaseUrl,
       SUPABASE_PUBLISHABLE_KEY: config.publicKey,
       INSTAGRAM_REDIRECT_URI: `${config.origin}/api/integrations/instagram/callback`,
-      INSTAGRAM_OAUTH_ENABLED: 'false',
+      // Deliberately omit INSTAGRAM_OAUTH_ENABLED. keep_vars preserves the dashboard
+      // value on an existing staging Worker; absent means OAuth stays disabled
+      // by the server's fail-closed assertConfigured() check.
     },
   };
 }
