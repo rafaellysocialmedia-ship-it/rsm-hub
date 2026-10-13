@@ -1,0 +1,41 @@
+name: Instagram OAuth callback checks (staging only)
+
+on:
+  push:
+    branches:
+      - fix/instagram-callback-staging-diagnostics
+  pull_request:
+    branches:
+      - fix/instagram-oauth-validation
+
+permissions:
+  contents: read
+
+concurrency:
+  group: instagram-oauth-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Instagram OAuth tests (offline Meta mocks)
+        run: npm run test:instagram
+      - name: TypeScript check
+        run: npm run typecheck
+      - name: Build (no deployment)
+        run: npm run build
+      - name: Verify build artifacts (no deployment)
+        run: npm run verify:build
