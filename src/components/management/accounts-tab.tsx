@@ -1,3 +1,4 @@
+import { InstagramConnection } from "./instagram-connection";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -28,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState, SectionCard } from "./master-shared";
 
-export function AccountsTab({ clientId, canEdit }: { clientId: string; canEdit: boolean }) {
+export function AccountsTab({ clientId, canEdit, oauthCanEdit = canEdit }: { clientId: string; canEdit: boolean; oauthCanEdit?: boolean }) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -118,6 +119,7 @@ export function AccountsTab({ clientId, canEdit }: { clientId: string; canEdit: 
         </div>
       }
     >
+      <InstagramConnection clientId={clientId} canEdit={oauthCanEdit} />
       {grouped.length === 0 ? (
         <EmptyState>Nenhuma conta registrada para este cliente.</EmptyState>
       ) : (

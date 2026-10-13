@@ -59,8 +59,9 @@ import { ClientBriefingsTab } from "@/components/management/client-briefings-tab
 import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
 
 export const Route = createFileRoute("/_authenticated/management/clients/$clientId")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string; instagram_connection?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
+    instagram_connection: typeof search.instagram_connection === "string" ? search.instagram_connection : undefined,
   }),
   head: () => ({
     meta: [
@@ -92,7 +93,7 @@ function ClientMasterPage() {
   const { hasRole } = useAuth();
   const financeAccess = useFinanceAccess();
   const canEdit = hasRole("administrator") || hasRole("team");
-  const { tab: requestedTab } = Route.useSearch();
+  const { tab: requestedTab, instagram_connection: instagramResult } = Route.useSearch();
   const navigate = Route.useNavigate();
   const tab = requestedTab || "overview";
   const setTab = (value: string) => {
@@ -286,7 +287,7 @@ function ClientMasterPage() {
           <TimelineTab clientId={client.id} />
         </TabsContent>
         <TabsContent value="settings" className="mt-5">
-          <Tabs defaultValue="info">
+          <Tabs defaultValue={instagramResult ? "accounts" : "info"}>
             <TabsList className="flex h-auto flex-wrap justify-start gap-1">
               <TabsTrigger value="info">Informações</TabsTrigger>
               <TabsTrigger value="services">Serviços</TabsTrigger>
@@ -309,7 +310,7 @@ function ClientMasterPage() {
               <TeamTab clientId={client.id} canEdit={canEdit} />
             </TabsContent>
             <TabsContent value="accounts">
-              <AccountsTab clientId={client.id} canEdit={canEdit} />
+              <AccountsTab clientId={client.id} canEdit={canEdit} oauthCanEdit={canEdit && !client.churned && client.status !== "inactive"} />
             </TabsContent>
             <TabsContent value="assets">
               <DigitalAssetsTab clientId={client.id} canEdit={canEdit} />
