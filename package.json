@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test:instagram": "node --import tsx --test tests/instagram*.test.ts",
     "typecheck": "tsc --noEmit",
-    "verify:build": "node scripts/verify-sites-build.mjs"
+    "verify:build": "node scripts/verify-sites-build.mjs",
+    "build:staging": "node scripts/build-staging.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "1",
