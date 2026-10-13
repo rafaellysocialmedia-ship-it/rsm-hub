@@ -39,3 +39,24 @@ jobs:
         run: npm run build
       - name: Verify build artifacts (no deployment)
         run: npm run verify:build
+      - name: Prepare isolated staging artifact (fake public credentials; no deployment)
+        env:
+          RSM_STAGING_CF_ACCOUNT_ID: '00000000000000000000000000000000'
+          RSM_STAGING_SUPABASE_URL: https://dtladsjhmnzdxcmgivne.supabase.co
+          RSM_STAGING_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder_only
+          RSM_STAGING_ORIGIN: https://rsm-hub-instagram-staging.rafaellysocialmedia.workers.dev
+        run: |
+          npm run build:staging
+          npm run verify:build
+          node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { readFileSync } from "node:fs";
+            const c = JSON.parse(readFileSync("dist/server/wrangler.staging.json", "utf8"));
+            assert.equal(c.name, "rsm-hub-instagram-staging");
+            assert.equal(c.vars.RSM_ENVIRONMENT, "staging");
+            assert.equal(c.vars.INSTAGRAM_OAUTH_ENABLED, "false");
+            assert.equal(c.vars.SUPABASE_URL, "https://dtladsjhmnzdxcmgivne.supabase.co");
+            assert.equal(c.vars.INSTAGRAM_REDIRECT_URI, "https://rsm-hub-instagram-staging.rafaellysocialmedia.workers.dev/api/integrations/instagram/callback");
+            assert.deepEqual(c.routes, []);
+            console.log("PASS: isolated staging config checked, no deploy");
+          '
