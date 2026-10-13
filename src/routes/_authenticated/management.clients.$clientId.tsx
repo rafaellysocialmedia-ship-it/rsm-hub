@@ -59,9 +59,10 @@ import { ClientBriefingsTab } from "@/components/management/client-briefings-tab
 import { ClientFinanceTab } from "@/components/finance/client-finance-tab";
 
 export const Route = createFileRoute("/_authenticated/management/clients/$clientId")({
-  validateSearch: (search: Record<string, unknown>): { tab?: string; instagram_connection?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string; instagram_connection?: string; instagram_diagnostic?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
     instagram_connection: typeof search.instagram_connection === "string" ? search.instagram_connection : undefined,
+    instagram_diagnostic: typeof search.instagram_diagnostic === "string" ? search.instagram_diagnostic : undefined,
   }),
   head: () => ({
     meta: [
