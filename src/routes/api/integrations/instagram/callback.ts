@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { adminDb, encryptToken, exchangeInstagramCode, hashState } from "@/lib/instagram-oauth.server";
 
 const resultRedirect = (status: string) =>
-  Response.redirect(`https://rsmmarketing.com.br/dashboard?instagram_connection=${encodeURIComponent(status)}`, 303);
+  Response.redirect(`https://app.rsmmarketing.com.br/dashboard?instagram_connection=${encodeURIComponent(status)}`, 303);
 
 export const Route = createFileRoute("/api/integrations/instagram/callback")({
   server: {
