@@ -13,6 +13,7 @@ await cp(join(output, "public"), join(dist, "client"), { recursive: true });
 
 const wranglerPath = join(dist, "server", "wrangler.json");
 const wrangler = JSON.parse(await readFile(wranglerPath, "utf8"));
+wrangler.main = "index.js";
 wrangler.assets = { ...wrangler.assets, binding: "ASSETS", directory: "../client" };
 await writeFile(wranglerPath, `${JSON.stringify(wrangler, null, 2)}\n`);
 

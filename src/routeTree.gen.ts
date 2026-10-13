@@ -57,6 +57,9 @@ import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_aut
 import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
 import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
 import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
+import { Route as ApiIntegrationsInstagramStatusRouteImport } from './routes/api/integrations/instagram/status'
+import { Route as ApiIntegrationsInstagramStartRouteImport } from './routes/api/integrations/instagram/start'
+import { Route as ApiIntegrationsInstagramCallbackRouteImport } from './routes/api/integrations/instagram/callback'
 import { Route as AuthenticatedTrafficCampaignsCampaignIdRouteImport } from './routes/_authenticated/traffic.campaigns.$campaignId'
 import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
 
@@ -327,6 +330,24 @@ const AuthenticatedAdminCoursesIndexRoute =
     path: '/admin/courses/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiIntegrationsInstagramStatusRoute =
+  ApiIntegrationsInstagramStatusRouteImport.update({
+    id: '/api/integrations/instagram/status',
+    path: '/api/integrations/instagram/status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiIntegrationsInstagramStartRoute =
+  ApiIntegrationsInstagramStartRouteImport.update({
+    id: '/api/integrations/instagram/start',
+    path: '/api/integrations/instagram/start',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiIntegrationsInstagramCallbackRoute =
+  ApiIntegrationsInstagramCallbackRouteImport.update({
+    id: '/api/integrations/instagram/callback',
+    path: '/api/integrations/instagram/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedTrafficCampaignsCampaignIdRoute =
   AuthenticatedTrafficCampaignsCampaignIdRouteImport.update({
     id: '/traffic/campaigns/$campaignId',
@@ -387,6 +408,9 @@ export interface FileRoutesByFullPath {
   '/vault/': typeof AuthenticatedVaultIndexRoute
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
+  '/api/integrations/instagram/callback': typeof ApiIntegrationsInstagramCallbackRoute
+  '/api/integrations/instagram/start': typeof ApiIntegrationsInstagramStartRoute
+  '/api/integrations/instagram/status': typeof ApiIntegrationsInstagramStatusRoute
   '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
   '/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -437,6 +461,9 @@ export interface FileRoutesByTo {
   '/vault': typeof AuthenticatedVaultIndexRoute
   '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
+  '/api/integrations/instagram/callback': typeof ApiIntegrationsInstagramCallbackRoute
+  '/api/integrations/instagram/start': typeof ApiIntegrationsInstagramStartRoute
+  '/api/integrations/instagram/status': typeof ApiIntegrationsInstagramStatusRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
   '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
   '/traffic/campaigns': typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -490,6 +517,9 @@ export interface FileRoutesById {
   '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
   '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
   '/_authenticated/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
+  '/api/integrations/instagram/callback': typeof ApiIntegrationsInstagramCallbackRoute
+  '/api/integrations/instagram/start': typeof ApiIntegrationsInstagramStartRoute
+  '/api/integrations/instagram/status': typeof ApiIntegrationsInstagramStatusRoute
   '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
   '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
   '/_authenticated/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
@@ -543,6 +573,9 @@ export interface FileRouteTypes {
     | '/vault/'
     | '/management/clients/$clientId'
     | '/traffic/campaigns/$campaignId'
+    | '/api/integrations/instagram/callback'
+    | '/api/integrations/instagram/start'
+    | '/api/integrations/instagram/status'
     | '/admin/courses/'
     | '/management/clients/'
     | '/traffic/campaigns/'
@@ -593,6 +626,9 @@ export interface FileRouteTypes {
     | '/vault'
     | '/management/clients/$clientId'
     | '/traffic/campaigns/$campaignId'
+    | '/api/integrations/instagram/callback'
+    | '/api/integrations/instagram/start'
+    | '/api/integrations/instagram/status'
     | '/admin/courses'
     | '/management/clients'
     | '/traffic/campaigns'
@@ -645,6 +681,9 @@ export interface FileRouteTypes {
     | '/_authenticated/vault/'
     | '/_authenticated/management/clients/$clientId'
     | '/_authenticated/traffic/campaigns/$campaignId'
+    | '/api/integrations/instagram/callback'
+    | '/api/integrations/instagram/start'
+    | '/api/integrations/instagram/status'
     | '/_authenticated/admin/courses/'
     | '/_authenticated/management/clients/'
     | '/_authenticated/traffic/campaigns/'
@@ -656,6 +695,9 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiIntegrationsInstagramCallbackRoute: typeof ApiIntegrationsInstagramCallbackRoute
+  ApiIntegrationsInstagramStartRoute: typeof ApiIntegrationsInstagramStartRoute
+  ApiIntegrationsInstagramStatusRoute: typeof ApiIntegrationsInstagramStatusRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -996,6 +1038,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/integrations/instagram/status': {
+      id: '/api/integrations/instagram/status'
+      path: '/api/integrations/instagram/status'
+      fullPath: '/api/integrations/instagram/status'
+      preLoaderRoute: typeof ApiIntegrationsInstagramStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/integrations/instagram/start': {
+      id: '/api/integrations/instagram/start'
+      path: '/api/integrations/instagram/start'
+      fullPath: '/api/integrations/instagram/start'
+      preLoaderRoute: typeof ApiIntegrationsInstagramStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/integrations/instagram/callback': {
+      id: '/api/integrations/instagram/callback'
+      path: '/api/integrations/instagram/callback'
+      fullPath: '/api/integrations/instagram/callback'
+      preLoaderRoute: typeof ApiIntegrationsInstagramCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/traffic/campaigns/$campaignId': {
       id: '/_authenticated/traffic/campaigns/$campaignId'
       path: '/traffic/campaigns/$campaignId'
@@ -1133,6 +1196,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiIntegrationsInstagramCallbackRoute: ApiIntegrationsInstagramCallbackRoute,
+  ApiIntegrationsInstagramStartRoute: ApiIntegrationsInstagramStartRoute,
+  ApiIntegrationsInstagramStatusRoute: ApiIntegrationsInstagramStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,76 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Instagram, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+
+const messages: Record<string, string> = {
+  connected: "Instagram conectado ao cliente.", denied: "Você cancelou a autorização do Instagram.",
+  expired: "A conexão expirou ou já foi utilizada. Tente novamente.", invalid: "Conexão inválida. Inicie novamente neste navegador.",
+  forbidden: "Você não tem permissão para conectar este cliente.", error: "Não foi possível concluir a conexão. Tente novamente.",
+};
+type Status = { enabled: boolean; connections: { instagram_user_id: string; username: string; expired: boolean }[] };
+async function authenticatedFetch(path: string, init?: RequestInit) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error("Entre novamente para conectar o Instagram.");
+  const response = await fetch(path, { ...init, credentials: "same-origin", cache: "no-store",
+    headers: { ...init?.headers, Authorization: `Bearer ${session.access_token}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error ?? "Integração indisponível.");
+  return data;
+}
+export function InstagramConnection({ clientId, canEdit }: { clientId: string; canEdit: boolean }) {
+  const { can, isStaff, loading } = usePermissions();
+  const { user } = useAuth();
+  const allowed = !loading && canEdit && isStaff && can("workspace.clients", "edit");
+  const [connecting, setConnecting] = useState(false);
+  const status = useQuery<Status>({
+    queryKey: ["instagram-status", clientId, user?.id], enabled: allowed, retry: false,
+    queryFn: () => authenticatedFetch(`/api/integrations/instagram/status?client_id=${encodeURIComponent(clientId)}`),
+  });
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const result = url.searchParams.get("instagram_connection");
+    if (!result) return;
+    if (messages[result]) (result === "connected" ? toast.success : toast.error)(messages[result]);
+    url.searchParams.delete("instagram_connection");
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
+  if (!allowed) return null;
+  async function connect() {
+    setConnecting(true);
+    try {
+      const data = await authenticatedFetch("/api/integrations/instagram/start", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_id: clientId }),
+      });
+      const url = new URL(data.authorization_url);
+      if (url.origin !== "https://www.instagram.com" || url.pathname !== "/oauth/authorize") throw new Error("Destino de autorização inválido.");
+      window.location.assign(url.toString());
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível iniciar a conexão.");
+      setConnecting(false);
+    }
+  }
+  return <div className="mb-5 rounded-lg border border-border p-4">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div><p className="text-sm font-medium">Instagram</p>
+        <p className="text-xs text-muted-foreground">Conecte uma conta profissional para autorizar o acesso.</p></div>
+      <Button size="sm" variant="outline" onClick={connect} disabled={connecting || !status.data?.enabled}>
+        {connecting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Instagram className="mr-2 h-4 w-4" />}
+        {connecting ? "Conectando…" : "Conectar Instagram"}
+      </Button>
+    </div>
+    <div className="mt-2 text-xs text-muted-foreground" aria-live="polite">
+      {status.isPending ? "Verificando conexão…" : status.isError ? "Não foi possível verificar a conexão." :
+        !status.data?.enabled ? "Conexão em preparação. Disponível após validação da integração." :
+        !status.data.connections.length ? "Nenhuma conta conectada." : null}
+      {status.data?.connections.map(account => <p key={account.instagram_user_id}>
+        @{account.username} · {account.expired ? "Autorização expirada. Conecte novamente." : "Conectado"}
+      </p>)}
+    </div>
+  </div>;
+}

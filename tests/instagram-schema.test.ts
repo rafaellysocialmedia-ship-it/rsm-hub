@@ -1,0 +1,65 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { PGlite } from "@electric-sql/pglite";
+
+test("isolated PostgreSQL migration, grants and permission matrix", async t => {
+  const db = new PGlite();
+  const user = "20000000-0000-4000-8000-000000000001";
+  const client = "10000000-0000-4000-8000-000000000001";
+  await db.exec(`
+    create role anon; create role authenticated; create role service_role bypassrls;
+    create schema auth; create table auth.users(id uuid primary key);
+    create table public.clients(id uuid primary key, user_id uuid, churned boolean, status text);
+    create table public.user_roles(user_id uuid, role text);
+    create table public.app_modules(key text primary key, parent_key text);
+    create table public.user_app_roles(user_id uuid, role_key text);
+    create table public.app_role_permissions(role_key text, permission_id uuid);
+    create table public.app_permissions(id uuid primary key, module_key text, action text);
+    create table public.module_visibility(scope text, scope_id text, module_key text, visible boolean);
+    insert into auth.users values ('${user}');
+    insert into clients values ('${client}', null, false, 'active');
+    insert into app_modules values ('workspace',null),('workspace.clients','workspace');
+    grant usage on schema public to service_role;
+    grant select on all tables in schema public to service_role;
+  `);
+  await db.exec(await readFile(new URL("../supabase/migrations/20261013000100_instagram_oauth.sql", import.meta.url), "utf8"));
+  await db.exec(`insert into instagram_connections(user_id,instagram_user_id,encrypted_access_token) values ('${user}','legacy','legacy-ciphertext')`);
+  await db.exec(await readFile(new URL("../supabase/migrations/20261013042803_instagram_client_oauth.sql", import.meta.url), "utf8"));
+  const permitted = async () => (await db.query<{allowed:boolean}>(`select public.can_manage_instagram('${user}','${client}') allowed`)).rows[0].allowed;
+  await t.test("legacy records preserved without guessing client", async () => { const {rows} = await db.query(`select client_id,encrypted_access_token from instagram_connections`); assert.deepEqual(rows,[{client_id:null,encrypted_access_token:"legacy-ciphertext"}]); });
+  await t.test("anonymous/non-staff denied", async () => assert.equal(await permitted(), false));
+  await db.exec(`insert into user_roles values ('${user}','team')`);
+  await t.test("legacy staff allowed", async () => assert.equal(await permitted(), true));
+  await db.exec(`insert into user_app_roles values ('${user}','designer'); insert into app_permissions values ('30000000-0000-4000-8000-000000000001','workspace.clients','view'); insert into app_role_permissions values ('designer','30000000-0000-4000-8000-000000000001')`);
+  await t.test("view-only dynamic role denied", async () => assert.equal(await permitted(), false));
+  await db.exec(`update app_permissions set action='edit'`);
+  await t.test("dynamic edit role allowed", async () => assert.equal(await permitted(), true));
+  await db.exec(`insert into module_visibility values ('role','team','workspace',false)`);
+  await t.test("hidden parent module denied", async () => assert.equal(await permitted(), false));
+  await db.exec(`delete from module_visibility; insert into module_visibility values ('user','${user}','workspace.clients',false)`);
+  await t.test("user visibility override denied", async () => assert.equal(await permitted(), false));
+  await db.exec(`update user_roles set role='administrator'`);
+  await t.test("administrator follows existing visibility bypass", async () => assert.equal(await permitted(), true));
+  await db.exec(`update clients set churned=true`);
+  await t.test("churned client denied even for admin", async () => assert.equal(await permitted(), false));
+  await db.exec(`update clients set churned=false,status='inactive'`);
+  await t.test("inactive client denied", async () => assert.equal(await permitted(), false));
+  await db.exec(`update clients set status='active'`);
+  await t.test("nonexistent client denied", async () => { const {rows} = await db.query(`select can_manage_instagram('${user}','10000000-0000-4000-8000-000000000099') allowed`); assert.equal(rows[0].allowed,false); });
+  await t.test("RLS enabled on both tables", async () => { const { rows } = await db.query(`select relrowsecurity from pg_class where relname in ('instagram_connections','instagram_oauth_states')`); assert.equal(rows.length,2); assert.ok(rows.every(r=>r.relrowsecurity)); });
+  for (const role of ["anon","authenticated"]) await t.test(`${role} cannot read tokens or call privileged authorization`, async () => {
+    await db.exec(`set role ${role}`);
+    await assert.rejects(db.query(`select * from instagram_connections`), /permission denied/);
+    await assert.rejects(db.query(`select * from instagram_oauth_states`), /permission denied/);
+    await assert.rejects(permitted(), /permission denied/);
+    await db.exec("reset role");
+  });
+  await t.test("service role can run authorization and store encrypted connections", async () => {
+    await db.exec("set role service_role"); assert.equal(await permitted(),true);
+    await db.exec(`insert into instagram_connections(user_id,client_id,instagram_user_id,encrypted_access_token) values ('${user}','${client}','fixture','ciphertext') on conflict(client_id,instagram_user_id) do update set encrypted_access_token=excluded.encrypted_access_token`);
+    await db.exec("reset role");
+  });
+  await t.test("client FK prevents nonexistent associations", async () => { await assert.rejects(db.exec(`insert into instagram_connections(user_id,client_id,instagram_user_id,encrypted_access_token) values ('${user}','10000000-0000-4000-8000-000000000099','fixture','ciphertext')`), /foreign key/); });
+  await db.close();
+});
