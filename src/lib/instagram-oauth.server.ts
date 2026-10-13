@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-export const redirectUri = "https://rsmmarketing.com.br/api/integrations/instagram/callback";
+export const redirectUri = "https://app.rsmmarketing.com.br/api/integrations/instagram/callback";
 export const scopes = "instagram_business_basic,instagram_business_content_publish";
 const required = (key: string) => {
   const value = process.env[key];
