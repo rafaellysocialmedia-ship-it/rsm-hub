@@ -10,7 +10,7 @@ Esta implementação prepara uma conexão **por usuário autenticado no RSM**, n
    - `INSTAGRAM_APP_SECRET`: segredo correspondente.
    - `INSTAGRAM_TOKEN_ENCRYPTION_KEY`: chave aleatória de **32 bytes codificada em Base64**. Faça backup seguro: perder a chave invalida a leitura dos tokens.
    - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (já existentes no backend).
-3. Adicionar exatamente `https://rsmmarketing.com.br/api/integrations/instagram/callback` como URL de redirecionamento permitida na Meta **depois de publicar a rota**.
+3. Adicionar exatamente `https://app.rsmmarketing.com.br/api/integrations/instagram/callback` como URL de redirecionamento permitida na Meta **depois de publicar a rota**.
 4. Testar primeiro com Instagram profissional cadastrado como testador.
 
 ## Uso
