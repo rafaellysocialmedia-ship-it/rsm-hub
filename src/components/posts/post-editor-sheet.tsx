@@ -67,6 +67,7 @@ export type EditorController = {
   reconcile: (saved: Post) => void;
 };
 type Props = {
+  onCreated?: (post: Post) => void;
   readOnly?: boolean;
   persistent?: boolean;
   minimized?: boolean;
@@ -106,6 +107,7 @@ export function PostEditorSheet({
   initial,
   clients,
   focusedCommentId,
+  onCreated,
   readOnly = false,
   persistent = false,
   minimized = false,
@@ -157,17 +159,16 @@ export function PostEditorSheet({
     setForm((f) => reconcileCalendarDraft(f, previous, saved, mergeSchedule).draft);
   };
   useEffect(() => {
-    if (post)
-      onController?.({
-        id: post.id,
-        request,
-        schedule: () => ({
-          scheduled_date: baseline.current.scheduled_date ?? null,
-          scheduled_time: baseline.current.scheduled_time ?? null,
-          updated_at: version.current,
-        }),
-        reconcile,
-      });
+    onController?.({
+      id: post?.id ?? "new",
+      request,
+      schedule: () => ({
+        scheduled_date: baseline.current.scheduled_date ?? null,
+        scheduled_time: baseline.current.scheduled_time ?? null,
+        updated_at: version.current,
+      }),
+      reconcile,
+    });
   });
   useEffect(() => {
     if (!dirty || !open) return;
@@ -339,7 +340,7 @@ export function PostEditorSheet({
         const { data, error } = await supabase
           .from("posts")
           .insert({ ...payload, created_by: user?.id ?? null })
-          .select("id")
+          .select("*")
           .single();
         if (error) throw error;
         // recurrence: spawn extra occurrences
@@ -360,6 +361,7 @@ export function PostEditorSheet({
             );
           }
         }
+        onCreated?.(data);
         return data.id;
       }
     },
@@ -591,8 +593,9 @@ export function PostEditorSheet({
         </div>
         {persistent && (
           <p className="mt-2 truncate text-xs text-muted-foreground">
-            {post?.title} ·{" "}
-            {clients.find((c) => c.id === post?.client_id)?.name ?? "Conta original"}
+            {post?.title ?? "Nova publicação"} ·{" "}
+            {clients.find((c) => c.id === (post?.client_id ?? form.client_id))?.name ??
+              "Conta original"}
           </p>
         )}
       </Header>

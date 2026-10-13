@@ -3494,6 +3494,7 @@ export type Database = {
       retention_overview: { Row: RetentionAccount; Relationships: [] }
     }
     Functions: {
+      can_create_calendar: { Args: Record<PropertyKey, never>; Returns: boolean };
       can_edit_calendar: { Args: Record<PropertyKey, never>; Returns: boolean };
       calendar_timezone: { Args: Record<PropertyKey, never>; Returns: string };
       save_calendar_post: { Args: { _post_id: string; _expected_updated_at: string; _patch: Json }; Returns: Json };

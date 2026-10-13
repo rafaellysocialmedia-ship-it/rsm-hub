@@ -1,3 +1,4 @@
+import { matchesClients, selectedClients } from "@/lib/calendar-period";
 import { usePostWorkspace } from "@/components/posts/post-workspace";
 import { ContentFilters } from "@/components/posts/content-filters";
 import { ClientCalendarPage } from "@/components/workspace/client-calendar";
@@ -224,7 +225,7 @@ function PostsPage() {
       )
         return false;
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
-      if (clientFilter !== "all" && p.client_id !== clientFilter) return false;
+      if (!matchesClients(clientFilter, p.client_id)) return false;
       if (networkFilter !== "all") {
         const nets = (p as { social_networks?: string[] | null }).social_networks ?? [];
         const all = nets.length ? nets : p.social_network ? [p.social_network] : [];
@@ -309,12 +310,11 @@ function PostsPage() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }),
   });
 
-  const openNew = (init?: Partial<Post>) => {
-    setEditing(null);
-    setInitial(init);
-    setFocusedCommentId(null);
-    setEditorOpen(true);
-  };
+  const openNew = (init?: Partial<Post>) =>
+    workspace.createPost({
+      client_id: selectedClients(clientFilter).length === 1 ? clientFilter : null,
+      ...init,
+    });
   const openExisting = (p: Post) => {
     setDetailPost(p);
     setFocusedCommentId(null);
@@ -351,7 +351,7 @@ function PostsPage() {
           >
             <Download className="h-4 w-4" /> Exportar Excel
           </Button>
-          <Button onClick={() => openNew()} className="gap-1.5">
+          <Button disabled={!workspace.canCreate} onClick={() => openNew()} className="gap-1.5">
             <Plus className="h-4 w-4" /> Nova publicação
           </Button>
         </div>
@@ -394,7 +394,8 @@ function PostsPage() {
           filters={[
             {
               key: "client",
-              label: "Cliente",
+              label: "Clientes",
+              multiple: true,
               value: clientFilter,
               empty: "all",
               primary: true,
@@ -446,7 +447,7 @@ function PostsPage() {
       </div>
 
       {/* Calendar balance control bar — tied to the displayed month and selected client */}
-      {view === "calendar" && clientFilter !== "all" && (
+      {view === "calendar" && selectedClients(clientFilter).length === 1 && (
         <PostBalanceControlBar clientId={clientFilter} ref={calendarMonth} />
       )}
 
@@ -507,7 +508,13 @@ function PostsPage() {
             }
           >
             {view === "calendar" && (
-              <ClientCalendarPage providedPosts={filtered} onMonthChange={handleMonthChange} />
+              <ClientCalendarPage
+                providedPosts={filtered}
+                onMonthChange={handleMonthChange}
+                defaultClientId={
+                  selectedClients(clientFilter).length === 1 ? clientFilter : undefined
+                }
+              />
             )}
             {view === "list" && (
               <ListView

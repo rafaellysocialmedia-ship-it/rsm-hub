@@ -17,6 +17,8 @@ export function refreshPostViews(qc: ReturnType<typeof useQueryClient>) {
 type Workspace = {
   openPost: (post: Post) => void;
   canEdit: boolean;
+  canCreate: boolean;
+  createPost: (initial: Partial<Post>) => void;
   movePost: (post: Post, date: string, time?: string | null) => Promise<boolean>;
 };
 const Context = createContext<Workspace | null>(null);
@@ -29,6 +31,8 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [post, setPost] = useState<Post | null>(null);
+  const [draft, setDraft] = useState<{ value: Partial<Post>; id: number } | null>(null);
+  const active = !!post || !!draft;
   const [review, setReview] = useState<Post | null>(null);
   const [minimized, setMinimized] = useState(false);
   const controller = useRef<EditorController | null>(null);
@@ -44,13 +48,13 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
     return () => media.removeEventListener("change", sync);
   }, []);
   useEffect(() => {
-    if (!post || minimized || !mobile) return;
+    if (!active || minimized || !mobile) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previous;
     };
-  }, [post, minimized, mobile]);
+  }, [active, minimized, mobile]);
   useEffect(() => {
     if (minimized) minimizedButton.current?.focus();
   }, [minimized]);
@@ -65,9 +69,35 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
     refetchInterval: 30000,
   });
   const canEdit = permission.data === true;
+  const createPermission = useQuery({
+    queryKey: ["calendar-create-permission", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("can_create_calendar");
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 30000,
+  });
+  const canCreate = createPermission.data === true;
+  const createPost = (initial: Partial<Post>) => {
+    if (!canCreate) {
+      toast.error("Sem permissão para criar publicações.");
+      return;
+    }
+    opener.current = document.activeElement as HTMLElement;
+    const id = ++loadSequence.current;
+    const replace = () => {
+      setPost(null);
+      setDraft({ value: initial, id });
+      setMinimized(false);
+    };
+    if (controller.current) controller.current.request(replace);
+    else replace();
+  };
   const clients = useQuery({
     queryKey: ["editor-clients", user?.id],
-    enabled: canEdit,
+    enabled: canEdit || canCreate,
     queryFn: async () => {
       const { data, error } = await supabase.from("clients").select("*").order("name");
       if (error) throw error;
@@ -102,6 +132,7 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
       }
       const replace = () => {
         setPost(data);
+        setDraft(null);
         setMinimized(false);
       };
       if (controller.current) controller.current.request(replace);
@@ -172,28 +203,35 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
   };
   const close = () => {
     setPost(null);
+    setDraft(null);
+    ++loadSequence.current;
     controller.current = null;
     if (opener.current?.isConnected) opener.current.focus();
   };
   return (
-    <Context.Provider value={{ openPost, canEdit, movePost }}>
+    <Context.Provider value={{ openPost, canEdit, canCreate, createPost, movePost }}>
       <div
-        inert={!!post && !minimized && mobile}
-        className={`min-w-0 w-full ${post && !minimized ? "lg:pr-[420px] xl:pr-[480px]" : ""}`}
+        inert={active && !minimized && mobile}
+        className={`min-w-0 w-full ${active && !minimized ? "lg:pr-[420px] xl:pr-[480px]" : ""}`}
       >
         {children}
       </div>
-      {post && (
+      {active && (
         <PostEditorSheet
-          key={`${user?.id}:${post.id}`}
+          key={`${user?.id}:${post?.id ?? draft?.id}`}
           open
           post={post}
+          initial={draft?.value}
+          onCreated={(saved) => {
+            setPost(saved);
+            setDraft(null);
+          }}
           clients={clients.data ?? []}
           onOpenChange={(v) => {
             if (!v) close();
           }}
           persistent
-          readOnly={!canEdit}
+          readOnly={post ? !canEdit : !canCreate}
           minimized={minimized}
           onMinimize={() => setMinimized(true)}
           onController={(value) => {
@@ -201,7 +239,7 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
           }}
         />
       )}
-      {post && minimized && (
+      {active && minimized && (
         <div className="fixed bottom-3 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 rounded-lg border bg-white p-2 shadow-sm">
           <Button
             ref={minimizedButton}
@@ -210,8 +248,9 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
             onClick={() => setMinimized(false)}
           >
             <span className="truncate">
-              {post.title} ·{" "}
-              {clients.data?.find((c) => c.id === post.client_id)?.name ?? "Conta original"}
+              {post?.title ?? "Nova publicação"} ·{" "}
+              {clients.data?.find((c) => c.id === (post?.client_id ?? draft?.value.client_id))
+                ?.name ?? "Conta original"}
             </span>
           </Button>
           <Button

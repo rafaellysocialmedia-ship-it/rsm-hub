@@ -47,9 +47,15 @@ export function PostCreativeThumb({ postId }: { postId: string }) {
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-md border border-border bg-muted">
       {first?.url && mime.startsWith("image/") ? (
-        <img src={first.url} alt="" className="h-full w-full object-cover" loading="lazy" />
+        <img
+          draggable={false}
+          src={first.url}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
       ) : first?.url && mime.startsWith("video/") ? (
-        <video src={first.url} className="h-full w-full object-cover" muted />
+        <video draggable={false} src={first.url} className="h-full w-full object-cover" muted />
       ) : (
         <div className="flex h-full items-center justify-center text-muted-foreground">
           <ImageIcon className="h-6 w-6" />

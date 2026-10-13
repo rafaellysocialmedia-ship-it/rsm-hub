@@ -1,3 +1,6 @@
+import { useCalendarToday } from "@/hooks/use-calendar-today";
+import { calendarRange, shiftCalendar } from "@/lib/calendar-period";
+import { ClientLabel } from "@/components/clients/client-label";
 import { usePostWorkspace } from "@/components/posts/post-workspace";
 import { useNavigationPreferences } from "@/hooks/use-navigation";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -9,19 +12,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Plus } from "lucide-react";
 import { ContentFilters } from "@/components/posts/content-filters";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  addDays,
-  addMonths,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  format,
-} from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -30,20 +25,22 @@ import { QueryState } from "./account-panels";
 import { statusMeta, postNetworks, POST_STATUS, type Post } from "@/lib/posts";
 export function ClientCalendarPage({
   clientId,
+  defaultClientId,
   providedPosts,
   onMonthChange,
 }: {
   clientId?: string;
+  defaultClientId?: string;
   providedPosts?: Post[];
   onMonthChange?: (date: Date) => void;
 }) {
   const { user } = useAuth();
+  const { today, zone } = useCalendarToday();
   const scope = `calendar:${user?.id}:${clientId ?? "all"}`;
-  const [cursorText, setCursorText] = useStickyState(
-    `${scope}:date`,
-    format(new Date(), "yyyy-MM-dd"),
-  );
-  const cursor = new Date(cursorText + "T12:00:00");
+  const [cursorText, setCursorText] = useStickyState(`${scope}:date`, "");
+  const currentDate = cursorText || today;
+  const cursor = new Date(currentDate + "T12:00:00");
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const setCursor = (value: Date | ((date: Date) => Date)) =>
     setCursorText(format(typeof value === "function" ? value(cursor) : value, "yyyy-MM-dd"));
   const [view, setView] = useStickyState(`${scope}:view`, "month");
@@ -62,20 +59,15 @@ export function ClientCalendarPage({
   const prefs = useNavigationPreferences();
   const density = prefs.data?.calendar_density ?? "standard";
   const limit = density === "compact" ? 5 : density === "expanded" ? 2 : 3;
-  const zone = useQuery({
-    queryKey: ["calendar-timezone"],
+  const clients = useQuery({
+    queryKey: ["calendar-client-labels", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("calendar_timezone");
+      const { data, error } = await supabase.from("clients").select("id,name");
       if (error) throw error;
       return data;
     },
   });
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: zone.data ?? "America/Fortaleza",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  const clientNames = new Map(clients.data?.map((c) => [c.id, c.name]));
   const movable = (p: Post) =>
     workspace.canEdit &&
     p.status !== "published" &&
@@ -97,7 +89,7 @@ export function ClientCalendarPage({
   };
   useEffect(() => {
     onMonthChange?.(cursor);
-  }, [cursorText, onMonthChange]);
+  }, [currentDate, onMonthChange]);
   const q = useQuery({
     enabled: !providedPosts,
     queryKey: ["portal-calendar-posts", clientId],
@@ -114,10 +106,7 @@ export function ClientCalendarPage({
     },
   });
   const all = providedPosts ?? q.data ?? [];
-  const start = view === "week" ? startOfWeek(cursor, { weekStartsOn: 1 }) : startOfMonth(cursor),
-    end = view === "week" ? endOfWeek(cursor, { weekStartsOn: 1 }) : endOfMonth(cursor);
-  const from = format(start, "yyyy-MM-dd"),
-    to = format(end, "yyyy-MM-dd");
+  const { start, end, from, to, days } = calendarRange(cursor, view);
   const list = all.filter(
     (p) =>
       (providedPosts !== undefined || !channel || postNetworks(p).includes(channel)) &&
@@ -128,19 +117,20 @@ export function ClientCalendarPage({
       p.scheduled_date >= from &&
       p.scheduled_date <= to,
   );
-  const days: Date[] = [];
-  for (
-    let d = view === "week" ? start : startOfWeek(start, { weekStartsOn: 1 });
-    d <= (view === "week" ? end : endOfWeek(end, { weekStartsOn: 1 }));
-    d = addDays(d, 1)
-  )
-    days.push(d);
   const selectClass = "min-h-11 rounded-md border bg-card px-3 text-sm";
   const item = (p: Post, thumb = false) => (
     <article
       key={p.id}
+      data-post-id={p.id}
+      onDragStartCapture={(e) => {
+        if (!movable(p)) e.preventDefault();
+      }}
       draggable={movable(p) && !moving && !zone.isError && !zone.isPending}
       onDragStart={(e) => {
+        if (!movable(p) || moving) {
+          e.preventDefault();
+          return;
+        }
         setDragging(p);
         e.dataTransfer.effectAllowed = "move";
         e.dataTransfer.setData("text/plain", p.id);
@@ -149,7 +139,7 @@ export function ClientCalendarPage({
         setDragging(null);
         setDestination(null);
       }}
-      className={`min-w-0 rounded-lg border bg-white ${density === "compact" ? "p-1.5" : "p-2"} ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
+      className={`select-none min-w-0 rounded-lg border bg-white ${density === "compact" ? "p-1.5" : "p-2"} ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
     >
       <button
         onClick={() => {
@@ -173,6 +163,15 @@ export function ClientCalendarPage({
         >
           <PostCreativeThumb postId={p.id} />
         </div>
+        <ClientLabel
+          id={p.client_id ?? "none"}
+          name={
+            p.client_id
+              ? (clientNames.get(p.client_id) ??
+                (clients.isPending ? "Carregando cliente…" : "Cliente indisponível"))
+              : "Sem cliente"
+          }
+        />
         <p
           className={`text-sm font-medium ${density === "compact" ? "truncate" : "break-words"}`}
           title={p.title}
@@ -215,6 +214,102 @@ export function ClientCalendarPage({
       )}
     </article>
   );
+  const go = (direction: number) => setCursor((d) => shiftCalendar(d, view, direction));
+  const periodDrop = async (direction: number) => {
+    if (!dragging?.scheduled_date || moving) return;
+    const date = format(
+      shiftCalendar(new Date(dragging.scheduled_date + "T12:00:00"), view, direction),
+      "yyyy-MM-dd",
+    );
+    if (date < today) return;
+    if (await move(dragging, date)) {
+      setCursorText(date);
+      setSelectedDay(date);
+    }
+  };
+  const dayCell = (d: Date) => {
+    const date = format(d, "yyyy-MM-dd");
+    const isToday = date === today,
+      selected = date === selectedDay;
+    const posts = list.filter((p) => p.scheduled_date === date);
+    const shown = view === "day" ? posts : posts.slice(0, limit);
+    return (
+      <div
+        key={date}
+        data-calendar-date={date}
+        aria-current={isToday ? "date" : undefined}
+        className={`min-w-0 space-y-2 border-b border-r p-2 ${view === "day" ? "min-h-64" : density === "compact" ? "@[760px]:min-h-24" : density === "expanded" ? "@[760px]:min-h-64" : "@[760px]:min-h-40"} ${isToday ? "bg-[#b283f3]/10" : "bg-white"} ${selected ? "outline outline-2 -outline-offset-2 outline-[#69139b]" : ""} ${destination === date ? "ring-2 ring-inset ring-[#b283f3]" : ""}`}
+        onDragOver={(e) => {
+          if (dragging && date >= today && !moving) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            setDestination(date);
+          }
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setDestination(null);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (dragging && !moving && date >= today) void move(dragging, date);
+        }}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-1">
+          <button
+            type="button"
+            aria-label={`${format(d, "dd/MM/yyyy")}${isToday ? ", hoje" : ""}`}
+            aria-pressed={selected}
+            onClick={() => setSelectedDay(date)}
+            className="flex items-center gap-1.5 rounded focus-visible:ring-2 focus-visible:ring-[#69139b]"
+          >
+            <span className="text-xs text-muted-foreground">
+              {format(d, "EEE", { locale: ptBR })}
+            </span>
+            <span
+              className={`inline-flex size-7 items-center justify-center rounded-full text-sm font-semibold ${isToday ? "bg-[#42145d] text-white" : "text-foreground"}`}
+            >
+              {format(d, "dd")}
+            </span>
+            {isToday && <span className="text-[10px] font-medium text-[#42145d]">Hoje</span>}
+          </button>
+          {workspace.canCreate && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-8"
+              aria-label={`Criar publicação em ${format(d, "dd/MM/yyyy")}`}
+              onClick={() =>
+                workspace.createPost({
+                  scheduled_date: date,
+                  client_id: clientId ?? defaultClientId ?? null,
+                })
+              }
+            >
+              <Plus className="size-3.5" />
+            </Button>
+          )}
+        </div>
+        <div className={view === "day" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3" : "space-y-2"}>
+          {shown.map((p) => item(p))}
+        </div>
+        {view !== "day" && posts.length > limit && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full whitespace-normal text-xs"
+            onClick={() => setDayList(date)}
+          >
+            + {posts.length - limit} publicações
+          </Button>
+        )}
+        {view === "day" && !posts.length && (
+          <p className="py-8 text-sm text-muted-foreground">
+            Nenhuma publicação neste dia com os filtros atuais.
+          </p>
+        )}
+      </div>
+    );
+  };
   return (
     <section className="@container space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -245,6 +340,7 @@ export function ClientCalendarPage({
           >
             <option value="month">Mês</option>
             <option value="week">Semana</option>
+            <option value="day">Dia</option>
             <option value="list">Lista</option>
             <option value="grid">Grade de prévias</option>
           </select>
@@ -302,27 +398,61 @@ export function ClientCalendarPage({
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Button
             aria-label="Período anterior"
             variant="outline"
-            onClick={() => setCursor((d) => (view === "week" ? addDays(d, -7) : addMonths(d, -1)))}
+            onClick={() => go(-1)}
+            title={
+              dragging ? "Solte para mover ao mesmo dia do período anterior" : "Período anterior"
+            }
+            onDragOver={(e) => {
+              if (dragging) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              void periodDrop(-1);
+            }}
           >
             ←
           </Button>
           <h3 className="text-sm font-semibold capitalize">
-            {view === "week"
-              ? `${format(start, "dd/MM")} – ${format(end, "dd/MM/yyyy")}`
-              : format(cursor, "MMMM yyyy", { locale: ptBR })}
+            {view === "day"
+              ? format(cursor, "dd 'de' MMMM yyyy", { locale: ptBR })
+              : view === "week"
+                ? `${format(start, "dd/MM")} – ${format(end, "dd/MM/yyyy")}`
+                : format(cursor, "MMMM yyyy", { locale: ptBR })}
           </h3>
           <Button
             aria-label="Próximo período"
             variant="outline"
-            onClick={() => setCursor((d) => (view === "week" ? addDays(d, 7) : addMonths(d, 1)))}
+            onClick={() => go(1)}
+            title={
+              dragging ? "Solte para mover ao mesmo dia do próximo período" : "Próximo período"
+            }
+            onDragOver={(e) => {
+              if (dragging) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              void periodDrop(1);
+            }}
           >
             →
           </Button>
-          <Button variant="ghost" onClick={() => setCursor(new Date())}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setCursorText(today);
+              setSelectedDay(today);
+            }}
+          >
             Hoje
           </Button>
         </div>
@@ -332,56 +462,31 @@ export function ClientCalendarPage({
           aria-label="Ir para período"
           value={format(cursor, "yyyy-MM-dd")}
           onChange={(e) => {
-            if (e.target.value) setCursor(new Date(e.target.value + "T12:00:00"));
+            if (e.target.value) {
+              setCursor(new Date(e.target.value + "T12:00:00"));
+              setSelectedDay(e.target.value);
+            }
           }}
         />
       </div>
+      {dragging && (
+        <p role="status" className="text-xs text-[#42145d]">
+          Solte em um dia ou nas setas para mover ao período anterior/seguinte. O horário será
+          preservado.
+        </p>
+      )}
+      {clients.error && (
+        <p role="alert" className="text-xs text-destructive">
+          Não foi possível carregar os nomes dos clientes.
+        </p>
+      )}
       <QueryState loading={!providedPosts && q.isLoading} error={q.error}>
-        {view === "month" || view === "week" ? (
-          <>
-            <div className="hidden overflow-hidden rounded-xl border bg-card @[760px]:grid @[760px]:grid-cols-7">
-              {days.map((d) => (
-                <div
-                  className={`${density === "compact" ? "min-h-24 p-1" : density === "expanded" ? "min-h-64 p-2" : "min-h-40 p-2"} min-w-0 space-y-2 border-b border-r ${destination === format(d, "yyyy-MM-dd") ? "bg-[#b283f3]/20 ring-2 ring-inset ring-[#69139b]" : ""}`}
-                  onDragOver={(e) => {
-                    if (dragging && format(d, "yyyy-MM-dd") >= today && !moving) {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = "move";
-                      setDestination(format(d, "yyyy-MM-dd"));
-                    }
-                  }}
-                  onDragLeave={() => setDestination(null)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    if (dragging && !moving && format(d, "yyyy-MM-dd") >= today)
-                      void move(dragging, format(d, "yyyy-MM-dd"));
-                  }}
-                  key={format(d, "yyyy-MM-dd")}
-                >
-                  <p className="text-sm font-medium">{format(d, "EEE dd", { locale: ptBR })}</p>
-                  {list
-                    .filter((p) => p.scheduled_date === format(d, "yyyy-MM-dd"))
-                    .slice(0, limit)
-                    .map((p) => item(p))}
-                  {list.filter((p) => p.scheduled_date === format(d, "yyyy-MM-dd")).length >
-                    limit && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full whitespace-normal text-xs"
-                      onClick={() => setDayList(format(d, "yyyy-MM-dd"))}
-                    >
-                      +{" "}
-                      {list.filter((p) => p.scheduled_date === format(d, "yyyy-MM-dd")).length -
-                        limit}{" "}
-                      publicações
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="space-y-3 @[760px]:hidden">{list.map((p) => item(p))}</div>
-          </>
+        {view === "month" || view === "week" || view === "day" ? (
+          <div
+            className={`overflow-hidden rounded-xl border bg-card ${view === "day" ? "" : "grid grid-cols-1 @[760px]:grid-cols-7"}`}
+          >
+            {days.map(dayCell)}
+          </div>
         ) : (
           <div
             className={view === "grid" ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-3" : "space-y-3"}

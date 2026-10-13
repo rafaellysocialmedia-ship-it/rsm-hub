@@ -1,3 +1,5 @@
+import { MultiClientFilter } from "./multi-client-filter";
+import { selectedClients } from "@/lib/calendar-period";
 import { useNavigationPreferences } from "@/hooks/use-navigation";
 import { useId, useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
@@ -19,6 +21,7 @@ export type ContentFilter = {
   options: Option[];
   onChange: (value: string) => void;
   primary?: boolean;
+  multiple?: boolean;
   loading?: boolean;
   error?: boolean;
 };
@@ -43,32 +46,41 @@ export function ContentFilters({
       <label htmlFor={`${id}-${f.key}`} className="block text-xs font-medium text-muted-foreground">
         {f.label}
       </label>
-      <Select value={f.value} onValueChange={f.onChange}>
-        <SelectTrigger id={`${id}-${f.key}`} className="h-11 min-w-0 bg-background shadow-none">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={f.empty}>
-            {f.key === "client"
-              ? "Todos os clientes"
-              : f.key === "status"
-                ? "Todos os status"
-                : f.key === "channel"
-                  ? "Todos os canais"
-                  : f.key === "format"
-                    ? "Todos os formatos"
-                    : "Todos os responsáveis"}
-          </SelectItem>
-          {f.value !== f.empty && !f.options.some((o) => o.value === f.value) && (
-            <SelectItem value={f.value}>Seleção indisponível</SelectItem>
-          )}
-          {f.options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
+      {f.multiple ? (
+        <MultiClientFilter
+          id={`${id}-${f.key}`}
+          value={f.value}
+          options={f.options}
+          onChange={f.onChange}
+        />
+      ) : (
+        <Select value={f.value} onValueChange={f.onChange}>
+          <SelectTrigger id={`${id}-${f.key}`} className="h-11 min-w-0 bg-background shadow-none">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={f.empty}>
+              {f.key === "client"
+                ? "Todos os clientes"
+                : f.key === "status"
+                  ? "Todos os status"
+                  : f.key === "channel"
+                    ? "Todos os canais"
+                    : f.key === "format"
+                      ? "Todos os formatos"
+                      : "Todos os responsáveis"}
             </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+            {f.value !== f.empty && !f.options.some((o) => o.value === f.value) && (
+              <SelectItem value={f.value}>Seleção indisponível</SelectItem>
+            )}
+            {f.options.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
       {f.loading && <p className="text-xs text-muted-foreground">Carregando opções…</p>}
       {f.error && (
         <p role="alert" className="text-xs text-destructive">
@@ -186,7 +198,14 @@ export function ContentFilters({
             >
               <span className="truncate">
                 {f.label}:{" "}
-                {f.options.find((o) => o.value === f.value)?.label ?? "Seleção indisponível"}
+                {f.multiple
+                  ? selectedClients(f.value)
+                      .map(
+                        (id) =>
+                          f.options.find((o) => o.value === id)?.label ?? "Cliente indisponível",
+                      )
+                      .join(", ")
+                  : (f.options.find((o) => o.value === f.value)?.label ?? "Seleção indisponível")}
               </span>
               <X className="size-3 shrink-0" />
             </button>
