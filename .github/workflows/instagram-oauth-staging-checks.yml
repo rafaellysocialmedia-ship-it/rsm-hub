@@ -54,7 +54,8 @@ jobs:
             const c = JSON.parse(readFileSync("dist/server/wrangler.staging.json", "utf8"));
             assert.equal(c.name, "rsm-hub-instagram-staging");
             assert.equal(c.vars.RSM_ENVIRONMENT, "staging");
-            assert.equal(c.vars.INSTAGRAM_OAUTH_ENABLED, "false");
+            assert.equal(Object.hasOwn(c.vars, "INSTAGRAM_OAUTH_ENABLED"), false);
+            assert.equal(c.keep_vars, true);
             assert.equal(c.vars.SUPABASE_URL, "https://dtladsjhmnzdxcmgivne.supabase.co");
             assert.equal(c.vars.INSTAGRAM_REDIRECT_URI, "https://rsm-hub-instagram-staging.rafaellysocialmedia.workers.dev/api/integrations/instagram/callback");
             assert.deepEqual(c.routes, []);
