@@ -1,14 +1,35 @@
-# Homologação Instagram — preparação e bloqueios
+# Homologação Instagram — estado verificado
 
-Base: PR #2, commit 5e67a72. Nenhum merge ou deploy de produção autorizado/executado.
+Base: PR #2, commit c9306fa (mais o commit de validação de banco nesta branch).
+Nenhum merge nem deploy em produção.
 
 ## Estado em 13/10/2026
 
-- Supabase: organização atual `rafaellysocialmedia-ship-it's Org`, plano Free. Projeto RSM de produção confirmado pelo config.toml. Nenhuma branch de desenvolvimento disponível. O outro projeto está inativo e não foi reaproveitado porque seu conteúdo/finalidade não foram autorizados para testes.
-- Migração `20261013042803_instagram_client_oauth.sql`: necessária; consulta somente leitura confirmou ausência dos campos/função novos no projeto atual. Nenhuma migração remota aplicada, pois não existe destino isolado confirmado.
-- Cloudflare: CLI sem autenticação. Login pelo navegador iniciado via formulário seguro do Google; confirmação por chave de acesso pendente. Não há evidência de acesso ao painel autenticado nem de Worker de homologação criado.
-- Credenciais Meta/Supabase/Cloudflare: ausentes do ambiente de execução local; presença/validade no Worker remoto ainda não verificadas. Nenhum valor solicitado pelo chat, exibido ou registrado.
-- Endereço público de testes: **ainda não existe um endereço provisionado e validado**. O domínio fixture usado no dry-run é fictício e não é um link para uso.
+- Destino confirmado pelo conector ANTES das alterações: **RSM Homologação**, `dtladsjhmnzdxcmgivne`, organização `cyhazeicsfprfhabaobb`, região `ca-central-1`, ACTIVE_HEALTHY. Projeto Free criado pela usuária.
+- Aplicadas as **102 migrações** do PR #2 em ordem, mais **2 ajustes exclusivos de homologação** (104 registros no histórico remoto).
+- Lacuna descoberta no replay: `auto_renew`, `default_payment_method_id`, trigger de forma de pagamento e funções de automação financeira não estavam definidos no git. Consultadas somente definições de schema na produção, sem ler registros de negócio. Restauradas as dependências em `supabase/staging/20261013122217_restore_finance_bootstrap_dependencies.sql`, antes de `20261003205105`. Nenhuma alteração em produção.
+- Endurecimento local: revogada execução pública de `rls_auto_enable()`, função de event trigger criada pela plataforma.
+- Todas as tabelas públicas com RLS. Tabelas OAuth sem acesso direto para anon/authenticated, acesso de serviço confirmado. A ausência de policies nelas é intencional.
+- Todos os cron jobs desativados na mesma transação de cada migração que os cria. Zero jobs ativos confirmado.
+- Fixtures: 3 identidades fictícias sem senha/identidade de login, 2 clientes fictícios, 1 rascunho e 15 tarefas (incluindo tarefas de onboarding criadas pelos triggers). Nenhum dado/token real copiado. Zero states e conexões OAuth após os testes.
+- Cloudflare: painel exige login e CLI não autenticada. Worker ainda não publicado. **Não existe URL pública de homologação verificada.**
+- Credenciais Meta, chave de serviço do novo Supabase e chave de criptografia do Worker ainda precisam de configuração segura. Nenhum valor consta neste relatório.
+
+## Resultados dos testes
+
+- 55 testes automatizados de OAuth/criptografia/configuração/isolamento/plano de migrações; typecheck.
+- Supabase real: `instagram-staging-live.sql` passou para admin/equipe/cliente, cargo sem edição, módulo oculto, churn/inativo, privilégios, state associado ao navegador, consumo único, gravação de serviço e isolamento de tarefas. Transação revertida.
+- Regressões SQL no projeto novo, usando os UUIDs fictícios: `calendar-workspace.sql`, `calendar-today-creation.sql`, `functional-ux-links.sql`, `finance-automation-permissions.sql`. Todas passaram, com rollback: reagendamento, horário preservado, conflitos, mídia, aprovações, portal, permissões e financeiro.
+- Requisições HTTP reais anônimas às duas tabelas OAuth retornaram **401**. Nenhum token exposto.
+- Build de staging e Wrangler dry-run já haviam passado no PR #2 com parâmetros fictícios. Isso não é deploy nem teste de login real.
+- OAuth Meta real, login na aplicação e regressão visual/arrastar-e-soltar no Worker continuam pendentes até a publicação isolada.
+- Advisors remanescentes: extensões `pg_trgm`/`pg_net` no schema public (histórico existente), proteção contra senhas vazadas desativada. Não foi contratado upgrade para esse recurso. Documentação: https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public e https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+## Reproduzir a instalação com segurança
+
+`node scripts/staging-migration-plan.mjs dtladsjhmnzdxcmgivne` gera apenas um manifesto; recusa qualquer outro ID, incluindo produção e projeto pausado. A função exportada retorna SQL em ordem, inclui o bootstrap financeiro antes da dependência e desativa cron na mesma transação.
+
+Manifesto auditável: `docs/instagram-staging-migration-manifest.json`. O histórico MCP usa nomes `source_<arquivo original>` e versões de execução; não executar `supabase db push` cegamente, porque o config.toml continua sendo o original e o histórico não usa os timestamps originais. Não reaplicar o plano no banco já instalado.
 
 ## Preparação implementada
 
@@ -26,7 +47,7 @@ Validação local com parâmetros fictícios: 53 testes aprovados (45 anteriores
 ## Sequência para concluir após acesso
 
 1. Confirmar login Cloudflare e conta correta. Verificar se o nome dedicado está livre ou pertence a esta homologação; não sobrescrever outro Worker.
-2. Definir a organização/destino Supabase com a usuária. Consultar e confirmar custos antes de criar branch/projeto. O plano Free atual não oferece branching; avaliar projeto separado disponível ou upgrade com autorização explícita, sem assumir custo.
+2. Banco isolado já criado pela usuária e instalado: usar exclusivamente `dtladsjhmnzdxcmgivne`. Não criar outro projeto nem contratar upgrade.
 3. Provisionar banco sem dados de produção. Reproduzir schema/migrações e somente fixtures necessárias; desativar integrações externas, automações e cron no destino isolado. Não copiar auth.users, clientes, arquivos ou tokens reais.
 4. Aplicar a migração nova no projeto isolado após verificar schema/migration history. Executar advisors e confirmar RLS/grants/função. Não usar db push implicitamente contra supabase/config.toml de produção.
 5. Criar usuário de teste e cliente fictício exclusivamente na homologação; conferir login, cargos e acesso a Configurações → Acessos.
@@ -39,8 +60,8 @@ Validação local com parâmetros fictícios: 53 testes aprovados (45 anteriores
 ## Configurações que dependem da usuária
 
 - Concluir autenticação Cloudflare/Google no formulário seguro.
-- Indicar a organização para o banco isolado e confirmar eventual custo exibido pela integração Supabase. Criar recursos com custo exige confirmação do provedor; não há custo aprovado nesta tarefa.
-- Se os secrets Meta não estiverem acessíveis/reutilizáveis no painel, cadastrá-los diretamente como secrets na homologação, sem enviá-los no chat.
+- O banco já está pronto; falta criar o login pessoal de homologação por canal seguro e atribuir o cargo após verificar sua identidade. As fixtures não têm senha e não servem como login.
+- Cadastrar secrets exclusivos de homologação diretamente no Worker, sem enviá-los no chat. Usar app/test app Meta separado, chave de serviço do projeto novo e nova chave AES; não reutilizar credenciais de produção.
 - Conferir/aceitar convite de testadora e autorizar o consentimento da conta @rafaellysocialmedia quando a URL real estiver disponível.
 
 Referências: https://supabase.com/docs/guides/deployment e https://developers.cloudflare.com/workers/wrangler/configuration/
