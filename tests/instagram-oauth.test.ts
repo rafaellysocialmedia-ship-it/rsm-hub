@@ -26,6 +26,11 @@ beforeEach(() => {
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input)); calls.push(url.pathname);
     const ok = (body: unknown) => Response.json(body);
+    if (url.hostname === "api.instagram.com" || url.hostname === "graph.instagram.com") {
+      // The actual workerd runtime rejects redirect: "error" synchronously.
+      // Every Meta request must use manual mode and enforce redirects itself.
+      assert.equal(init?.redirect, "manual", "Meta requests must use workerd-compatible manual redirect handling");
+    }
     if (url.pathname === "/auth/v1/user") return new Headers(init?.headers).get("Authorization") === "Bearer valid-session"
       ? ok({ id: user }) : Response.json({ message: "Invalid session" }, { status: 401 });
     if (url.pathname === "/rest/v1/rpc/can_manage_instagram") return ok(permitted);
@@ -44,6 +49,8 @@ beforeEach(() => {
       return ok(saved.map(({ instagram_user_id, username, token_expires_at }) => ({ instagram_user_id, username, token_expires_at })));
     }
     if (url.hostname === "api.instagram.com") {
+      if (upstreamFailure === "meta:upstream_redirect") return new Response(null, { status: 302,
+        headers: { Location: "https://attacker.example/steal?secret=test-secret&code=test-code" } });
       if (upstreamFailure === "code") throw new Error("Sensitive test-secret must never be logged");
       assert.equal(new URLSearchParams(String(init?.body)).get("redirect_uri"), process.env.INSTAGRAM_REDIRECT_URI);
       if (upstreamFailure.startsWith("meta:")) {
@@ -69,8 +76,14 @@ beforeEach(() => {
       if (shortTokenShape === "mixed") return ok({ ...short, data: [short] });
       return ok(short);
     }
-    if (url.pathname === "/access_token") return upstreamFailure === "long" ? new Response(null, { status: 400 }) : ok({ access_token: "test-long-token", expires_in: 5184000 });
-    if (url.pathname === "/me") return upstreamFailure === "profile" ? ok({ user_id: 123, username: "bad" }) : ok({ user_id: "12345678901234567", username: "test_profile" });
+    if (url.pathname === "/access_token") return upstreamFailure === "long_redirect"
+      ? new Response(null, { status: 307, headers: { Location: "https://attacker.example/steal" } })
+      : upstreamFailure === "long" ? new Response(null, { status: 400 })
+      : ok({ access_token: "test-long-token", expires_in: 5184000 });
+    if (url.pathname === "/me") return upstreamFailure === "profile_redirect"
+      ? new Response(null, { status: 301, headers: { Location: "https://attacker.example/steal" } })
+      : upstreamFailure === "profile" ? ok({ user_id: 123, username: "bad" })
+      : ok({ user_id: "12345678901234567", username: "test_profile" });
     throw new Error(`Unexpected mock request ${url.hostname}${url.pathname}`);
   };
 });
@@ -159,6 +172,30 @@ for (const [scenario, expected] of [
     const location = response.headers.get("Location")!;
     assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), expected);
     assert.ok(!location.includes("Sensitive") && !location.includes("test-secret"));
+    assert.equal(saved.length, 0);
+  });
+}
+test("manual redirects are blocked at initial token exchange without forwarding secrets", async () => {
+  process.env.RSM_ENVIRONMENT = "staging";
+  const b = await begin(); upstreamFailure = "meta:upstream_redirect";
+  const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "error");
+  const location = response.headers.get("Location")!;
+  assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), "meta_unexpected_redirect");
+  assert.ok(!location.includes("attacker.example") && !location.includes("test-secret") && !location.includes("test-code"));
+  assert.equal(calls.filter(path => path === "/oauth/access_token").length, 1);
+  assert.equal(saved.length, 0);
+});
+for (const [scenario, expected] of [
+  ["long_redirect", "long_token_exchange"],
+  ["profile_redirect", "profile_lookup"],
+] as const) {
+  test(`manual redirects are also blocked during ${scenario}`, async () => {
+    process.env.RSM_ENVIRONMENT = "staging";
+    const b = await begin(); upstreamFailure = scenario;
+    const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    assert.equal(new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_diagnostic"), expected);
     assert.equal(saved.length, 0);
   });
 }
