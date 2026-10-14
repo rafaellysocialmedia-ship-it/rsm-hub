@@ -1,6 +1,6 @@
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { startInstagram, callbackInstagram, instagramStatus } from "../src/lib/instagram-handlers.server";
+import { startInstagram, callbackInstagram, instagramStatus, instagramNetworkDiagnostic } from "../src/lib/instagram-handlers.server";
 import { encryptToken, hashState, scopes } from "../src/lib/instagram-oauth.server";
 
 const client = "10000000-0000-4000-8000-000000000001";
@@ -15,6 +15,7 @@ let upstreamFailure: string;
 let grantedScopes: string[];
 let calls: string[];
 let databaseFailure: boolean;
+let probeFailure: boolean;
 let shortTokenShape: "flat" | "wrapped" | "empty" | "multiple" | "mixed";
 let permissionsAsString: boolean;
 beforeEach(() => {
@@ -22,7 +23,7 @@ beforeEach(() => {
     INSTAGRAM_APP_ID: "test-app", INSTAGRAM_APP_SECRET: "test-secret", INSTAGRAM_TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
     SUPABASE_URL: "https://database-test.example", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" });
   states = {}; saved = []; permitted = true; upstreamFailure = ""; grantedScopes = scopes.split(","); calls = []; databaseFailure = false;
-  shortTokenShape = "flat"; permissionsAsString = false;
+  shortTokenShape = "flat"; permissionsAsString = false; probeFailure = false;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input)); calls.push(url.pathname);
     const ok = (body: unknown) => Response.json(body);
@@ -49,6 +50,10 @@ beforeEach(() => {
       return ok(saved.map(({ instagram_user_id, username, token_expires_at }) => ({ instagram_user_id, username, token_expires_at })));
     }
     if (url.hostname === "api.instagram.com") {
+      if (init?.method === "GET" || new URLSearchParams(String(init?.body)).get("client_id") === "rsm-staging-probe-invalid") {
+        if (probeFailure) throw new Error("Network connection lost.");
+        return Response.json({ error_message: "Do not expose this fake secret!" }, { status: init?.method === "GET" ? 405 : 400 });
+      }
       if (upstreamFailure === "meta:upstream_redirect") return new Response(null, { status: 302,
         headers: { Location: "https://attacker.example/steal?secret=test-secret&code=test-code" } });
       if (upstreamFailure === "code") throw new Error("Sensitive test-secret must never be logged");
@@ -101,6 +106,42 @@ function callback(state: string, cookie = "", query = "code=test-code") {
   return callbackInstagram(new Request(`${origin}/api/integrations/instagram/callback?state=${state}&${query}`, { headers: { Cookie: cookie } }));
 }
 const result = (response: Response) => new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_connection");
+const probeRequest = (token = "valid-session", requestOrigin = origin) => new Request(`${origin}/api/integrations/instagram/diagnose`, {
+  method: "POST", headers: { Authorization: `Bearer ${token}`, Origin: requestOrigin,
+    "Content-Type": "application/json" }, body: JSON.stringify({ client_id: client }),
+});
+test("network probe is inaccessible in production", async () => {
+  process.env.RSM_ENVIRONMENT = "production";
+  assert.equal((await instagramNetworkDiagnostic(probeRequest())).status, 404);
+  assert.equal(calls.length, 0);
+});
+test("network probe requires a valid session and client permission", async () => {
+  process.env.RSM_ENVIRONMENT = "staging";
+  assert.equal((await instagramNetworkDiagnostic(probeRequest("invalid"))).status, 401);
+  assert.equal((await instagramNetworkDiagnostic(probeRequest(undefined, "https://attacker.example"))).status, 403);
+  permitted = false;
+  assert.equal((await instagramNetworkDiagnostic(probeRequest())).status, 403);
+  assert.ok(!calls.includes("/oauth/access_token"));
+});
+test("staging egress probe proves GET and dummy POST reach Meta without tokens", async () => {
+  process.env.RSM_ENVIRONMENT = "staging";
+  const response = await instagramNetworkDiagnostic(probeRequest());
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.deepEqual(data.checks.map((c: any) => [c.method,c.reachable,c.status,c.category]), [
+    ["get",true,405,"http_response"], ["post",true,400,"http_response"],
+  ]);
+  assert.ok(!JSON.stringify(data).includes("secret"));
+});
+test("staging egress probe categorizes network failures without revealing errors", async () => {
+  process.env.RSM_ENVIRONMENT = "staging"; probeFailure = true;
+  const response = await instagramNetworkDiagnostic(probeRequest());
+  const data = await response.json();
+  assert.deepEqual(data.checks.map((c: any) => [c.reachable,c.status,c.category]), [
+    [false,null,"connection_lost"],[false,null,"connection_lost"],
+  ]);
+  assert.ok(!JSON.stringify(data).includes("Network connection lost"));
+});
 test("start requires authentication", async () => assert.equal((await startInstagram(new Request(`${origin}/start`, { method: "POST" }))).status, 401));
 test("invalid session rejected", async () => assert.equal((await startInstagram(startRequest(undefined, "invalid"))).status, 401));
 test("rejects cross-origin start", async () => assert.equal((await startInstagram(startRequest(undefined, undefined, "https://attacker.example"))).status, 403));
