@@ -17,7 +17,9 @@ test('staging config accepts only isolated project and dedicated Worker', () => 
   assert.equal(Object.hasOwn(output.vars,'INSTAGRAM_OAUTH_ENABLED'),false);
   assert.equal(output.keep_vars,true);
   assert.equal(output.d1_databases,undefined);
-  assert.equal(output.triggers,undefined);
+  assert.deepEqual(output.triggers,{crons:['* * * * *']});
+  assert.equal(Object.hasOwn(output.vars,'RSM_PUBLISH_ENABLED'),false);
+  assert.equal(Object.hasOwn(output.vars,'RSM_PRIMARY_PUBLISH_ENABLED'),false);
   assert.equal(output.vars.SUPABASE_SERVICE_ROLE_KEY,undefined);
 });
 for (const [name, value] of [
