@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { cn } from "@/lib/utils";
 
 export function TimelineView({
@@ -57,8 +58,9 @@ export function TimelineView({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{p.title}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {[p.client_id ? clientMap.get(p.client_id) : null, postNetworks(p).join("/") || null, p.format].filter(Boolean).join(" · ") || "—"}
+                      {[p.client_id ? clientMap.get(p.client_id) : null, p.format].filter(Boolean).join(" · ") || "—"}
                     </p>
+                    <PostNetworkBadges networks={postNetworks(p)} className="mt-1" />
                   </div>
                   <Badge variant="outline" className={cn("text-[10px]", meta.tone)}>{meta.label}</Badge>
                 </div>
