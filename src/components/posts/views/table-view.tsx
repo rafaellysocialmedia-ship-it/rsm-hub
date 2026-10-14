@@ -3,6 +3,7 @@ import { ptBR } from "date-fns/locale";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { cn } from "@/lib/utils";
 
 export function TableView({
@@ -29,7 +30,7 @@ export function TableView({
               <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer">
                 <TableCell className="pl-4 font-medium">{p.title}</TableCell>
                 <TableCell>{p.client_id ? clientMap.get(p.client_id) : "—"}</TableCell>
-                <TableCell>{postNetworks(p).join(", ") || "—"}</TableCell>
+                <TableCell><PostNetworkBadges networks={postNetworks(p)} /></TableCell>
                 <TableCell>{p.format ?? "—"}</TableCell>
                 <TableCell>{p.scheduled_date ? format(new Date(p.scheduled_date + "T00:00:00"), "dd MMM yy", { locale: ptBR }) : "—"}</TableCell>
                 <TableCell>{p.scheduled_time?.slice(0, 5) ?? "—"}</TableCell>
