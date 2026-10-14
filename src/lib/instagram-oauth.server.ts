@@ -69,10 +69,17 @@ async function metaJson(url: string | URL, init?: RequestInit, failureLabel = "I
   const isInitialExchange = failureLabel === "Instagram authorization exchange failed";
   let response: Response;
   try {
-    response = await fetch(url, { ...init, redirect: "error", signal: AbortSignal.timeout(15000) });
+    // workerd rejects redirect: "error" before issuing the request.
+    // Manual mode is supported by Workers; reject 3xx explicitly below.
+    // Never follow redirects that could forward client_secret or access_token.
+    response = await fetch(url, { ...init, redirect: "manual", signal: AbortSignal.timeout(15000) });
   } catch {
     // Never expose upstream URLs, request bodies, tokens or error messages.
     throw new Error(isInitialExchange ? "Instagram exchange network error" : failureLabel);
+  }
+  if (response.status >= 300 && response.status < 400) {
+    // Reject every redirect without reading Location (which may be sensitive).
+    throw new Error(isInitialExchange ? "Instagram exchange unexpected redirect" : failureLabel);
   }
   if (!response.ok) {
     if (isInitialExchange) {
