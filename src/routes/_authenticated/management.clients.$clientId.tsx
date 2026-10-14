@@ -110,6 +110,10 @@ function ClientMasterPage() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState("info");
+  const openBillingSettings = () => {
+    setSettingsTab("services");
+    setTab("settings");
+  };
   useAccountSync(canEdit ? clientId : undefined);
 
   const { data: client, isLoading } = useQuery({
@@ -176,7 +180,7 @@ function ClientMasterPage() {
         </div>
       </div>
 
-      <AccountHeaderFacts client={client} />
+      <AccountHeaderFacts client={client} onConfigureBilling={openBillingSettings} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {!client.churned && (
           <>
@@ -248,7 +252,7 @@ function ClientMasterPage() {
           onTab={setTab}
         />
         <TabsContent value="overview" className="mt-5 space-y-4">
-          <AccountOverview client={client} onTab={setTab} />
+          <AccountOverview client={client} onTab={setTab} onConfigureBilling={openBillingSettings} />
           <Deliveries clientId={client.id} canEdit={canEdit && !client.churned} />
           <OverviewTab client={client} />
           <JourneyCard clientId={client.id} currentStage={journeyStage} />
