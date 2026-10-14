@@ -64,6 +64,7 @@ export async function callbackInstagram(request: Request) {
     "Instagram exchange unauthorized": "meta_unauthorized",
     "Instagram exchange server error": "meta_server_error",
     "Instagram exchange network error": "meta_network",
+    "Instagram exchange unexpected redirect": "meta_unexpected_redirect",
     "Instagram exchange rate limited": "meta_rate_limited",
     "Instagram long token exchange failed": "long_token_exchange",
     "Instagram profile lookup failed": "profile_lookup",
