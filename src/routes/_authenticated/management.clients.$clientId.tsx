@@ -18,7 +18,7 @@ import { ChurnCard } from "@/components/clients/churn-card";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Pencil, Video } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Video, MoreHorizontal, FilePlus2, CreditCard, Send, Copy } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -41,7 +41,14 @@ import { MeetingDialog } from "@/components/meetings/meeting-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Task } from "@/lib/tasks";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ClientLogo } from "@/components/clients/client-logo";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { JourneyCard } from "@/components/clients/journey-card";
@@ -102,6 +109,7 @@ function ClientMasterPage() {
   const [postOpen, setPostOpen] = useState(false);
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState("info");
   useAccountSync(canEdit ? clientId : undefined);
 
   const { data: client, isLoading } = useQuery({
@@ -145,7 +153,7 @@ function ClientMasterPage() {
     ).journey_stage ?? "closing";
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-6 py-10">
+    <div className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 sm:py-6">
       <Link
         to="/management/clients"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -155,11 +163,11 @@ function ClientMasterPage() {
       </Link>
 
       <ClientSwitcher id={client.id} name={client.name} tab={tab} />
-      <div className="mt-4 flex items-start gap-4">
-        <ClientLogo path={client.logo_url} name={client.name} className="h-16 w-16" />
+      <div className="mt-3 flex items-center gap-3">
+        <ClientLogo path={client.logo_url} name={client.name} className="h-12 w-12 sm:h-14 sm:w-14" />
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">{client.name}</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{client.name}</h1>
             <StatusBadge status={client.status} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -169,55 +177,73 @@ function ClientMasterPage() {
       </div>
 
       <AccountHeaderFacts client={client} />
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {!client.churned && (
           <>
-            <Button onClick={() => setPostOpen(true)}>
+            <Button size="sm" onClick={() => setPostOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Adicionar conteúdo
             </Button>
-            <Button variant="outline" onClick={() => setTaskOpen(true)}>
+            <Button size="sm" variant="outline" onClick={() => setTaskOpen(true)}>
               Nova demanda
-            </Button>
-            {financeAccess.canEdit && (
-              <Button variant="outline" onClick={() => setTab("finance")}>
-                Registrar pagamento
-              </Button>
-            )}
-            <Button variant="outline" onClick={() => setTab("documents")}>
-              Adicionar arquivo
-            </Button>
-            <Button variant="outline" onClick={() => setTab("contents")}>
-              Enviar para aprovação
-            </Button>
-            <Button variant="outline" onClick={() => setMeetingOpen(true)}>
-              <Video className="mr-2 h-4 w-4" />
-              Agendar reunião
             </Button>
           </>
         )}
-        <Button
-          variant="outline"
-          onClick={() => {
-            void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(
-              () =>
-                toast.success(
-                  "Link do portal copiado. O cliente deve entrar com seu próprio acesso.",
-                ),
-              () => toast.error("Não foi possível copiar o link."),
-            );
-          }}
-        >
-          Copiar acesso ao portal
-        </Button>
-        <Button variant="outline" onClick={() => setEditOpen(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Editar cliente
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline" aria-label="Abrir outras ações do cliente">
+              <MoreHorizontal className="mr-2 h-4 w-4" />
+              Mais ações
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {!client.churned && (
+              <>
+                {financeAccess.canEdit && (
+                  <DropdownMenuItem onSelect={() => setTab("finance")}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Registrar pagamento
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onSelect={() => setTab("documents")}>
+                  <FilePlus2 className="mr-2 h-4 w-4" />
+                  Adicionar arquivo
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setTab("contents")}>
+                  <Send className="mr-2 h-4 w-4" />
+                  Enviar para aprovação
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setMeetingOpen(true)}>
+                  <Video className="mr-2 h-4 w-4" />
+                  Agendar reunião
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
+            <DropdownMenuItem
+              onSelect={() => {
+                void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(
+                  () => toast.success("Link do portal copiado. O cliente deve entrar com seu próprio acesso."),
+                  () => toast.error("Não foi possível copiar o link."),
+                );
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copiar acesso ao portal
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar cliente
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <Tabs value={tab} onValueChange={setTab} className="mt-6">
+      <Tabs value={tab} onValueChange={setTab} className="mt-4">
         <GroupedNavigation
-          groups={profileGroups.filter((g) => g.title !== "Financeiro" || financeAccess.canView)}
+          groups={profileGroups.map((group) => ({
+            ...group,
+            items: group.items.filter(([value]) => financeAccess.canView || !["finance", "contract"].includes(value)),
+          }))}
           tab={tab}
           onTab={setTab}
         />
@@ -285,18 +311,29 @@ function ClientMasterPage() {
           <AccountActivity clientId={client.id} />
           <TimelineTab clientId={client.id} />
         </TabsContent>
-        <TabsContent value="settings" className="mt-5">
-          <Tabs defaultValue="info">
-            <TabsList className="flex h-auto flex-wrap justify-start gap-1">
-              <TabsTrigger value="info">Informações</TabsTrigger>
-              <TabsTrigger value="services">Serviços</TabsTrigger>
-              <TabsTrigger value="team">Equipe</TabsTrigger>
-              <TabsTrigger value="accounts">Acessos</TabsTrigger>
-              <TabsTrigger value="assets">Ativos digitais</TabsTrigger>
-              <TabsTrigger value="integrations">Integrações</TabsTrigger>
-              <TabsTrigger value="portal">Painel do cliente</TabsTrigger>
-              <TabsTrigger value="chat">Chat interno</TabsTrigger>
-            </TabsList>
+        <TabsContent value="settings" className="mt-4">
+          <Tabs value={settingsTab} onValueChange={setSettingsTab}>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-3">
+              <label htmlFor="rsm-client-settings" className="text-sm font-medium">
+                Configurações da conta
+              </label>
+              <select
+                id="rsm-client-settings"
+                aria-label="Selecione a configuração do cliente"
+                value={settingsTab}
+                onChange={(event) => setSettingsTab(event.target.value)}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-64"
+              >
+                <option value="info">Informações</option>
+                <option value="services">Serviços</option>
+                <option value="team">Equipe</option>
+                <option value="accounts">Acessos</option>
+                <option value="assets">Ativos digitais</option>
+                <option value="integrations">Integrações</option>
+                <option value="portal">Painel do cliente</option>
+                <option value="chat">Chat interno</option>
+              </select>
+            </div>
             <TabsContent value="info">
               <ChurnCard clientId={client.id} />
               <ExitDetails clientId={client.id} />
