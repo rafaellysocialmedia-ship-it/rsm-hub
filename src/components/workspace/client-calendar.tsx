@@ -21,6 +21,7 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PostCreativeThumb } from "@/components/posts/post-creative-viewer";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { QueryState } from "./account-panels";
 import { statusMeta, postNetworks, POST_STATUS, type Post } from "@/lib/posts";
 export function ClientCalendarPage({
@@ -172,15 +173,17 @@ export function ClientCalendarPage({
         >
           {p.title}
         </p>
-        {density === "compact" && p.format && (
-          <span className="inline-flex max-w-full truncate rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-800"
-            title={p.format}>{p.format}</span>
-        )}
-        {density !== "compact" && (
-          <p className="truncate text-[11px] text-muted-foreground">
-            {[...postNetworks(p), p.format].filter(Boolean).join(" · ")}
-          </p>
-        )}
+        <div className="flex min-w-0 flex-wrap items-center gap-1">
+          <PostNetworkBadges networks={postNetworks(p)} compact={density === "compact" && !thumb} />
+          {p.format && (
+            <span
+              className="inline-flex max-w-full truncate rounded-md border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] font-medium text-violet-800 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-200"
+              title={p.format}
+            >
+              {p.format}
+            </span>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
           {showDate && p.scheduled_date && (
             <span className="text-muted-foreground">{p.scheduled_date.split("-").reverse().join("/")}</span>
