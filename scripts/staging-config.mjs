@@ -24,7 +24,7 @@ export function stagingConfig(env, productionRef) {
 export function workerConfig(base, config) {
   // Explicit allowlist: do not inherit production routes, databases, cron or service bindings.
   return {
-    name: STAGING_WORKER, account_id: config.accountId, main: 'index.js',
+    name: STAGING_WORKER, account_id: config.accountId, main: 'instagram-primary-staging-entry.mjs',
     compatibility_date: base.compatibility_date,
     compatibility_flags: base.compatibility_flags,
     no_bundle: true, rules: base.rules,
