@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
+import { AlertCircle, AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2, Clock3, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountMeetings } from "@/hooks/use-account-workspace";
 import { useFinanceAccess, useCharges, useContracts } from "@/hooks/use-finance";
@@ -88,54 +89,79 @@ export function AccountOverview({
           />
         </div>
       </QueryState>
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader>
-          <CardTitle className="text-lg">O que precisa de atenção</CardTitle>
+      <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+        <CardHeader className="border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Sparkles className="size-4.5" aria-hidden />
+            </div>
+            <div>
+              <CardTitle className="text-base">Atenção e próximos passos</CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">Pendências deste cliente, organizadas por prioridade.</p>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="pt-4">
           {client.churned ? (
-            <p className="text-sm">Conta encerrada. O histórico continua disponível.</p>
+            <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
+              <Clock3 className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+              Conta encerrada. O histórico continua disponível.
+            </div>
           ) : (
-            <>
-              {summary.pending > 0 && (
-                <Attention
-                  text={`${summary.pending} conteúdo(s) aguardam aprovação do cliente.`}
-                  action="Ver aprovações"
-                  onClick={() => onTab("approvals")}
-                />
-              )}
-              {summary.changes > 0 && (
-                <Attention
-                  text={`${summary.changes} conteúdo(s) precisam de ajustes.`}
-                  action="Ver ajustes"
-                  onClick={() => onTab("approvals")}
-                />
-              )}
+            <div className="grid gap-3 md:grid-cols-2">
               {summary.late > 0 && (
                 <Attention
+                  kind="urgent"
+                  title="Publicações atrasadas"
                   text={`${summary.late} conteúdo(s) passaram da data prevista.`}
                   action="Ver calendário"
                   onClick={() => onTab("calendar")}
                 />
               )}
-              {!posts.isLoading && !posts.error && !summary.scheduled && (
-                <Attention
-                  text="Nenhuma publicação programada para este mês."
-                  action="Planejar conteúdo"
-                  onClick={() => onTab("contents")}
-                />
-              )}
               {finance.canView && nextCharge && effectiveStatus(nextCharge) === "overdue" && (
                 <Attention
+                  kind="urgent"
+                  title="Cobrança em atraso"
                   text="Há cobrança vencida nesta conta."
                   action="Ver financeiro"
                   onClick={() => onTab("finance")}
                 />
               )}
-              {!summary.pending && !summary.changes && !summary.late && summary.scheduled > 0 && (
-                <p className="text-sm">Nenhuma pendência de conteúdo identificada.</p>
+              {summary.changes > 0 && (
+                <Attention
+                  kind="warning"
+                  title="Ajustes solicitados"
+                  text={`${summary.changes} conteúdo(s) precisam de ajustes.`}
+                  action="Ver ajustes"
+                  onClick={() => onTab("approvals")}
+                />
               )}
-            </>
+              {summary.pending > 0 && (
+                <Attention
+                  kind="pending"
+                  title="Aguardando aprovação"
+                  text={`${summary.pending} conteúdo(s) aguardam aprovação do cliente.`}
+                  action="Ver aprovações"
+                  onClick={() => onTab("approvals")}
+                />
+              )}
+              {!posts.isLoading && !posts.error && !summary.scheduled && (
+                <Attention
+                  kind="pending"
+                  title="Calendário sem publicações"
+                  text="Nenhuma publicação programada para este mês."
+                  action="Planejar conteúdo"
+                  onClick={() => onTab("contents")}
+                />
+              )}
+              {!summary.pending && !summary.changes && !summary.late && summary.scheduled > 0 &&
+                !(finance.canView && nextCharge && effectiveStatus(nextCharge) === "overdue") && (
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-800 dark:text-emerald-200 md:col-span-2">
+                  <CheckCircle2 className="size-5 shrink-0" aria-hidden />
+                  Nenhuma pendência de conteúdo identificada.
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
@@ -222,20 +248,50 @@ export function AccountOverview({
     </div>
   );
 }
+type AttentionKind = "urgent" | "warning" | "pending";
+const attentionStyle: Record<AttentionKind, { border: string; icon: typeof AlertTriangle }> = {
+  urgent: {
+    border: "border-rose-500/20 bg-rose-500/[0.04]",
+    icon: AlertTriangle,
+  },
+  warning: {
+    border: "border-amber-500/25 bg-amber-500/[0.05]",
+    icon: AlertCircle,
+  },
+  pending: {
+    border: "border-primary/15 bg-primary/[0.035]",
+    icon: CalendarClock,
+  },
+};
 function Attention({
+  title,
   text,
   action,
+  kind,
   onClick,
 }: {
+  title: string;
   text: string;
   action: string;
+  kind: AttentionKind;
   onClick: () => void;
 }) {
+  const style = attentionStyle[kind];
+  const Icon = style.icon;
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background p-3">
-      <p className="text-sm">{text}</p>
-      <Button variant="outline" size="sm" onClick={onClick}>
+    <div className={`flex min-w-0 flex-col justify-between gap-3 rounded-xl border p-3.5 ${style.border}`}>
+      <div className="flex items-start gap-2.5">
+        <div className="rounded-lg bg-background/80 p-2 text-foreground" aria-hidden>
+          <Icon className="size-4" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">{title}</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
+        </div>
+      </div>
+      <Button variant="outline" size="sm" className="h-8 self-start gap-1.5 bg-background text-xs" onClick={onClick}>
         {action}
+        <ArrowUpRight className="size-3.5" aria-hidden />
       </Button>
     </div>
   );
