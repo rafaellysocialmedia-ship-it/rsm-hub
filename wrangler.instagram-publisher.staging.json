@@ -1,0 +1,14 @@
+{
+  "name": "rsm-instagram-publisher-staging",
+  "main": "workers/instagram-publisher-staging.mjs",
+  "compatibility_date": "2026-10-10",
+  "workers_dev": false,
+  "preview_urls": false,
+  "triggers": { "crons": ["* * * * *"] },
+  "observability": { "enabled": false },
+  "vars": {
+    "RSM_ENVIRONMENT": "staging",
+    "RSM_PUBLISH_ENABLED": "false",
+    "SUPABASE_URL": "https://dtladsjhmnzdxcmgivne.supabase.co"
+  }
+}
