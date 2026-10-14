@@ -129,7 +129,7 @@ for (const shape of ["empty", "multiple", "mixed"] as const) {
   });
 }
 for (const [failure, expected] of [
-  ["code", "authorization_exchange"], ["long", "long_token_exchange"],
+  ["code", "meta_network"], ["long", "long_token_exchange"],
   ["profile", "profile_response"],
 ] as const) {
   test(`staging callback reports sanitized ${failure} failure`, async () => {
