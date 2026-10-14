@@ -7,6 +7,13 @@ on:
       - 'src/components/workspace/account-overview.tsx'
       - 'src/components/management/services-tab.tsx'
       - 'src/components/posts/post-editor-sheet.tsx'
+      - 'src/lib/posts.ts'
+      - 'src/components/clients/client-label.tsx'
+      - 'src/components/clients/client-form-dialog.tsx'
+      - 'src/components/workspace/client-calendar.tsx'
+      - 'src/routes/_authenticated/management.clients.$clientId.tsx'
+      - 'src/integrations/supabase/types.ts'
+      - 'supabase/migrations/**'
       - '.github/workflows/finance-calendar.yml'
   workflow_dispatch:
 
