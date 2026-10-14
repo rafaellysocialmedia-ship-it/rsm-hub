@@ -71,7 +71,7 @@ export const Route = createFileRoute("/_authenticated/management/clients/$client
   }),
   head: () => ({
     meta: [
-      { title: "Perfil 360º · RSM Gestão de Marketing" },
+      { title: "Cliente · RSM Gestão de Marketing" },
       {
         name: "description",
         content:
@@ -171,7 +171,7 @@ function ClientMasterPage() {
             <StatusBadge status={client.status} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Perfil 360º · {client.plan || "Plano a definir"} · {client.segment || "Sem segmento"}
+            {client.plan || "Plano a definir"} · {client.segment || "Sem segmento"}
           </p>
         </div>
       </div>

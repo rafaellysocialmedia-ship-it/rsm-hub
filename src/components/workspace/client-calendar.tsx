@@ -117,7 +117,7 @@ export function ClientCalendarPage({
       p.scheduled_date >= from &&
       p.scheduled_date <= to,
   );
-  const selectClass = "min-h-11 rounded-md border bg-card px-3 text-sm";
+  const selectClass = "h-9 max-w-full rounded-lg border border-input bg-background px-3 text-xs shadow-none";
   const item = (p: Post, thumb = false) => (
     <article
       key={p.id}
@@ -312,27 +312,21 @@ export function ClientCalendarPage({
   };
   return (
     <section className="@container space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold">Calendário compartilhado</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Aprovação e publicação são etapas distintas. As datas mostram a previsão registrada pela
-            equipe.
-          </p>
+      <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-card px-3 py-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">
+            {providedPosts === undefined ? "Calendário do cliente" : "Período e exibição"}
+          </h2>
+          {providedPosts === undefined && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Arraste conteúdos para mudar a data. A aprovação permanece independente da publicação.
+            </p>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label htmlFor="calendar-period-view" className="sr-only">Período do calendário</label>
           <select
-            aria-label="Densidade do calendário"
-            disabled={prefs.isPending || prefs.update.isPending}
-            className={selectClass}
-            value={density}
-            onChange={(e) => prefs.update.mutate({ calendar_density: e.target.value })}
-          >
-            <option value="compact">Compacta</option>
-            <option value="standard">Padrão</option>
-            <option value="expanded">Ampliada</option>
-          </select>
-          <select
+            id="calendar-period-view"
             aria-label="Visualização do calendário"
             className={selectClass}
             value={view}
@@ -341,8 +335,21 @@ export function ClientCalendarPage({
             <option value="month">Mês</option>
             <option value="week">Semana</option>
             <option value="day">Dia</option>
-            <option value="list">Lista</option>
+            <option value="list">Lista por período</option>
             <option value="grid">Grade de prévias</option>
+          </select>
+          <label htmlFor="calendar-density" className="sr-only">Densidade do calendário</label>
+          <select
+            id="calendar-density"
+            aria-label="Densidade do calendário"
+            disabled={prefs.isPending || prefs.update.isPending}
+            className={selectClass}
+            value={density}
+            onChange={(e) => prefs.update.mutate({ calendar_density: e.target.value })}
+          >
+            <option value="compact">Visual compacto</option>
+            <option value="standard">Visual padrão</option>
+            <option value="expanded">Visual ampliado</option>
           </select>
         </div>
       </header>
