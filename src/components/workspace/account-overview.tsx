@@ -15,9 +15,11 @@ import { MetricCard, QueryState, useInternalPosts } from "./account-panels";
 export function AccountOverview({
   client,
   onTab,
+  onConfigureBilling,
 }: {
   client: Client;
   onTab: (tab: string) => void;
+  onConfigureBilling: () => void;
 }) {
   const posts = useInternalPosts(client.id);
   const meetings = useAccountMeetings(client.id);
@@ -224,9 +226,14 @@ export function AccountOverview({
                   </p>
                 </div>
                 {monthly.missingBillingDay && (
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Vencimento não configurado em um ou mais serviços ativos. Configure na aba Serviços.
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-amber-700 dark:text-amber-400">
+                      Dia de vencimento pendente em um ou mais serviços ativos.
+                    </p>
+                    <Button size="sm" variant="outline" onClick={onConfigureBilling}>
+                      Configurar vencimento
+                    </Button>
+                  </div>
                 )}
                 <div>
                   <p className="text-muted-foreground">Próxima cobrança pendente</p>

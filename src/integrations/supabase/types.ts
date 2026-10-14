@@ -1059,6 +1059,7 @@ export type Database = {
           account_manager_id: string | null
           address: string | null
           city: string | null
+          calendar_label_color: string | null
           cnpj: string | null
           company_size: string | null
           created_at: string
@@ -1100,6 +1101,7 @@ export type Database = {
           account_manager_id?: string | null
           address?: string | null
           city?: string | null
+          calendar_label_color?: string | null
           cnpj?: string | null
           company_size?: string | null
           created_at?: string
@@ -1141,6 +1143,7 @@ export type Database = {
           account_manager_id?: string | null
           address?: string | null
           city?: string | null
+          calendar_label_color?: string | null
           cnpj?: string | null
           company_size?: string | null
           created_at?: string

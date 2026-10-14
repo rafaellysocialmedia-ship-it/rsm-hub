@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ClientLogo } from "./client-logo";
+import { ClientLabel } from "./client-label";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório").max(120),
@@ -41,6 +42,7 @@ const schema = z.object({
   whatsapp: z.string().trim().max(30).optional().or(z.literal("")),
   email: z.string().trim().email("Email inválido").optional().or(z.literal("")),
   segment: z.string().trim().max(80).optional().or(z.literal("")),
+  calendar_label_color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Escolha uma cor hexadecimal válida").optional().or(z.literal("")),
   plan: z.string().trim().max(80).optional().or(z.literal("")),
   start_date: z.string().optional().or(z.literal("")),
   status: z.enum(["active", "inactive", "paused", "prospect"]),
@@ -63,6 +65,7 @@ const empty: FormValues = {
   whatsapp: "",
   email: "",
   segment: "",
+  calendar_label_color: "",
   plan: "",
   start_date: "",
   status: "active",
@@ -109,6 +112,7 @@ export function ClientFormDialog({
               whatsapp: client.whatsapp ?? "",
               email: client.email ?? "",
               segment: client.segment ?? "",
+               calendar_label_color: client.calendar_label_color ?? "",
               plan: client.plan ?? "",
               start_date: client.start_date ?? "",
               status: client.status,
@@ -159,6 +163,7 @@ export function ClientFormDialog({
         whatsapp: values.whatsapp || null,
         email: values.email || null,
         segment: values.segment || null,
+         calendar_label_color: values.calendar_label_color || null,
         plan: values.plan || null,
         start_date: values.start_date || null,
         monthly_post_quota: quotaNum,
@@ -181,6 +186,7 @@ export function ClientFormDialog({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["clients"] });
+      qc.invalidateQueries({ queryKey: ["calendar-client-labels"] });
       qc.invalidateQueries({ queryKey: ["management-clients"] });
       toast.success(client ? "Cliente atualizado" : "Cliente criado");
       onOpenChange(false);
@@ -253,6 +259,21 @@ export function ClientFormDialog({
             <Field label="WhatsApp"><Input {...form.register("whatsapp")} placeholder="(11) 90000-0000" /></Field>
             <Field label="Email" error={form.formState.errors.email?.message}><Input type="email" {...form.register("email")} /></Field>
             <Field label="Segmento"><Input {...form.register("segment")} placeholder="Ex: E-commerce" /></Field>
+             <Field label="Cor da etiqueta do cliente no calendário" error={form.formState.errors.calendar_label_color?.message}>
+               <div className="flex flex-wrap items-center gap-3">
+                 <input type="color" aria-label="Escolher cor da etiqueta do cliente"
+                   className="h-10 w-12 cursor-pointer rounded border bg-background p-1"
+                   value={form.watch("calendar_label_color") || "#42145d"}
+                   onChange={(event) => form.setValue("calendar_label_color", event.target.value, { shouldValidate: true, shouldDirty: true })} />
+                 <ClientLabel id={client?.id ?? "new"} name={form.watch("name") || "Prévia do cliente"}
+                   color={form.watch("calendar_label_color")} />
+                 <Button type="button" variant="outline" size="sm"
+                   onClick={() => form.setValue("calendar_label_color", "", { shouldValidate: true, shouldDirty: true })}>
+                   Cor automática
+                 </Button>
+               </div>
+               <p className="text-xs text-muted-foreground">A cor aparece na identificação deste cliente no calendário. Sem escolha, a etiqueta mantém a cor automática.</p>
+             </Field>
             <Field label="Plano contratado"><Input {...form.register("plan")} placeholder="Ex: Premium" /></Field>
             <Field label="Data de início"><Input type="date" {...form.register("start_date")} /></Field>
             <Field label="Forma de pagamento padrão">

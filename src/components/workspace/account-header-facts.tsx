@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { HealthBadge } from "@/components/retention/retention-workspace";
 import { dateLabel } from "@/lib/retention";
 import { money } from "@/lib/finance-core";
+import { Button } from "@/components/ui/button";
 import type { Client } from "@/lib/clients";
-export function AccountHeaderFacts({ client }: { client: Client }) {
+export function AccountHeaderFacts({ client, onConfigureBilling }: { client: Client; onConfigureBilling: () => void }) {
   const retention = useRetention(),
     actions = useRetentionActions(client.id),
     team = useRetentionTeam(),
@@ -88,6 +89,11 @@ export function AccountHeaderFacts({ client }: { client: Client }) {
           </div>
         ))}
       </dl>
+      {finance.canView && monthly.missingBillingDay && (
+        <Button size="sm" variant="outline" onClick={onConfigureBilling}>
+          Configurar vencimento dos serviços
+        </Button>
+      )}
       {(q.error || services.error || retention.error || actions.error || team.error) && (
         <p role="alert" className="text-sm text-destructive">
           Parte do resumo não pôde ser carregada. Consulte a aba correspondente.
