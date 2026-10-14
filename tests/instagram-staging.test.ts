@@ -14,7 +14,7 @@ test('staging config accepts only isolated project and dedicated Worker', () => 
   const output = workerConfig({compatibility_date:'2026-10-10',compatibility_flags:['nodejs_compat'],rules:[],routes:['production.example/*'],d1_databases:[{}],triggers:{crons:['* * * * *']}},config);
   assert.equal(output.name,'rsm-hub-instagram-staging');
   assert.deepEqual(output.routes,[]);
-  assert.equal(output.vars.INSTAGRAM_OAUTH_ENABLED,'false');
+  assert.equal(Object.hasOwn(output.vars,'INSTAGRAM_OAUTH_ENABLED'),false);
   assert.equal(output.keep_vars,true);
   assert.equal(output.d1_databases,undefined);
   assert.equal(output.triggers,undefined);

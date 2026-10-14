@@ -21,7 +21,7 @@ export const POST_STATUS: {
   { value: "changes_requested" as PostStatus, label: "Ajuste solicitado", tone: "bg-red-500/10 text-red-600 border-red-500/40", dot: "bg-red-500" },
   { value: "approved", label: "Aprovado", tone: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30", dot: "bg-emerald-500" },
   { value: "to_schedule" as PostStatus, label: "Pronto para publicar", tone: "bg-teal-500/10 text-teal-600 border-teal-500/30", dot: "bg-teal-500" },
-  { value: "scheduled", label: "Agendado", tone: "bg-sky-500/10 text-sky-600 border-sky-500/30", dot: "bg-sky-500" },
+  { value: "scheduled", label: "Agendado (RSM)", tone: "bg-sky-500/10 text-sky-600 border-sky-500/30", dot: "bg-sky-500" },
   { value: "published", label: "Publicado", tone: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", dot: "bg-emerald-500" },
   { value: "rejected" as PostStatus, label: "Reprovado", tone: "bg-rose-500/10 text-rose-600 border-rose-500/30", dot: "bg-rose-500" },
   { value: "archived" as PostStatus, label: "Arquivado", tone: "bg-zinc-500/10 text-zinc-600 border-zinc-500/30", dot: "bg-zinc-400" },

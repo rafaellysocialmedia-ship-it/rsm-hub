@@ -55,6 +55,19 @@ export async function callbackInstagram(request: Request) {
     "Invalid Instagram encryption configuration": "configuration_encryption",
     "Permission verification unavailable": "permission_check",
     "Instagram request failed": "instagram_request",
+    "Instagram authorization exchange failed": "authorization_exchange",
+    "Instagram exchange redirect mismatch": "meta_redirect_mismatch",
+    "Instagram exchange invalid credentials": "meta_invalid_credentials",
+    "Instagram exchange invalid code": "meta_invalid_code",
+    "Instagram exchange permission error": "meta_permissions",
+    "Instagram exchange HTTP 400": "meta_http_400",
+    "Instagram exchange unauthorized": "meta_unauthorized",
+    "Instagram exchange server error": "meta_server_error",
+    "Instagram exchange network error": "meta_network",
+    "Instagram exchange unexpected redirect": "meta_unexpected_redirect",
+    "Instagram exchange rate limited": "meta_rate_limited",
+    "Instagram long token exchange failed": "long_token_exchange",
+    "Instagram profile lookup failed": "profile_lookup",
     "Invalid Instagram account response": "token_response",
     "Instagram permissions missing": "permissions_missing",
     "Invalid Instagram token response": "long_token_response",
@@ -101,6 +114,88 @@ export async function callbackInstagram(request: Request) {
     if (error instanceof Error && Object.hasOwn(diagnosticCodes, error.message))
       diagnostic = diagnosticCodes[error.message];
     return result("error");
+  }
+}
+// Staging-only, authenticated egress check. Never uses a real OAuth code,
+// token, client id or app secret; never reads or exposes an upstream response body.
+function safeProbeError(error: unknown) {
+  const name = error instanceof Error ? error.name : "";
+  const message = error instanceof Error ? error.message.slice(0, 200).toLowerCase() : "";
+  if (name === "TimeoutError" || name === "AbortError" || /timed? out|aborted/.test(message)) return "timeout";
+  if (/network connection lost|connection (?:lost|reset|refused)|disconnected|socket hang up/.test(message)) return "connection_lost";
+  if (/dns|resolve|enotfound|no such host/.test(message)) return "dns";
+  if (/tls|ssl|certificate|handshake/.test(message)) return "tls";
+  if (/invalid redirect|unsupported redirect|requestinitializer|unsupported|invalid request/.test(message)) return "request_configuration";
+  return "network_other";
+}
+export async function instagramNetworkDiagnostic(request: Request) {
+  if (process.env.RSM_ENVIRONMENT !== "staging") return json({ error: "Não disponível" }, 404);
+  try {
+    const origin = new URL(redirectUri()).origin;
+    if (new URL(request.url).origin !== origin || request.headers.get("Origin") !== origin) return denied();
+    const db = adminDb();
+    const user = await authenticate(request, db);
+    if (!user) return json({ error: "Sessão inválida" }, 401);
+    const input = await request.json().catch(() => null);
+    if (!UUID.test(input?.client_id ?? "")) return json({ error: "Cliente inválido" }, 400);
+    if (!await allowed(db, user.id, input.client_id)) return denied();
+    const endpoint = "https://api.instagram.com/oauth/access_token";
+    const probes = [
+      { label: "get", init: { method: "GET" } },
+      { label: "post", init: {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: "rsm-staging-probe-invalid",
+          client_secret: "rsm-staging-probe-invalid",
+          grant_type: "authorization_code",
+          redirect_uri: "https://example.invalid/diagnostic",
+          code: "rsm-staging-probe-invalid",
+        }),
+      } },
+    ];
+    const results = await Promise.all(probes.map(async ({ label, init }) => {
+      try {
+        const response = await fetch(endpoint, {
+          ...init, redirect: "manual", signal: AbortSignal.timeout(8000),
+        });
+        // Any HTTP response, including 400/405, proves the subrequest reached a server.
+        // No response body, raw headers or Location are ever recorded.
+        await response.body?.cancel().catch(() => {});
+        return { method: label, reachable: true, status: response.status,
+          category: response.status >= 300 && response.status < 400 ? "redirect_refused" : "http_response" };
+      } catch (error) {
+        return { method: label, reachable: false, status: null, category: safeProbeError(error) };
+      }
+    }));
+    return json({ checks: results });
+  } catch {
+    return json({ error: "Diagnóstico de rede indisponível" }, 503);
+  }
+}
+export async function instagramPublicationStatus(request: Request) {
+  try {
+    const db = adminDb();
+    const user = await authenticate(request, db);
+    if (!user) return json({ error: "Sessão inválida" }, 401);
+    const postId = new URL(request.url).searchParams.get("post_id") ?? "";
+    if (!UUID.test(postId)) return json({ error: "Publicação inválida" }, 400);
+    const { data: post, error: postError } = await db.from("posts")
+      .select("client_id,status").eq("id",postId).maybeSingle();
+    if (postError || !post?.client_id || !await allowed(db,user.id,post.client_id))
+      return denied();
+    // Read-only metadata; no connection tokens, storage signed URLs or secrets.
+    const { data, error } = await db.from("instagram_publish_jobs" as never)
+      .select("status,reason_code,scheduled_for,published_at,published_media_id")
+      .eq("post_id",postId).maybeSingle();
+    if (error) throw new Error("Status unavailable");
+    const job = data as null | {
+      status: string; reason_code: string | null; scheduled_for: string | null;
+      published_at: string | null; published_media_id: string | null;
+    };
+    return json({ publication: job ?? null });
+  } catch {
+    return json({ error: "Status de publicação indisponível" }, 503);
   }
 }
 export async function instagramStatus(request: Request) {

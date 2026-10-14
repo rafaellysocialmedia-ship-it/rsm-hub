@@ -38,30 +38,103 @@ export async function encryptToken(plaintext: string) {
   const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plaintext));
   return JSON.stringify({ version: 1, iv: btoa(String.fromCharCode(...iv)), data: btoa(String.fromCharCode(...new Uint8Array(ciphertext))) });
 }
+// Only fixed labels leave the server. Instagram's raw error_message may contain
+// identifiers, query strings or other sensitive material: never log or echo it.
+function classifyAuthorizationExchangeError(status: number, payload: unknown): string {
+  if (status === 429) return "Instagram exchange rate limited";
+  const record = payload && typeof payload === "object" && !Array.isArray(payload)
+    ? payload as Record<string, unknown> : null;
+  const nested = record?.error && typeof record.error === "object" && !Array.isArray(record.error)
+    ? record.error as Record<string, unknown> : null;
+  const message = typeof record?.error_message === "string" ? record.error_message :
+    typeof nested?.message === "string" ? nested.message : "";
+  const normalized = message.slice(0, 1000).toLowerCase();
+
+  if (/redirect[ _-]*uri|redirect.*match|callback.*match|url.*blocked/.test(normalized))
+    return "Instagram exchange redirect mismatch";
+  if (/invalid platform app|invalid client|\bclient\b.{0,50}\binvalid\b|\bapp\b.{0,50}\bsecret\b|\bclient\b.{0,50}\bsecret\b|invalid credential|credentials.*invalid|app id.*invalid|invalid app id/.test(normalized))
+    return "Instagram exchange invalid credentials";
+  if (/no matching code|verification code|authorization code|code.*(used|expired|invalid|incorrect)|(?:expired|invalid|used).*code/.test(normalized))
+    return "Instagram exchange invalid code";
+  if (/permission|scope|app review|access denied/.test(normalized))
+    return "Instagram exchange permission error";
+  if (status === 400) return "Instagram exchange HTTP 400";
+  if (status === 401 || status === 403) return "Instagram exchange unauthorized";
+  if (status >= 500 && status <= 599) return "Instagram exchange server error";
+  return "Instagram authorization exchange failed";
+}
+
 // Never log upstream responses, errors or URLs: the exchange URL contains secrets.
-async function metaJson(url: string | URL, init?: RequestInit) {
-  const response = await fetch(url, { ...init, redirect: "error", signal: AbortSignal.timeout(15000) });
-  if (!response.ok) throw new Error("Instagram request failed");
-  return response.json();
+async function metaJson(url: string | URL, init?: RequestInit, failureLabel = "Instagram request failed") {
+  const isInitialExchange = failureLabel === "Instagram authorization exchange failed";
+  let response: Response;
+  try {
+    // workerd rejects redirect: "error" before issuing the request.
+    // Manual mode is supported by Workers; reject 3xx explicitly below.
+    // Never follow redirects that could forward client_secret or access_token.
+    response = await fetch(url, { ...init, redirect: "manual", signal: AbortSignal.timeout(15000) });
+  } catch {
+    // Never expose upstream URLs, request bodies, tokens or error messages.
+    throw new Error(isInitialExchange ? "Instagram exchange network error" : failureLabel);
+  }
+  if (response.status >= 300 && response.status < 400) {
+    // Reject every redirect without reading Location (which may be sensitive).
+    throw new Error(isInitialExchange ? "Instagram exchange unexpected redirect" : failureLabel);
+  }
+  if (!response.ok) {
+    if (isInitialExchange) {
+      // The error payload is inspected in memory and reduced to a fixed label.
+      // No raw Meta response, token or authorization code reaches the browser.
+      const payload: unknown = await response.json().catch(() => null);
+      throw new Error(classifyAuthorizationExchangeError(response.status, payload));
+    }
+    throw new Error(failureLabel);
+  }
+  try {
+    return await response.json();
+  } catch {
+    throw new Error(failureLabel);
+  }
+}
+
+// Instagram Login's code exchange can be flat or a single record inside "data".
+// Refuse ambiguous batches rather than bind the wrong professional account.
+function parseShortToken(payload: unknown) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload))
+    throw new Error("Invalid Instagram account response");
+  let record = payload as Record<string, unknown>;
+  if ("data" in record) {
+    if ("access_token" in record || !Array.isArray(record.data) || record.data.length !== 1)
+      throw new Error("Invalid Instagram account response");
+    const [item] = record.data;
+    if (!item || typeof item !== "object" || Array.isArray(item))
+      throw new Error("Invalid Instagram account response");
+    record = item as Record<string, unknown>;
+  }
+  return record;
 }
 export async function exchangeInstagramCode(code: string) {
-  const short = await metaJson("https://api.instagram.com/oauth/access_token", {
+  const short = parseShortToken(await metaJson("https://api.instagram.com/oauth/access_token", {
     method: "POST", body: new URLSearchParams({ client_id: instagramAppId(), client_secret: instagramSecret(),
       grant_type: "authorization_code", redirect_uri: redirectUri(), code }),
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  }) as { access_token?: string; user_id?: string | number; permissions?: string[] | string };
-  if (typeof short.access_token !== "string" || !short.user_id) throw new Error("Invalid Instagram account response");
-  const granted = Array.isArray(short.permissions) ? short.permissions : short.permissions?.split(",");
+  }, "Instagram authorization exchange failed"));
+  if (typeof short.access_token !== "string" || !short.access_token ||
+      (typeof short.user_id !== "string" && typeof short.user_id !== "number") || !short.user_id)
+    throw new Error("Invalid Instagram account response");
+  const granted = Array.isArray(short.permissions) && short.permissions.every(value => typeof value === "string")
+    ? short.permissions : typeof short.permissions === "string"
+      ? short.permissions.split(",").map(value => value.trim()) : null;
   if (!granted || !scopes.split(",").every(scope => granted.includes(scope))) throw new Error("Instagram permissions missing");
   const url = new URL("https://graph.instagram.com/access_token");
   url.search = new URLSearchParams({ grant_type: "ig_exchange_token", client_secret: instagramSecret(), access_token: short.access_token }).toString();
-  const long = await metaJson(url) as { access_token?: string; expires_in?: number };
+  const long = await metaJson(url, undefined, "Instagram long token exchange failed") as { access_token?: string; expires_in?: number };
   if (typeof long.access_token !== "string" || !long.access_token || !Number.isFinite(long.expires_in) || long.expires_in! <= 0)
     throw new Error("Invalid Instagram token response");
   // Fetch the stable account ID as a string; numeric JSON IDs can exceed JS precision.
   const profile = await metaJson("https://graph.instagram.com/me?fields=user_id,username", {
     headers: { Authorization: `Bearer ${long.access_token}` },
-  }) as { user_id?: string; username?: string };
+  }, "Instagram profile lookup failed") as { user_id?: string; username?: string };
   if (typeof profile.user_id !== "string" || !/^\d+$/.test(profile.user_id) || typeof profile.username !== "string")
     throw new Error("Invalid Instagram profile response");
   return { instagramUserId: profile.user_id, username: profile.username, token: long.access_token,

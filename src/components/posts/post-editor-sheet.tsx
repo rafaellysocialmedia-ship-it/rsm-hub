@@ -208,6 +208,52 @@ export function PostEditorSheet({
     setForm((f) => ({ ...f, [k]: v as Post[K] }));
 
   // ---- Files & comments queries (only when editing)
+  const hasInstagram = (((form as { social_networks?: string[] }).social_networks ?? []).includes("Instagram")
+    || (form.social_network === "Instagram" && !((form as { social_networks?: string[] }).social_networks ?? []).length));
+  const publishState = useQuery<{
+    publication: null | { status: string; reason_code: string | null; scheduled_for: string | null;
+      published_at: string | null; published_media_id: string | null };
+  }>({
+    queryKey: ["instagram-publish-status", post?.id],
+    enabled: !!post?.id && hasInstagram,
+    refetchInterval: 15000,
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || !post?.id) throw new Error("Entre novamente.");
+      const response = await fetch(`/api/integrations/instagram/status?post_id=${encodeURIComponent(post.id)}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` }, cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Não foi possível verificar o agendamento no Instagram.");
+      return response.json();
+    },
+  });
+  const publicationLabels: Record<string, string> = {
+    queued: "Agendado no RSM — aguardando o horário de envio ao Instagram",
+    blocked: "Agendamento editorial salvo, mas envio automático bloqueado",
+    processing: "Preparando mídia para o Instagram",
+    prepared: "Mídia preparada — aguardando confirmação do Instagram",
+    publishing: "Publicando no Instagram",
+    published: "Publicado no Instagram ✓",
+    failed: "Falha no envio ao Instagram — requer revisão",
+    uncertain: "Envio sem confirmação — confira o Instagram antes de tentar de novo",
+    cancelled: "Envio automático cancelado",
+  };
+  const publicationReasons: Record<string, string> = {
+    inactive_client: "Cliente inativo ou encerrado",
+    missing_date_time: "Preencha data e horário",
+    past_schedule: "Escolha um horário futuro",
+    account_not_connected: "Conecte a conta de Instagram deste cliente",
+    multiple_accounts: "Há mais de uma conta conectada; seleção ainda indisponível",
+    awaiting_approval: "Aprovação da versão atual pendente",
+    unsupported_format: "Por enquanto o envio automático aceita apenas Feed",
+    single_jpeg_required: "Anexe exatamente uma imagem JPEG (.jpg)",
+    caption_required: "Insira uma legenda",
+    editorial_changed: "Post alterado ou removido do agendamento",
+    worker_interrupted: "Não foi possível confirmar a última tentativa",
+    instagram_container_failed: "O Instagram não conseguiu preparar a mídia",
+    publish_needs_manual_check: "Confira se o post apareceu no perfil",
+    publish_preparation_failed: "Erro ao preparar a publicação",
+  };
   const {
     data: files = [],
     error: filesError,
@@ -728,6 +774,31 @@ export function PostEditorSheet({
                 onChange={(e) => update("scheduled_time", e.target.value || null)}
               />
             </Field>
+            {hasInstagram && <div className="sm:col-span-2 rounded-lg border border-border bg-muted/30 p-3"
+              role="status" aria-live="polite">
+              <p className="text-xs font-semibold">Publicação automática — Instagram</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Agendado no calendário não é um agendamento nativo do Instagram.
+                O RSM enviará posts elegíveis no horário escolhido (fuso de Brasília) quando o publicador estiver ativo.
+              </p>
+              {typeof window !== "undefined" && window.location.hostname.startsWith("rsm-hub-instagram-staging.") && (
+                <p className="mt-1 text-xs text-amber-700">
+                  Homologação: a publicação real permanece desligada até a validação do Worker e uma autorização de teste.
+                </p>
+              )}
+              {post?.id ? (
+                publishState.isPending ? <p className="mt-2 text-xs">Consultando fila de envio…</p>
+                : publishState.isError ? <p className="mt-2 text-xs text-destructive">Não foi possível conferir a fila.</p>
+                : publishState.data?.publication ? <>
+                  <p className="mt-2 text-xs font-medium">
+                    {publicationLabels[publishState.data.publication.status] ?? "Estado não identificado"}
+                  </p>
+                  {publishState.data.publication.reason_code && <p className="mt-1 text-xs text-destructive">
+                    {publicationReasons[publishState.data.publication.reason_code] ?? "Envio requer atenção"}
+                  </p>}
+                </> : <p className="mt-2 text-xs">Sem envio na fila. Marque como Agendado e salve após preparar a mídia.</p>
+              ) : <p className="mt-2 text-xs">Salve o post, anexe uma imagem JPEG, escolha Feed e depois marque como Agendado.</p>}
+            </div>}
             <Field label="Objetivo">
               <Select
                 value={form.objective ?? "none"}

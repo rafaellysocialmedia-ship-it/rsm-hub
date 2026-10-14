@@ -1,6 +1,6 @@
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import { startInstagram, callbackInstagram, instagramStatus } from "../src/lib/instagram-handlers.server";
+import { startInstagram, callbackInstagram, instagramStatus, instagramNetworkDiagnostic } from "../src/lib/instagram-handlers.server";
 import { encryptToken, hashState, scopes } from "../src/lib/instagram-oauth.server";
 
 const client = "10000000-0000-4000-8000-000000000001";
@@ -15,14 +15,23 @@ let upstreamFailure: string;
 let grantedScopes: string[];
 let calls: string[];
 let databaseFailure: boolean;
+let probeFailure: boolean;
+let shortTokenShape: "flat" | "wrapped" | "empty" | "multiple" | "mixed";
+let permissionsAsString: boolean;
 beforeEach(() => {
   Object.assign(process.env, { INSTAGRAM_OAUTH_ENABLED: "true", INSTAGRAM_REDIRECT_URI: `${origin}/api/integrations/instagram/callback`,
     INSTAGRAM_APP_ID: "test-app", INSTAGRAM_APP_SECRET: "test-secret", INSTAGRAM_TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
     SUPABASE_URL: "https://database-test.example", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" });
   states = {}; saved = []; permitted = true; upstreamFailure = ""; grantedScopes = scopes.split(","); calls = []; databaseFailure = false;
+  shortTokenShape = "flat"; permissionsAsString = false; probeFailure = false;
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input)); calls.push(url.pathname);
     const ok = (body: unknown) => Response.json(body);
+    if (url.hostname === "api.instagram.com" || url.hostname === "graph.instagram.com") {
+      // The actual workerd runtime rejects redirect: "error" synchronously.
+      // Every Meta request must use manual mode and enforce redirects itself.
+      assert.equal(init?.redirect, "manual", "Meta requests must use workerd-compatible manual redirect handling");
+    }
     if (url.pathname === "/auth/v1/user") return new Headers(init?.headers).get("Authorization") === "Bearer valid-session"
       ? ok({ id: user }) : Response.json({ message: "Invalid session" }, { status: 401 });
     if (url.pathname === "/rest/v1/rpc/can_manage_instagram") return ok(permitted);
@@ -41,12 +50,45 @@ beforeEach(() => {
       return ok(saved.map(({ instagram_user_id, username, token_expires_at }) => ({ instagram_user_id, username, token_expires_at })));
     }
     if (url.hostname === "api.instagram.com") {
+      if (init?.method === "GET" || new URLSearchParams(String(init?.body)).get("client_id") === "rsm-staging-probe-invalid") {
+        if (probeFailure) throw new Error("Network connection lost.");
+        return Response.json({ error_message: "Do not expose this fake secret!" }, { status: init?.method === "GET" ? 405 : 400 });
+      }
+      if (upstreamFailure === "meta:upstream_redirect") return new Response(null, { status: 302,
+        headers: { Location: "https://attacker.example/steal?secret=test-secret&code=test-code" } });
       if (upstreamFailure === "code") throw new Error("Sensitive test-secret must never be logged");
       assert.equal(new URLSearchParams(String(init?.body)).get("redirect_uri"), process.env.INSTAGRAM_REDIRECT_URI);
-      return ok({ access_token: "test-short-token", user_id: "12345678901234567", permissions: grantedScopes });
+      if (upstreamFailure.startsWith("meta:")) {
+        const [, scenario] = upstreamFailure.split(":");
+        const errors: Record<string, { status: number; text: string }> = {
+          redirect: { status: 400, text: "Error validating verification code. Please make sure your redirect_uri is identical" },
+          credentials: { status: 400, text: "Invalid client_id or client_secret" },
+          code: { status: 400, text: "No matching code found." },
+          permissions: { status: 403, text: "Permission was denied" },
+          unknown: { status: 400, text: "Something unexpected happened. Sensitive test-secret should remain private." },
+          rate: { status: 429, text: "Rate limit" },
+          unavailable: { status: 503, text: "Temporary outage" },
+        };
+        const sample = errors[scenario];
+        if (!sample) throw new Error("Unknown mock Meta error scenario");
+        return Response.json({ error_type: "OAuthException", code: sample.status, error_message: sample.text }, { status: sample.status });
+      }
+      const short = { access_token: "test-short-token", user_id: "12345678901234567",
+        permissions: permissionsAsString ? grantedScopes.join(", ") : grantedScopes };
+      if (shortTokenShape === "wrapped") return ok({ data: [short] });
+      if (shortTokenShape === "empty") return ok({ data: [] });
+      if (shortTokenShape === "multiple") return ok({ data: [short, short] });
+      if (shortTokenShape === "mixed") return ok({ ...short, data: [short] });
+      return ok(short);
     }
-    if (url.pathname === "/access_token") return upstreamFailure === "long" ? new Response(null, { status: 400 }) : ok({ access_token: "test-long-token", expires_in: 5184000 });
-    if (url.pathname === "/me") return upstreamFailure === "profile" ? ok({ user_id: 123, username: "bad" }) : ok({ user_id: "12345678901234567", username: "test_profile" });
+    if (url.pathname === "/access_token") return upstreamFailure === "long_redirect"
+      ? new Response(null, { status: 307, headers: { Location: "https://attacker.example/steal" } })
+      : upstreamFailure === "long" ? new Response(null, { status: 400 })
+      : ok({ access_token: "test-long-token", expires_in: 5184000 });
+    if (url.pathname === "/me") return upstreamFailure === "profile_redirect"
+      ? new Response(null, { status: 301, headers: { Location: "https://attacker.example/steal" } })
+      : upstreamFailure === "profile" ? ok({ user_id: 123, username: "bad" })
+      : ok({ user_id: "12345678901234567", username: "test_profile" });
     throw new Error(`Unexpected mock request ${url.hostname}${url.pathname}`);
   };
 });
@@ -64,6 +106,42 @@ function callback(state: string, cookie = "", query = "code=test-code") {
   return callbackInstagram(new Request(`${origin}/api/integrations/instagram/callback?state=${state}&${query}`, { headers: { Cookie: cookie } }));
 }
 const result = (response: Response) => new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_connection");
+const probeRequest = (token = "valid-session", requestOrigin = origin) => new Request(`${origin}/api/integrations/instagram/diagnose`, {
+  method: "POST", headers: { Authorization: `Bearer ${token}`, Origin: requestOrigin,
+    "Content-Type": "application/json" }, body: JSON.stringify({ client_id: client }),
+});
+test("network probe is inaccessible in production", async () => {
+  process.env.RSM_ENVIRONMENT = "production";
+  assert.equal((await instagramNetworkDiagnostic(probeRequest())).status, 404);
+  assert.equal(calls.length, 0);
+});
+test("network probe requires a valid session and client permission", async () => {
+  process.env.RSM_ENVIRONMENT = "staging";
+  assert.equal((await instagramNetworkDiagnostic(probeRequest("invalid"))).status, 401);
+  assert.equal((await instagramNetworkDiagnostic(probeRequest(undefined, "https://attacker.example"))).status, 403);
+  permitted = false;
+  assert.equal((await instagramNetworkDiagnostic(probeRequest())).status, 403);
+  assert.ok(!calls.includes("/oauth/access_token"));
+});
+test("staging egress probe proves GET and dummy POST reach Meta without tokens", async () => {
+  process.env.RSM_ENVIRONMENT = "staging";
+  const response = await instagramNetworkDiagnostic(probeRequest());
+  assert.equal(response.status, 200);
+  const data = await response.json();
+  assert.deepEqual(data.checks.map((c: any) => [c.method,c.reachable,c.status,c.category]), [
+    ["get",true,405,"http_response"], ["post",true,400,"http_response"],
+  ]);
+  assert.ok(!JSON.stringify(data).includes("secret"));
+});
+test("staging egress probe categorizes network failures without revealing errors", async () => {
+  process.env.RSM_ENVIRONMENT = "staging"; probeFailure = true;
+  const response = await instagramNetworkDiagnostic(probeRequest());
+  const data = await response.json();
+  assert.deepEqual(data.checks.map((c: any) => [c.reachable,c.status,c.category]), [
+    [false,null,"connection_lost"],[false,null,"connection_lost"],
+  ]);
+  assert.ok(!JSON.stringify(data).includes("Network connection lost"));
+});
 test("start requires authentication", async () => assert.equal((await startInstagram(new Request(`${origin}/start`, { method: "POST" }))).status, 401));
 test("invalid session rejected", async () => assert.equal((await startInstagram(startRequest(undefined, "invalid"))).status, 401));
 test("rejects cross-origin start", async () => assert.equal((await startInstagram(startRequest(undefined, undefined, "https://attacker.example"))).status, 403));
@@ -80,6 +158,100 @@ test("complete simulated flow saves encrypted token for client and exact string 
   assert.equal(saved[0].client_id, client); assert.equal(saved[0].user_id, user); assert.equal(saved[0].instagram_user_id, "12345678901234567");
   assert.ok(!JSON.stringify(saved).includes("test-long-token")); assert.equal(JSON.parse(saved[0].encrypted_access_token).version, 1);
   assert.match(response.headers.get("Set-Cookie")!, /Max-Age=0/); assert.equal(response.headers.get("Referrer-Policy"), "no-referrer");
+});
+test("single wrapped Instagram Login response connects the intended client", async () => {
+  shortTokenShape = "wrapped";
+  const b = await begin(); const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "connected");
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].instagram_user_id, "12345678901234567");
+});
+test("comma-separated permissions with whitespace are accepted", async () => {
+  permissionsAsString = true;
+  const b = await begin();
+  assert.equal(result(await callback(b.state, b.cookie)), "connected");
+  assert.equal(saved.length, 1);
+});
+for (const shape of ["empty", "multiple", "mixed"] as const) {
+  test(`ambiguous or malformed ${shape} token response never saves a connection`, async () => {
+    shortTokenShape = shape; process.env.RSM_ENVIRONMENT = "staging";
+    const b = await begin(); const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    const redirect = new URL(response.headers.get("Location")!, origin);
+    assert.equal(redirect.searchParams.get("instagram_diagnostic"), "token_response");
+    assert.equal(saved.length, 0);
+  });
+}
+for (const [failure, expected] of [
+  ["code", "meta_network"], ["long", "long_token_exchange"],
+  ["profile", "profile_response"],
+] as const) {
+  test(`staging callback reports sanitized ${failure} failure`, async () => {
+    process.env.RSM_ENVIRONMENT = "staging";
+    const b = await begin(); upstreamFailure = failure;
+    const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    const location = response.headers.get("Location")!;
+    assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), expected);
+    assert.ok(!location.includes("test-secret") && !location.includes("test-short-token"));
+    assert.ok(!location.includes("Sensitive"));
+    assert.equal(saved.length, 0);
+  });
+}
+for (const [scenario, expected] of [
+  ["redirect", "meta_redirect_mismatch"], ["credentials", "meta_invalid_credentials"],
+  ["code", "meta_invalid_code"], ["permissions", "meta_permissions"],
+  ["unknown", "meta_http_400"], ["rate", "meta_rate_limited"],
+  ["unavailable", "meta_server_error"],
+] as const) {
+  test(`staging classifies Meta ${scenario} error without revealing upstream message`, async () => {
+    process.env.RSM_ENVIRONMENT = "staging";
+    upstreamFailure = `meta:${scenario}`;
+    const b = await begin();
+    const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    const location = response.headers.get("Location")!;
+    assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), expected);
+    assert.ok(!location.includes("Sensitive") && !location.includes("test-secret"));
+    assert.equal(saved.length, 0);
+  });
+}
+test("manual redirects are blocked at initial token exchange without forwarding secrets", async () => {
+  process.env.RSM_ENVIRONMENT = "staging";
+  const b = await begin(); upstreamFailure = "meta:upstream_redirect";
+  const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "error");
+  const location = response.headers.get("Location")!;
+  assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), "meta_unexpected_redirect");
+  assert.ok(!location.includes("attacker.example") && !location.includes("test-secret") && !location.includes("test-code"));
+  assert.equal(calls.filter(path => path === "/oauth/access_token").length, 1);
+  assert.equal(saved.length, 0);
+});
+for (const [scenario, expected] of [
+  ["long_redirect", "long_token_exchange"],
+  ["profile_redirect", "profile_lookup"],
+] as const) {
+  test(`manual redirects are also blocked during ${scenario}`, async () => {
+    process.env.RSM_ENVIRONMENT = "staging";
+    const b = await begin(); upstreamFailure = scenario;
+    const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    assert.equal(new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_diagnostic"), expected);
+    assert.equal(saved.length, 0);
+  });
+}
+test("production does not reveal classified Meta errors", async () => {
+  process.env.RSM_ENVIRONMENT = "production"; upstreamFailure = "meta:credentials";
+  const b = await begin(); const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "error");
+  assert.equal(new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_diagnostic"), null);
+});
+test("production callback never discloses diagnostic labels", async () => {
+  process.env.RSM_ENVIRONMENT = "production";
+  const b = await begin(); upstreamFailure = "code";
+  const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "error");
+  assert.equal(new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_diagnostic"), null);
 });
 test("missing browser cookie cannot consume state", async () => { const b = await begin(); assert.equal(result(await callback(b.state)), "invalid"); assert.equal(Object.keys(states).length, 1); });
 test("wrong browser cannot consume state", async () => { const b = await begin(); assert.equal(result(await callback(b.state, b.cookie.replace(/=.*/, `=${"b".repeat(64)}`))), "expired"); assert.equal(Object.keys(states).length, 1); });
