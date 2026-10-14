@@ -779,8 +779,13 @@ export function PostEditorSheet({
               <p className="text-xs font-semibold">Publicação automática — Instagram</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Agendado no calendário não é um agendamento nativo do Instagram.
-                O RSM enviará posts elegíveis no horário escolhido (fuso de Brasília).
+                O RSM enviará posts elegíveis no horário escolhido (fuso de Brasília) quando o publicador estiver ativo.
               </p>
+              {typeof window !== "undefined" && window.location.hostname.startsWith("rsm-hub-instagram-staging.") && (
+                <p className="mt-1 text-xs text-amber-700">
+                  Homologação: a publicação real permanece desligada até a validação do Worker e uma autorização de teste.
+                </p>
+              )}
               {post?.id ? (
                 publishState.isPending ? <p className="mt-2 text-xs">Consultando fila de envio…</p>
                 : publishState.isError ? <p className="mt-2 text-xs text-destructive">Não foi possível conferir a fila.</p>
