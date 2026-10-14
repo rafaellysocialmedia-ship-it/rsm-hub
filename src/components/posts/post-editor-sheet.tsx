@@ -1260,8 +1260,9 @@ export function PostEditorSheet({
     <>
       {persistent ? maximized ? (
         <Dialog open={maximized} onOpenChange={setMaximized}>
-          <DialogContent className="flex h-[min(94vh,960px)] w-[min(96vw,1120px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
+          <DialogContent className="flex h-[min(94vh,960px)] w-[min(96vw,1120px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none [&>button]:hidden">
             <DialogTitle className="sr-only">{isEdit ? "Editar publicação" : "Nova publicação"}</DialogTitle>
+            <DialogDescription className="sr-only">Janela de edição ampliada da publicação.</DialogDescription>
             {content}
           </DialogContent>
         </Dialog>
