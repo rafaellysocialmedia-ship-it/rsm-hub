@@ -4,11 +4,17 @@
   "compatibility_date": "2026-10-10",
   "workers_dev": false,
   "preview_urls": false,
-  "triggers": { "crons": ["* * * * *"] },
-  "observability": { "enabled": false },
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": false
+  },
   "vars": {
     "RSM_ENVIRONMENT": "staging",
-    "RSM_PUBLISH_ENABLED": "false",
     "SUPABASE_URL": "https://dtladsjhmnzdxcmgivne.supabase.co"
-  }
+  },
+  "keep_vars": true
 }
