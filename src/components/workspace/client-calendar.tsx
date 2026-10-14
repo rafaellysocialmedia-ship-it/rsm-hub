@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { CalendarClock, Plus } from "lucide-react";
+import { Clock3, Plus } from "lucide-react";
 import { ContentFilters } from "@/components/posts/content-filters";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -52,9 +52,6 @@ export function ClientCalendarPage({
   const [dragging, setDragging] = useState<Post | null>(null);
   const [destination, setDestination] = useState<string | null>(null);
   const [moving, setMoving] = useState(false);
-  const [moveTarget, setMoveTarget] = useState<Post | null>(null);
-  const [moveDate, setMoveDate] = useState("");
-  const [moveTime, setMoveTime] = useState("");
   const workspace = usePostWorkspace();
   const prefs = useNavigationPreferences();
   const density = prefs.data?.calendar_density ?? "standard";
@@ -73,11 +70,6 @@ export function ClientCalendarPage({
     workspace.canEdit &&
     p.status !== "published" &&
     (!p.publication_source || p.publication_source === "manual");
-  const openMove = (p: Post) => {
-    setMoveTarget(p);
-    setMoveDate(p.scheduled_date ?? "");
-    setMoveTime(p.scheduled_time?.slice(0, 5) ?? "");
-  };
   const move = async (p: Post, date: string, time = p.scheduled_time) => {
     setMoving(true);
     try {
@@ -119,7 +111,7 @@ export function ClientCalendarPage({
       p.scheduled_date <= to,
   );
   const selectClass = "h-9 max-w-full rounded-lg border border-input bg-background px-3 text-xs shadow-none";
-  const item = (p: Post, thumb = false) => (
+  const item = (p: Post, thumb = false, showDate = false) => (
     <article
       key={p.id}
       data-post-id={p.id}
@@ -182,17 +174,29 @@ export function ClientCalendarPage({
         </p>
         {density === "compact" && p.format && (
           <span className="inline-flex max-w-full truncate rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-800"
-            title={`Formato: ${p.format}`}>Formato: {p.format}</span>
+            title={p.format}>{p.format}</span>
         )}
         {density !== "compact" && (
           <p className="text-xs text-muted-foreground">
             {postNetworks(p).join(" · ")} · {p.format}
           </p>
         )}
-        <p className="text-xs">
-          {p.scheduled_date?.split("-").reverse().join("/")} ·{" "}
-          {p.scheduled_time?.slice(0, 5) ?? "Sem horário"}
-        </p>
+        <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+          {showDate && p.scheduled_date && (
+            <span className="text-muted-foreground">{p.scheduled_date.split("-").reverse().join("/")}</span>
+          )}
+          {p.scheduled_time ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-md bg-[#42145d]/10 px-1.5 py-0.5 font-semibold tabular-nums text-[#42145d]"
+              title={`Horário da publicação: ${p.scheduled_time.slice(0, 5)}`}
+            >
+              <Clock3 className="size-3 shrink-0" aria-hidden="true" />
+              {p.scheduled_time.slice(0, 5)}
+            </span>
+          ) : (
+            <span className="text-muted-foreground">Sem horário</span>
+          )}
+        </div>
         <span
           className={`inline-block rounded border px-1.5 py-0.5 text-xs ${statusMeta(p.status).tone}`}
         >
@@ -201,22 +205,6 @@ export function ClientCalendarPage({
       </button>
       {workspace.canEdit && p.publication_source && p.publication_source !== "manual" && (
         <p className="mt-1 text-xs text-muted-foreground">Reagendamento no provedor externo</p>
-      )}
-      {movable(p) && (
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={moving || zone.isError || zone.isPending}
-          className="mt-1 h-8 max-w-full gap-1 px-1 text-xs"
-          onClick={() => {
-            setDayList(null);
-            openMove(p);
-          }}
-          aria-label={`Mover ${p.title} para outra data`}
-        >
-          <CalendarClock className="size-3 shrink-0" />
-          <span className="truncate">Mover data</span>
-        </Button>
       )}
     </article>
   );
@@ -504,7 +492,7 @@ export function ClientCalendarPage({
           <div
             className={view === "grid" ? "grid gap-4 sm:grid-cols-2 xl:grid-cols-3" : "space-y-3"}
           >
-            {list.map((p) => item(p, view === "grid"))}
+            {list.map((p) => item(p, view === "grid", true))}
           </div>
         )}
         {!list.length && (
@@ -527,49 +515,6 @@ export function ClientCalendarPage({
           <div className="space-y-2">
             {list.filter((p) => p.scheduled_date === dayList).map((p) => item(p))}
           </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={!!moveTarget}
-        onOpenChange={(v) => {
-          if (!v && !moving) setMoveTarget(null);
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Mover para outra data</DialogTitle>
-            <DialogDescription>
-              {moveTarget?.title} · {zone.data}. Uma mudança de data pode exigir nova revisão.
-            </DialogDescription>
-          </DialogHeader>
-          <label className="space-y-1 text-sm">
-            Data
-            <input
-              type="date"
-              min={today}
-              value={moveDate}
-              onChange={(e) => setMoveDate(e.target.value)}
-              className={`${selectClass} block w-full`}
-            />
-          </label>
-          <label className="space-y-1 text-sm">
-            Horário
-            <input
-              type="time"
-              value={moveTime}
-              onChange={(e) => setMoveTime(e.target.value)}
-              className={`${selectClass} block w-full`}
-            />
-          </label>
-          <Button
-            disabled={moving || !moveDate || moveDate < today}
-            onClick={async () => {
-              if (moveTarget && (await move(moveTarget, moveDate, moveTime || null)))
-                setMoveTarget(null);
-            }}
-          >
-            {moving ? "Salvando…" : "Confirmar nova data"}
-          </Button>
         </DialogContent>
       </Dialog>
     </section>
