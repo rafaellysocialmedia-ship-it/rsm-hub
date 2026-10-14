@@ -19,6 +19,9 @@ const safeDiagnostics = new Set([
   "instagram_request", "authorization_exchange", "token_response",
   "permissions_missing", "long_token_exchange", "long_token_response",
   "profile_lookup", "profile_response", "token_exchange", "connection_save",
+  "meta_redirect_mismatch", "meta_invalid_credentials", "meta_invalid_code",
+  "meta_permissions", "meta_http_400", "meta_unauthorized",
+  "meta_server_error", "meta_network", "meta_rate_limited",
 ]);
 type Status = { enabled: boolean; connections: { instagram_user_id: string; username: string; expired: boolean }[] };
 async function authenticatedFetch(path: string, init?: RequestInit) {
