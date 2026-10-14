@@ -3,7 +3,8 @@ import { differenceInCalendarDays, format } from "date-fns";
 import { AlertCircle, AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2, Clock3, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountMeetings } from "@/hooks/use-account-workspace";
-import { useFinanceAccess, useCharges, useContracts } from "@/hooks/use-finance";
+import { useFinanceAccess, useCharges, useContracts, useClientServices } from "@/hooks/use-finance";
+import { monthlyServiceSummary } from "@/lib/monthly-service-summary";
 import { accountContentSummary, localDate } from "@/lib/account-workspace";
 import { money, effectiveStatus } from "@/lib/finance-core";
 import { type Client } from "@/lib/clients";
@@ -23,6 +24,7 @@ export function AccountOverview({
   const finance = useFinanceAccess();
   const charges = useCharges(client.id);
   const contracts = useContracts(client.id);
+  const services = useClientServices(finance.canView ? client.id : null);
   const tasks = useQuery({
     queryKey: ["tasks", "client", client.id],
     refetchInterval: 30000,
@@ -60,9 +62,7 @@ export function AccountOverview({
     .filter((c) => ["pending", "overdue"].includes(effectiveStatus(c)))
     .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
   const activeContracts = (contracts.data ?? []).filter((c) => c.status === "active");
-  const monthlyAmount = activeContracts
-    .filter((c) => c.periodicity === "monthly")
-    .reduce((sum, c) => sum + Number(c.amount), 0);
+  const monthly = monthlyServiceSummary(services.data ?? [], activeContracts);
   return (
     <div className="space-y-5">
       <QueryState loading={posts.isLoading} error={posts.error}>
@@ -214,17 +214,20 @@ export function AccountOverview({
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <QueryState
-                loading={charges.isLoading || contracts.isLoading}
-                error={charges.error || contracts.error}
+                loading={charges.isLoading || contracts.isLoading || services.isLoading}
+                error={charges.error || contracts.error || services.error}
               >
                 <div>
                   <p className="text-muted-foreground">Mensalidade contratada</p>
                   <p className="mt-1 text-xl font-semibold">
-                    {activeContracts.some((c) => c.periodicity === "monthly")
-                      ? money(monthlyAmount)
-                      : "Não cadastrada"}
+                    {monthly.hasMonthly ? money(monthly.amount) : "Não cadastrada"}
                   </p>
                 </div>
+                {monthly.missingBillingDay && (
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Vencimento não configurado em um ou mais serviços ativos. Configure na aba Serviços.
+                  </p>
+                )}
                 <div>
                   <p className="text-muted-foreground">Próxima cobrança pendente</p>
                   <p className="mt-1">
