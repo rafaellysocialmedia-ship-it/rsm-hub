@@ -11,6 +11,7 @@ on:
   pull_request:
     branches:
       - fix/instagram-oauth-validation
+      - fix/instagram-callback-staging-diagnostics
 
 permissions:
   contents: read
@@ -52,11 +53,14 @@ jobs:
         run: |
           npm run build:staging
           npm run verify:build
+          node scripts/verify-staging-instagram-cron.mjs
           node --input-type=module -e '
             import assert from "node:assert/strict";
             import { readFileSync } from "node:fs";
             const c = JSON.parse(readFileSync("dist/server/wrangler.staging.json", "utf8"));
             assert.equal(c.name, "rsm-hub-instagram-staging");
+            assert.equal(c.main, "instagram-primary-staging-entry.mjs");
+            assert.deepEqual(c.triggers.crons, ["* * * * *"]);
             assert.equal(c.vars.RSM_ENVIRONMENT, "staging");
             assert.equal(Object.hasOwn(c.vars, "INSTAGRAM_OAUTH_ENABLED"), false);
             assert.equal(c.keep_vars, true);
@@ -65,3 +69,8 @@ jobs:
             assert.deepEqual(c.routes, []);
             console.log("PASS: isolated staging config checked, no deploy");
           '
+
+      - name: Cloudflare Worker dry run (staging only, no upload)
+        env:
+          CI: "true"
+        run: npx --yes wrangler deploy --dry-run --config dist/server/wrangler.staging.json
