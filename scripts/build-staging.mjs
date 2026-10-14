@@ -1,4 +1,4 @@
-import { readFile, writeFile, readdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, readdir, rm, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { stagingConfig, workerConfig } from './staging-config.mjs';
@@ -38,6 +38,16 @@ async function verify(path) {
 }
 await verify('dist/client');
 if (!isolatedReferenceFound) throw new Error('Staging database reference missing from frontend');
+// Nitro's generated Cloudflare Worker only exports the web fetch handler.
+// Install an explicit ESM adapter for the scheduled event; modifying src/server.ts
+// alone would not reliably expose a Cloudflare scheduled handler.
+for (const name of [
+  'instagram-primary-staging-entry.mjs',
+  'instagram-primary-cron-staging.mjs',
+  'instagram-publisher-staging.mjs',
+]) {
+  await copyFile(join('workers', name), join('dist/server', name));
+}
 const base = JSON.parse(await readFile('dist/server/wrangler.json', 'utf8'));
 await writeFile('dist/server/wrangler.staging.json', JSON.stringify(workerConfig(base, config), null, 2) + '\n');
 console.log('PASS: isolated staging artifact prepared; OAuth disabled; nothing deployed.');
