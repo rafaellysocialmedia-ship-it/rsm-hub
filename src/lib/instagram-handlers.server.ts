@@ -116,6 +116,63 @@ export async function callbackInstagram(request: Request) {
     return result("error");
   }
 }
+// Staging-only, authenticated egress check. Never uses a real OAuth code,
+// token, client id or app secret; never reads or exposes an upstream response body.
+function safeProbeError(error: unknown) {
+  const name = error instanceof Error ? error.name : "";
+  const message = error instanceof Error ? error.message.slice(0, 200).toLowerCase() : "";
+  if (name === "TimeoutError" || name === "AbortError" || /timed? out|aborted/.test(message)) return "timeout";
+  if (/network connection lost|connection (?:lost|reset|refused)|disconnected|socket hang up/.test(message)) return "connection_lost";
+  if (/dns|resolve|enotfound|no such host/.test(message)) return "dns";
+  if (/tls|ssl|certificate|handshake/.test(message)) return "tls";
+  if (/invalid redirect|unsupported redirect|requestinitializer|unsupported|invalid request/.test(message)) return "request_configuration";
+  return "network_other";
+}
+export async function instagramNetworkDiagnostic(request: Request) {
+  if (process.env.RSM_ENVIRONMENT !== "staging") return json({ error: "Não disponível" }, 404);
+  try {
+    const origin = new URL(redirectUri()).origin;
+    if (new URL(request.url).origin !== origin || request.headers.get("Origin") !== origin) return denied();
+    const db = adminDb();
+    const user = await authenticate(request, db);
+    if (!user) return json({ error: "Sessão inválida" }, 401);
+    const input = await request.json().catch(() => null);
+    if (!UUID.test(input?.client_id ?? "")) return json({ error: "Cliente inválido" }, 400);
+    if (!await allowed(db, user.id, input.client_id)) return denied();
+    const endpoint = "https://api.instagram.com/oauth/access_token";
+    const probes = [
+      { label: "get", init: { method: "GET" } },
+      { label: "post", init: {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: "rsm-staging-probe-invalid",
+          client_secret: "rsm-staging-probe-invalid",
+          grant_type: "authorization_code",
+          redirect_uri: "https://example.invalid/diagnostic",
+          code: "rsm-staging-probe-invalid",
+        }),
+      } },
+    ];
+    const results = await Promise.all(probes.map(async ({ label, init }) => {
+      try {
+        const response = await fetch(endpoint, {
+          ...init, redirect: "manual", signal: AbortSignal.timeout(8000),
+        });
+        // Any HTTP response, including 400/405, proves the subrequest reached a server.
+        // No response body, raw headers or Location are ever recorded.
+        await response.body?.cancel().catch(() => {});
+        return { method: label, reachable: true, status: response.status,
+          category: response.status >= 300 && response.status < 400 ? "redirect_refused" : "http_response" };
+      } catch (error) {
+        return { method: label, reachable: false, status: null, category: safeProbeError(error) };
+      }
+    }));
+    return json({ checks: results });
+  } catch {
+    return json({ error: "Diagnóstico de rede indisponível" }, 503);
+  }
+}
 export async function instagramStatus(request: Request) {
   try {
     if (!request.headers.has("Authorization")) return json({ error: "Não autenticado" }, 401);
