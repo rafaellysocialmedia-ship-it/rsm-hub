@@ -1,0 +1,26 @@
+name: Finance and calendar editor checks
+on:
+  pull_request:
+    paths:
+      - 'src/lib/monthly-service-summary.ts'
+      - 'src/components/workspace/account-header-facts.tsx'
+      - 'src/components/workspace/account-overview.tsx'
+      - 'src/components/management/services-tab.tsx'
+      - 'src/components/posts/post-editor-sheet.tsx'
+      - '.github/workflows/finance-calendar.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
