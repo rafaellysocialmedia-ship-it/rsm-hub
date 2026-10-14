@@ -38,16 +38,51 @@ export async function encryptToken(plaintext: string) {
   const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(plaintext));
   return JSON.stringify({ version: 1, iv: btoa(String.fromCharCode(...iv)), data: btoa(String.fromCharCode(...new Uint8Array(ciphertext))) });
 }
+// Only fixed labels leave the server. Instagram's raw error_message may contain
+// identifiers, query strings or other sensitive material: never log or echo it.
+function classifyAuthorizationExchangeError(status: number, payload: unknown): string {
+  if (status === 429) return "Instagram exchange rate limited";
+  const record = payload && typeof payload === "object" && !Array.isArray(payload)
+    ? payload as Record<string, unknown> : null;
+  const nested = record?.error && typeof record.error === "object" && !Array.isArray(record.error)
+    ? record.error as Record<string, unknown> : null;
+  const message = typeof record?.error_message === "string" ? record.error_message :
+    typeof nested?.message === "string" ? nested.message : "";
+  const normalized = message.slice(0, 1000).toLowerCase();
+
+  if (/redirect[ _-]*uri|redirect.*match|callback.*match|url.*blocked/.test(normalized))
+    return "Instagram exchange redirect mismatch";
+  if (/invalid platform app|invalid client|client.*invalid|app.*secret|client.*secret|invalid credential|credentials.*invalid|app id.*invalid|invalid app id/.test(normalized))
+    return "Instagram exchange invalid credentials";
+  if (/no matching code|verification code|authorization code|code.*(used|expired|invalid|incorrect)|(?:expired|invalid|used).*code/.test(normalized))
+    return "Instagram exchange invalid code";
+  if (/permission|scope|app review|access denied/.test(normalized))
+    return "Instagram exchange permission error";
+  if (status === 400) return "Instagram exchange HTTP 400";
+  if (status === 401 || status === 403) return "Instagram exchange unauthorized";
+  if (status >= 500 && status <= 599) return "Instagram exchange server error";
+  return "Instagram authorization exchange failed";
+}
+
 // Never log upstream responses, errors or URLs: the exchange URL contains secrets.
 async function metaJson(url: string | URL, init?: RequestInit, failureLabel = "Instagram request failed") {
+  const isInitialExchange = failureLabel === "Instagram authorization exchange failed";
   let response: Response;
   try {
     response = await fetch(url, { ...init, redirect: "error", signal: AbortSignal.timeout(15000) });
   } catch {
     // Never expose upstream URLs, request bodies, tokens or error messages.
+    throw new Error(isInitialExchange ? "Instagram exchange network error" : failureLabel);
+  }
+  if (!response.ok) {
+    if (isInitialExchange) {
+      // The error payload is inspected in memory and reduced to a fixed label.
+      // No raw Meta response, token or authorization code reaches the browser.
+      const payload: unknown = await response.json().catch(() => null);
+      throw new Error(classifyAuthorizationExchangeError(response.status, payload));
+    }
     throw new Error(failureLabel);
   }
-  if (!response.ok) throw new Error(failureLabel);
   try {
     return await response.json();
   } catch {
