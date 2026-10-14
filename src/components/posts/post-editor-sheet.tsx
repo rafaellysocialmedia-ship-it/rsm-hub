@@ -16,6 +16,8 @@ import {
   CheckSquare,
   Copy,
   Loader2,
+  Maximize2,
+  Minimize2,
   Paperclip,
   Pencil,
   Repeat,
@@ -124,6 +126,8 @@ export function PostEditorSheet({
   const version = useRef(post?.updated_at ?? "");
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [maximized, setMaximized] = useState(false);
   const [lastSaved, setLastSaved] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [internalComment, setInternalComment] = useState(false);
@@ -377,12 +381,17 @@ export function PostEditorSheet({
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!post) return;
-      const { error } = await supabase.from("posts").delete().eq("id", post.id);
+      if (readOnly || !permissions.can("social.calendar", "delete"))
+        throw new Error("Você não tem permissão para excluir esta publicação.");
+      const { data, error } = await supabase.from("posts").delete().eq("id", post.id).select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("Publicação não excluída. Verifique suas permissões.");
     },
     onSuccess: () => {
       toast.success("Post removido");
-      qc.invalidateQueries({ queryKey: ["posts"] });
+      setShowDeleteConfirm(false);
+      setMaximized(false);
+      void refreshPostViews(qc);
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -547,7 +556,21 @@ export function PostEditorSheet({
             )}
             {persistent && (
               <>
-                <Button size="sm" variant="ghost" onClick={onMinimize}>
+                {isEdit && !readOnly && permissions.can("social.calendar", "delete") && (
+                  <Button type="button" size="icon" variant="ghost"
+                    className="text-destructive hover:text-destructive" aria-label="Excluir publicação"
+                    title="Excluir publicação" onClick={() => setShowDeleteConfirm(true)}
+                    disabled={deleteMutation.isPending || saveMutation.isPending || uploading}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button type="button" size="icon" variant="ghost"
+                  aria-label={maximized ? "Restaurar editor lateral" : "Ampliar edição em pop-up"}
+                  title={maximized ? "Restaurar painel lateral" : "Ampliar em pop-up"}
+                  onClick={() => setMaximized((value) => !value)}>
+                  {maximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => { setMaximized(false); onMinimize?.(); }}>
                   Minimizar
                 </Button>
                 <Button
@@ -582,7 +605,9 @@ export function PostEditorSheet({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => deleteMutation.mutate()}
+                  onClick={() => setShowDeleteConfirm(true)}
+                  disabled={readOnly || !permissions.can("social.calendar", "delete") || deleteMutation.isPending}
+                  aria-label="Excluir publicação"
                   title="Excluir"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -1233,7 +1258,14 @@ export function PostEditorSheet({
   );
   return (
     <>
-      {persistent ? (
+      {persistent ? maximized ? (
+        <Dialog open={maximized} onOpenChange={setMaximized}>
+          <DialogContent className="flex h-[min(94vh,960px)] w-[min(96vw,1120px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none">
+            <DialogTitle className="sr-only">{isEdit ? "Editar publicação" : "Nova publicação"}</DialogTitle>
+            {content}
+          </DialogContent>
+        </Dialog>
+      ) : (
         <aside
           aria-label="Editor da publicação"
           ref={panelRef}
@@ -1253,8 +1285,27 @@ export function PostEditorSheet({
           <SheetContent className="w-full overflow-hidden p-0 sm:max-w-2xl">{content}</SheetContent>
         </Sheet>
       )}
-      <Dialog
-        open={!!pendingAction}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+         <DialogContent>
+           <DialogHeader>
+             <DialogTitle>Excluir publicação?</DialogTitle>
+             <DialogDescription>
+               A publicação “{post?.title}” será removida permanentemente do calendário.
+               Essa ação não pode ser desfeita.
+             </DialogDescription>
+           </DialogHeader>
+           <div className="flex justify-end gap-2">
+             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} disabled={deleteMutation.isPending}>
+               Cancelar
+             </Button>
+             <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+               Excluir publicação
+             </Button>
+           </div>
+         </DialogContent>
+       </Dialog>
+       <Dialog open={!!pendingAction}
         onOpenChange={(value) => {
           if (!value) setPendingAction(null);
         }}
