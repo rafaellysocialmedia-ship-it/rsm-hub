@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +45,23 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
   const [situation, setSituation] = useState("active");
   const [startDate, setStartDate] = useState("");
   const [amount, setAmount] = useState("");
+  const [billingDay, setBillingDay] = useState("");
+  const openNew = () => {
+    setServiceKey(SERVICE_CATALOG[0].key);
+    setSituation("active");
+    setStartDate("");
+    setAmount("");
+    setBillingDay("");
+    setOpen(true);
+  };
+  const openEdit = (service: ClientService) => {
+    setServiceKey(service.service_key);
+    setSituation(service.situation);
+    setStartDate(service.start_date ?? "");
+    setAmount(service.amount == null ? "" : String(service.amount));
+    setBillingDay(service.billing_day == null ? "" : String(service.billing_day));
+    setOpen(true);
+  };
 
   const { data: services = [] } = useQuery({
     queryKey: ["client-services", clientId],
@@ -93,6 +110,9 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
 
   const upsert = useMutation({
     mutationFn: async () => {
+      if (billingDay && (!Number.isInteger(Number(billingDay)) || Number(billingDay) < 1 || Number(billingDay) > 28)) {
+        throw new Error("O vencimento deve ser um dia entre 1 e 28.");
+      }
       const label = SERVICE_CATALOG.find((s) => s.key === serviceKey)?.label ?? serviceKey;
       const { error } = await supabase.from("client_services").upsert(
         {
@@ -102,6 +122,7 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
           situation,
           start_date: startDate || null,
           amount: amount ? Number(amount) : null,
+          billing_day: billingDay ? Number(billingDay) : null,
           created_by: user?.id ?? null,
         } as never,
         { onConflict: "client_id,service_key" },
@@ -115,6 +136,7 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
       setOpen(false);
       setStartDate("");
       setAmount("");
+      setBillingDay("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -152,10 +174,10 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
     <SectionCard
       collapsible
       title="Serviços contratados"
-      description="Valores ficam registrados aqui e serão integrados ao financeiro futuramente."
+      description="Os valores dos serviços ativos alimentam o resumo da mensalidade do cliente."
       actions={
         canEdit ? (
-          <Button size="sm" onClick={() => setOpen(true)}>
+          <Button size="sm" onClick={openNew}>
             <Plus className="mr-2 h-4 w-4" />
             Adicionar
           </Button>
@@ -187,7 +209,14 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Início: {formatDate(s.start_date)} · Valor: {formatMoney(s.amount)}
-                  </p>
+                  { s.billing_day && ` · Vencimento: dia ${s.billing_day}` }
+                   </p>
+                   {s.situation === "active" && s.auto_billing && Number(s.amount) > 0 && !s.billing_day && (
+                     <p className="mt-1 flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">
+                       <AlertTriangle className="h-3.5 w-3.5" />
+                       Vencimento não configurado. A cobrança automática usa o dia 5 provisoriamente.
+                     </p>
+                   )}
                 </div>
                 {canEdit ? (
                   <Select
@@ -211,10 +240,17 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                   </Badge>
                 )}
                 {canEdit && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
+                   <Button size="icon" variant="ghost" className="h-8 w-8"
+                     aria-label={`Editar ${s.label || s.service_key}`} title="Editar serviço e vencimento"
+                     onClick={() => openEdit(s)}>
+                     <Pencil className="h-4 w-4" />
+                   </Button>
+                 )}
+                 {canEdit && (
+                   <Button
+                     size="icon"
+                     variant="ghost"
+                     className="h-8 w-8 text-destructive"
                     onClick={() => remove.mutate(s.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -278,6 +314,12 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                 />
               </div>
             </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label className="text-xs text-muted-foreground">Dia de vencimento (1 a 28)</Label>
+            <Input type="number" min={1} max={28} step={1} value={billingDay}
+              onChange={(e) => setBillingDay(e.target.value)} placeholder="Ex.: 10" />
+            <p className="text-xs text-muted-foreground">Sem configuração, a cobrança automática utiliza o dia 5 provisoriamente.</p>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
