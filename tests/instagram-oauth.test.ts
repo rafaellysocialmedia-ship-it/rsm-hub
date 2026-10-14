@@ -46,6 +46,21 @@ beforeEach(() => {
     if (url.hostname === "api.instagram.com") {
       if (upstreamFailure === "code") throw new Error("Sensitive test-secret must never be logged");
       assert.equal(new URLSearchParams(String(init?.body)).get("redirect_uri"), process.env.INSTAGRAM_REDIRECT_URI);
+      if (upstreamFailure.startsWith("meta:")) {
+        const [, scenario] = upstreamFailure.split(":");
+        const errors: Record<string, { status: number; text: string }> = {
+          redirect: { status: 400, text: "Error validating verification code. Please make sure your redirect_uri is identical" },
+          credentials: { status: 400, text: "Invalid client_id or client_secret" },
+          code: { status: 400, text: "No matching code found." },
+          permissions: { status: 403, text: "Permission was denied" },
+          unknown: { status: 400, text: "Something unexpected happened. Sensitive test-secret should remain private." },
+          rate: { status: 429, text: "Rate limit" },
+          unavailable: { status: 503, text: "Temporary outage" },
+        };
+        const sample = errors[scenario];
+        if (!sample) throw new Error("Unknown mock Meta error scenario");
+        return Response.json({ error_type: "OAuthException", code: sample.status, error_message: sample.text }, { status: sample.status });
+      }
       const short = { access_token: "test-short-token", user_id: "12345678901234567",
         permissions: permissionsAsString ? grantedScopes.join(", ") : grantedScopes };
       if (shortTokenShape === "wrapped") return ok({ data: [short] });
@@ -129,6 +144,30 @@ for (const [failure, expected] of [
     assert.equal(saved.length, 0);
   });
 }
+for (const [scenario, expected] of [
+  ["redirect", "meta_redirect_mismatch"], ["credentials", "meta_invalid_credentials"],
+  ["code", "meta_invalid_code"], ["permissions", "meta_permissions"],
+  ["unknown", "meta_http_400"], ["rate", "meta_rate_limited"],
+  ["unavailable", "meta_server_error"],
+] as const) {
+  test(`staging classifies Meta ${scenario} error without revealing upstream message`, async () => {
+    process.env.RSM_ENVIRONMENT = "staging";
+    upstreamFailure = `meta:${scenario}`;
+    const b = await begin();
+    const response = await callback(b.state, b.cookie);
+    assert.equal(result(response), "error");
+    const location = response.headers.get("Location")!;
+    assert.equal(new URL(location, origin).searchParams.get("instagram_diagnostic"), expected);
+    assert.ok(!location.includes("Sensitive") && !location.includes("test-secret"));
+    assert.equal(saved.length, 0);
+  });
+}
+test("production does not reveal classified Meta errors", async () => {
+  process.env.RSM_ENVIRONMENT = "production"; upstreamFailure = "meta:credentials";
+  const b = await begin(); const response = await callback(b.state, b.cookie);
+  assert.equal(result(response), "error");
+  assert.equal(new URL(response.headers.get("Location")!, origin).searchParams.get("instagram_diagnostic"), null);
+});
 test("production callback never discloses diagnostic labels", async () => {
   process.env.RSM_ENVIRONMENT = "production";
   const b = await begin(); upstreamFailure = "code";
