@@ -40,7 +40,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePortalAccount } from "@/hooks/use-account-workspace";
 import { navigation, portalNavigation, activeNavigation, navForPath } from "@/lib/navigation";
 import { QuickActions } from "./navigation/quick-actions";
-import { NotificationsMenu } from "./notifications-menu";
 import { AccountMenu } from "./topbar";
 const icons = [
   LayoutDashboard,
@@ -436,10 +435,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
         <div className="mt-auto border-t p-2">
-          <div className="flex items-center gap-1">
-            <NotificationsMenu />
-            {!collapsed && <span className="text-sm">Notificações</span>}
-          </div>
           {can("management.settings") && (
             <SidebarMenuButton
               tooltip="Configurações"
