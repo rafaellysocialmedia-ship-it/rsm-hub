@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { CommemorativeDatesDialog } from "@/components/posts/commemorative-dates-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -282,9 +283,7 @@ const DayCell = memo(function DayCell({
                       {client && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">{client}</span>}
                       <span className={cn("rounded border px-1.5 py-0.5", meta.tone)}>{meta.label}</span>
                       {p.format && <span className="rounded bg-muted px-1.5 py-0.5">{p.format}</span>}
-                      {postNetworks(p).map((n) => (
-                        <span key={n} className="rounded bg-muted px-1.5 py-0.5">{n}</span>
-                      ))}
+                      <PostNetworkBadges networks={postNetworks(p)} />
                     </div>
                   </div>
                 </button>
@@ -320,6 +319,7 @@ const CalendarEvent = memo(function CalendarEvent({ post, clientMap, onOpen }: {
         <span className={cn("truncate font-medium", isRejected && "line-through")}>{post.title}</span>
       </div>
       <div className="flex items-center gap-1 truncate opacity-80">
+        <PostNetworkBadges networks={postNetworks(post)} compact />
         {post.format && <span className="rounded bg-background/60 px-1 text-[9px] font-medium">{post.format}</span>}
         {post.client_id && clientMap.get(post.client_id) && (
           <span className="truncate">{clientMap.get(post.client_id)}</span>
