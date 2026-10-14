@@ -173,6 +173,31 @@ export async function instagramNetworkDiagnostic(request: Request) {
     return json({ error: "Diagnóstico de rede indisponível" }, 503);
   }
 }
+export async function instagramPublicationStatus(request: Request) {
+  try {
+    const db = adminDb();
+    const user = await authenticate(request, db);
+    if (!user) return json({ error: "Sessão inválida" }, 401);
+    const postId = new URL(request.url).searchParams.get("post_id") ?? "";
+    if (!UUID.test(postId)) return json({ error: "Publicação inválida" }, 400);
+    const { data: post, error: postError } = await db.from("posts")
+      .select("client_id,status").eq("id",postId).maybeSingle();
+    if (postError || !post?.client_id || !await allowed(db,user.id,post.client_id))
+      return denied();
+    // Read-only metadata; no connection tokens, storage signed URLs or secrets.
+    const { data, error } = await db.from("instagram_publish_jobs" as never)
+      .select("status,reason_code,scheduled_for,published_at,published_media_id")
+      .eq("post_id",postId).maybeSingle();
+    if (error) throw new Error("Status unavailable");
+    const job = data as null | {
+      status: string; reason_code: string | null; scheduled_for: string | null;
+      published_at: string | null; published_media_id: string | null;
+    };
+    return json({ publication: job ?? null });
+  } catch {
+    return json({ error: "Status de publicação indisponível" }, 503);
+  }
+}
 export async function instagramStatus(request: Request) {
   try {
     if (!request.headers.has("Authorization")) return json({ error: "Não autenticado" }, 401);
