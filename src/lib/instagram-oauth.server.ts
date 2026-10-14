@@ -52,7 +52,7 @@ function classifyAuthorizationExchangeError(status: number, payload: unknown): s
 
   if (/redirect[ _-]*uri|redirect.*match|callback.*match|url.*blocked/.test(normalized))
     return "Instagram exchange redirect mismatch";
-  if (/invalid platform app|invalid client|client.*invalid|app.*secret|client.*secret|invalid credential|credentials.*invalid|app id.*invalid|invalid app id/.test(normalized))
+  if (/invalid platform app|invalid client|\bclient\b.{0,50}\binvalid\b|\bapp\b.{0,50}\bsecret\b|\bclient\b.{0,50}\bsecret\b|invalid credential|credentials.*invalid|app id.*invalid|invalid app id/.test(normalized))
     return "Instagram exchange invalid credentials";
   if (/no matching code|verification code|authorization code|code.*(used|expired|invalid|incorrect)|(?:expired|invalid|used).*code/.test(normalized))
     return "Instagram exchange invalid code";
