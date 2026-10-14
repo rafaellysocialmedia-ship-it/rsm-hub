@@ -358,13 +358,13 @@ function PostsPage() {
       </div>
 
       {/* Toolbar */}
-      <div className="space-y-4 rounded-xl border border-border bg-card p-4">
+      <div className="space-y-3 rounded-2xl border border-border/60 bg-card p-3 sm:p-4">
         <Tabs
-          className="border-b border-border/60 pb-3"
+          className="border-b border-border/50 pb-2"
           value={view}
           onValueChange={(v) => setView(v as ViewMode)}
         >
-          <TabsList className="h-auto flex-wrap justify-start">
+          <TabsList className="h-auto flex-wrap justify-start gap-1 bg-muted/40 p-1">
             <TabsTrigger value="calendar" className="gap-1.5 text-xs">
               <CalendarDays className="h-3.5 w-3.5" />
               Calendário
