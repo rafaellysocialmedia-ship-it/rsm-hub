@@ -11,6 +11,7 @@ on:
   pull_request:
     branches:
       - fix/instagram-oauth-validation
+      - fix/instagram-callback-staging-diagnostics
 
 permissions:
   contents: read
