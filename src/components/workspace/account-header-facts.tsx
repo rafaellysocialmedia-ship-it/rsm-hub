@@ -69,7 +69,7 @@ export function AccountHeaderFacts({ client }: { client: Client }) {
             ? [
                 [
                   "Mensalidade",
-                  services.isLoading || !q.data ? "…" : monthly.hasMonthly ? money(monthly.amount) : "Não cadastrada",
+                  services.isLoading ? "…" : monthly.hasMonthly ? money(monthly.amount) : "Não cadastrada",
                 ],
                 ...(monthly.missingBillingDay ? [["Vencimento", "Não configurado nos serviços"]] : []),
                 ["Próxima cobrança", q.data?.due ? dateLabel(q.data.due) : "Sem cobrança pendente"],
