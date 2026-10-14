@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Clock3, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, Plus } from "lucide-react";
 import { ContentFilters } from "@/components/posts/content-filters";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -110,7 +110,7 @@ export function ClientCalendarPage({
       p.scheduled_date >= from &&
       p.scheduled_date <= to,
   );
-  const selectClass = "h-9 max-w-full rounded-lg border border-input bg-background px-3 text-xs shadow-none";
+
   const item = (p: Post, thumb = false, showDate = false) => (
     <article
       key={p.id}
@@ -132,7 +132,7 @@ export function ClientCalendarPage({
         setDragging(null);
         setDestination(null);
       }}
-      className={`select-none min-w-0 rounded-lg border bg-white ${density === "compact" ? "p-1.5" : "p-2"} ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
+      className={`group min-w-0 select-none rounded-lg border border-border/70 bg-card transition-colors hover:border-[#b283f3]/70 ${density === "compact" ? "p-1.5" : "p-2"} ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
     >
       <button
         onClick={() => {
@@ -151,7 +151,7 @@ export function ClientCalendarPage({
                 ? "max-h-56 overflow-hidden"
                 : thumb
                   ? "max-h-28 overflow-hidden"
-                  : "max-h-16 overflow-hidden"
+                  : "float-left mr-2 w-10 max-h-10 overflow-hidden rounded"
           }
         >
           <PostCreativeThumb postId={p.id} />
@@ -167,7 +167,7 @@ export function ClientCalendarPage({
           }
         />
         <p
-          className={`text-sm font-medium ${density === "compact" ? "truncate" : "break-words"}`}
+          className={`text-xs font-semibold leading-snug ${density === "compact" ? "truncate" : "line-clamp-2"}`}
           title={p.title}
         >
           {p.title}
@@ -177,8 +177,8 @@ export function ClientCalendarPage({
             title={p.format}>{p.format}</span>
         )}
         {density !== "compact" && (
-          <p className="text-xs text-muted-foreground">
-            {postNetworks(p).join(" · ")} · {p.format}
+          <p className="truncate text-[11px] text-muted-foreground">
+            {[...postNetworks(p), p.format].filter(Boolean).join(" · ")}
           </p>
         )}
         <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
@@ -198,7 +198,7 @@ export function ClientCalendarPage({
           )}
         </div>
         <span
-          className={`inline-block rounded border px-1.5 py-0.5 text-xs ${statusMeta(p.status).tone}`}
+          className={`inline-flex max-w-full items-center truncate rounded-md border px-1.5 py-0.5 text-[10px] ${statusMeta(p.status).tone}`}
         >
           {statusMeta(p.status).label}
         </span>
@@ -232,7 +232,7 @@ export function ClientCalendarPage({
         key={date}
         data-calendar-date={date}
         aria-current={isToday ? "date" : undefined}
-        className={`min-w-0 space-y-2 border-b border-r p-2 ${view === "day" ? "min-h-64" : density === "compact" ? "@[760px]:min-h-24" : density === "expanded" ? "@[760px]:min-h-64" : "@[760px]:min-h-40"} ${isToday ? "bg-[#b283f3]/10" : "bg-white"} ${selected ? "outline outline-2 -outline-offset-2 outline-[#69139b]" : ""} ${destination === date ? "ring-2 ring-inset ring-[#b283f3]" : ""}`}
+        className={`min-w-0 space-y-2 rounded-xl border border-border/60 p-2 transition-colors ${view === "day" ? "min-h-64" : density === "compact" ? "@[760px]:min-h-24" : density === "expanded" ? "@[760px]:min-h-64" : "@[760px]:min-h-40"} ${isToday ? "bg-[#b283f3]/10" : "bg-card"} ${selected ? "outline outline-2 -outline-offset-2 outline-[#69139b]" : ""} ${destination === date ? "ring-2 ring-inset ring-[#b283f3]" : ""}`}
         onDragOver={(e) => {
           if (dragging && date >= today && !moving) {
             e.preventDefault();
@@ -305,61 +305,135 @@ export function ClientCalendarPage({
     );
   };
   return (
-    <section className="@container space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-card px-3 py-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">
-            {providedPosts === undefined ? "Calendário do cliente" : "Período e exibição"}
-          </h2>
-          {providedPosts === undefined && (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Arraste conteúdos para mudar a data. A aprovação permanece independente da publicação.
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <label htmlFor="calendar-period-view" className="sr-only">Período do calendário</label>
-          <select
-            id="calendar-period-view"
-            aria-label="Visualização do calendário"
-            className={selectClass}
-            value={view}
-            onChange={(e) => setView(e.target.value)}
-          >
-            <option value="month">Mês</option>
-            <option value="week">Semana</option>
-            <option value="day">Dia</option>
-            <option value="list">Lista por período</option>
-            <option value="grid">Grade de prévias</option>
-          </select>
-          <label htmlFor="calendar-density" className="sr-only">Densidade do calendário</label>
-          <select
-            id="calendar-density"
-            aria-label="Densidade do calendário"
-            disabled={prefs.isPending || prefs.update.isPending}
-            className={selectClass}
-            value={density}
-            onChange={(e) => prefs.update.mutate({ calendar_density: e.target.value })}
-          >
-            <option value="compact">Visual compacto</option>
-            <option value="standard">Visual padrão</option>
-            <option value="expanded">Visual ampliado</option>
-          </select>
-        </div>
-      </header>
-      <p className="text-xs text-muted-foreground" role="status">
-        {zone.isError
-          ? "Não foi possível verificar o fuso. Reagendamento indisponível até recarregar."
-          : `Fuso da conta: ${zone.data ?? "carregando…"}. Mês e semana preservam o horário ao arrastar.`}
-        {moving ? " Salvando nova data…" : ""} Datas anteriores a hoje não aceitam reagendamento.
-      </p>
+    <section className="@container space-y-3">
+      {(zone.isError || moving) && (
+        <p className="text-xs text-muted-foreground" role="status">
+          {zone.isError
+            ? "Não foi possível verificar o fuso. Reagendamento indisponível até recarregar."
+            : "Salvando nova data…"}
+        </p>
+      )}
       {prefs.error && (
         <p role="alert" className="text-sm text-destructive">
           Não foi possível carregar suas preferências.
         </p>
       )}
+      <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <Button
+            type="button"
+            size="icon"
+            aria-label="Período anterior"
+            variant="ghost"
+            className="size-8 shrink-0"
+            onClick={() => go(-1)}
+            title={dragging ? "Solte para mover ao mesmo dia do período anterior" : "Período anterior"}
+            onDragOver={(e) => {
+              if (dragging) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              void periodDrop(-1);
+            }}
+          >
+            <ChevronLeft className="size-4" aria-hidden="true" />
+          </Button>
+          <h2 className="min-w-[110px] text-sm font-semibold capitalize sm:text-base">
+            {view === "day"
+              ? format(cursor, "dd 'de' MMMM yyyy", { locale: ptBR })
+              : view === "week"
+                ? `${format(start, "dd/MM")} – ${format(end, "dd/MM/yyyy")}`
+                : format(cursor, "MMMM yyyy", { locale: ptBR })}
+          </h2>
+          <Button
+            type="button"
+            size="icon"
+            aria-label="Próximo período"
+            variant="ghost"
+            className="size-8 shrink-0"
+            onClick={() => go(1)}
+            title={dragging ? "Solte para mover ao mesmo dia do próximo período" : "Próximo período"}
+            onDragOver={(e) => {
+              if (dragging) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              void periodDrop(1);
+            }}
+          >
+            <ChevronRight className="size-4" aria-hidden="true" />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs shadow-none"
+            onClick={() => {
+              setCursorText(today);
+              setSelectedDay(today);
+            }}
+          >
+            Hoje
+          </Button>
+        </div>
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5" role="group" aria-label="Visão do calendário">
+          {[
+            { value: "month", label: "Mês" },
+            { value: "week", label: "Semana" },
+            { value: "day", label: "Dia" },
+            { value: "list", label: "Lista" },
+            { value: "grid", label: "Grade" },
+          ].map((mode) => (
+            <Button
+              type="button"
+              key={mode.value}
+              size="sm"
+              variant={view === mode.value ? "secondary" : "ghost"}
+              aria-pressed={view === mode.value}
+              onClick={() => setView(mode.value)}
+              className={`h-8 rounded-lg px-2 text-xs shadow-none ${view === mode.value ? "font-semibold text-[#42145d]" : "text-muted-foreground"}`}
+            >
+              {mode.label}
+            </Button>
+          ))}
+          <label htmlFor="calendar-date-jump" className="sr-only">Ir para data</label>
+          <input
+            type="date"
+            id="calendar-date-jump"
+            title="Ir diretamente para uma data"
+            className="h-8 w-[126px] max-w-full rounded-lg border border-border/70 bg-background px-1.5 text-xs shadow-none"
+            value={format(cursor, "yyyy-MM-dd")}
+            onChange={(e) => {
+              if (e.target.value) {
+                setCursor(new Date(e.target.value + "T12:00:00"));
+                setSelectedDay(e.target.value);
+              }
+            }}
+          />
+          <label htmlFor="calendar-density" className="sr-only">Tamanho dos cartões</label>
+          <select
+            id="calendar-density"
+            title="Tamanho dos cartões"
+            aria-label="Tamanho dos cartões"
+            disabled={prefs.isPending || prefs.update.isPending}
+            className="h-8 w-[94px] rounded-lg border border-border/70 bg-background px-1.5 text-xs shadow-none"
+            value={density}
+            onChange={(e) => prefs.update.mutate({ calendar_density: e.target.value })}
+          >
+            <option value="compact">Compacto</option>
+            <option value="standard">Padrão</option>
+            <option value="expanded">Ampliado</option>
+          </select>
+        </div>
+      </div>
       {providedPosts === undefined && (
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-xl border border-border/60 bg-card p-3 sm:p-4">
           <ContentFilters
             search={search}
             onSearch={setSearch}
@@ -398,78 +472,6 @@ export function ClientCalendarPage({
           />
         </div>
       )}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <Button
-            aria-label="Período anterior"
-            variant="outline"
-            onClick={() => go(-1)}
-            title={
-              dragging ? "Solte para mover ao mesmo dia do período anterior" : "Período anterior"
-            }
-            onDragOver={(e) => {
-              if (dragging) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-              }
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              void periodDrop(-1);
-            }}
-          >
-            ←
-          </Button>
-          <h3 className="text-sm font-semibold capitalize">
-            {view === "day"
-              ? format(cursor, "dd 'de' MMMM yyyy", { locale: ptBR })
-              : view === "week"
-                ? `${format(start, "dd/MM")} – ${format(end, "dd/MM/yyyy")}`
-                : format(cursor, "MMMM yyyy", { locale: ptBR })}
-          </h3>
-          <Button
-            aria-label="Próximo período"
-            variant="outline"
-            onClick={() => go(1)}
-            title={
-              dragging ? "Solte para mover ao mesmo dia do próximo período" : "Próximo período"
-            }
-            onDragOver={(e) => {
-              if (dragging) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-              }
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              void periodDrop(1);
-            }}
-          >
-            →
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setCursorText(today);
-              setSelectedDay(today);
-            }}
-          >
-            Hoje
-          </Button>
-        </div>
-        <input
-          type="date"
-          className={selectClass}
-          aria-label="Ir para período"
-          value={format(cursor, "yyyy-MM-dd")}
-          onChange={(e) => {
-            if (e.target.value) {
-              setCursor(new Date(e.target.value + "T12:00:00"));
-              setSelectedDay(e.target.value);
-            }
-          }}
-        />
-      </div>
       {dragging && (
         <p role="status" className="text-xs text-[#42145d]">
           Solte em um dia ou nas setas para mover ao período anterior/seguinte. O horário será
@@ -484,7 +486,7 @@ export function ClientCalendarPage({
       <QueryState loading={!providedPosts && q.isLoading} error={q.error}>
         {view === "month" || view === "week" || view === "day" ? (
           <div
-            className={`overflow-hidden rounded-xl border bg-card ${view === "day" ? "" : "grid grid-cols-1 @[760px]:grid-cols-7"}`}
+            className={`gap-1 rounded-2xl border border-border/60 bg-muted/20 p-1 ${view === "day" ? "grid grid-cols-1" : "grid grid-cols-1 @[760px]:grid-cols-7"}`}
           >
             {days.map(dayCell)}
           </div>
