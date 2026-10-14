@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRetention, useRetentionActions, useRetentionTeam } from "@/hooks/use-retention";
-import { useFinanceAccess } from "@/hooks/use-finance";
+import { useClientServices, useFinanceAccess } from "@/hooks/use-finance";
+import { monthlyServiceSummary } from "@/lib/monthly-service-summary";
 import { supabase } from "@/integrations/supabase/client";
 import { HealthBadge } from "@/components/retention/retention-workspace";
 import { dateLabel } from "@/lib/retention";
@@ -11,6 +12,7 @@ export function AccountHeaderFacts({ client }: { client: Client }) {
     actions = useRetentionActions(client.id),
     team = useRetentionTeam(),
     finance = useFinanceAccess();
+  const services = useClientServices(finance.canView ? client.id : null);
   const q = useQuery({
     queryKey: ["header-facts", client.id, finance.canView],
     queryFn: async () => {
@@ -49,7 +51,7 @@ export function AccountHeaderFacts({ client }: { client: Client }) {
   const a = retention.data?.find((a) => a.client_id === client.id),
     next = actions.data?.find((a) => a.status === "open");
   const owner = team.data?.find((t) => t.id === a?.account_manager_id)?.name;
-  const monthly = q.data?.contracts.filter((c) => c.periodicity === "monthly");
+  const monthly = monthlyServiceSummary(services.data ?? [], q.data?.contracts.map((c) => ({ ...c, status: "active" })) ?? []);
   const end = q.data?.contracts
     .map((c) => c.end_date)
     .filter((x): x is string => !!x)
@@ -67,10 +69,9 @@ export function AccountHeaderFacts({ client }: { client: Client }) {
             ? [
                 [
                   "Mensalidade",
-                  monthly?.length
-                    ? money(monthly.reduce((n, c) => n + Number(c.amount), 0))
-                    : "Não cadastrada",
+                  services.isLoading || !q.data ? "…" : monthly.hasMonthly ? money(monthly.amount) : "Não cadastrada",
                 ],
+                ...(monthly.missingBillingDay ? [["Vencimento", "Não configurado nos serviços"]] : []),
                 ["Próxima cobrança", q.data?.due ? dateLabel(q.data.due) : "Sem cobrança pendente"],
                 ["Término do contrato", end ? dateLabel(end) : "Não informado"],
               ]
@@ -87,7 +88,7 @@ export function AccountHeaderFacts({ client }: { client: Client }) {
           </div>
         ))}
       </dl>
-      {(q.error || retention.error || actions.error || team.error) && (
+      {(q.error || services.error || retention.error || actions.error || team.error) && (
         <p role="alert" className="text-sm text-destructive">
           Parte do resumo não pôde ser carregada. Consulte a aba correspondente.
         </p>
