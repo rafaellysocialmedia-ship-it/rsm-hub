@@ -72,7 +72,7 @@ async function mediaSignedUrl(env, storagePath) {
   const raw = signed.signedURL;
   const path = raw.startsWith("https://") ? raw
     : raw.startsWith("/storage/v1/") ? raw
-    : `/storage/v1/${raw.replace(/^\\/+/, "")}`;
+    : `/storage/v1/${raw.replace(/^[/]+/, "")}`;
   const url = new URL(path, STAGING_DB);
   if (url.origin !== STAGING_DB || !url.pathname.startsWith("/storage/v1/object/sign/post-files/"))
     throw new Error("signed_url_untrusted");
