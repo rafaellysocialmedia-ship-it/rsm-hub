@@ -3,7 +3,7 @@
 const STAGING_DB = "https://dtladsjhmnzdxcmgivne.supabase.co";
 const GRAPH = "https://graph.instagram.com/v24.0";
 const UUID = /^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/i;
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 
 function configured(env) {
   if (env.RSM_ENVIRONMENT !== "staging" || env.RSM_PUBLISH_ENABLED !== "true")
@@ -69,7 +69,11 @@ async function mediaSignedUrl(env, storagePath) {
     body: JSON.stringify({ expiresIn: 3600 }),
   });
   if (!signed.signedURL || typeof signed.signedURL !== "string") throw new Error("sign_failed");
-  const url = new URL(signed.signedURL, `${STAGING_DB}/storage/v1/`);
+  const raw = signed.signedURL;
+  const path = raw.startsWith("https://") ? raw
+    : raw.startsWith("/storage/v1/") ? raw
+    : `/storage/v1/${raw.replace(/^\\/+/, "")}`;
+  const url = new URL(path, STAGING_DB);
   if (url.origin !== STAGING_DB || !url.pathname.startsWith("/storage/v1/object/sign/post-files/"))
     throw new Error("signed_url_untrusted");
   return url.toString();
