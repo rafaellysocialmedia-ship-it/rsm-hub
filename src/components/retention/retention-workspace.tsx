@@ -292,7 +292,7 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                     {!clientId && (
                       <Button size="sm" variant="ghost" asChild>
                         <Link to="/management/clients/$clientId" params={{ clientId: a.client_id }}>
-                          Perfil 360º
+                          Ver cliente
                         </Link>
                       </Button>
                     )}
