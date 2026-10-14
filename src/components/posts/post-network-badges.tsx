@@ -8,15 +8,20 @@ import { AtSign, Facebook, Globe2, Instagram, Linkedin, Youtube } from "lucide-r
 export function PostNetworkBadges({
   networks,
   compact = false,
+  maxVisible,
   showEmpty = true,
   className = "",
 }: {
   networks: string[];
   compact?: boolean;
+  /** Limit only the rendered icons, while retaining every destination for accessibility. */
+  maxVisible?: number;
   showEmpty?: boolean;
   className?: string;
 }) {
   const unique = Array.from(new Set(networks.filter(Boolean)));
+  const visibleNetworks = maxVisible === undefined ? unique : unique.slice(0, Math.max(0, maxVisible));
+  const hiddenCount = unique.length - visibleNetworks.length;
   if (unique.length === 0 && !showEmpty) return null;
   return (
     <span className={`inline-flex min-w-0 flex-wrap items-center gap-1 ${className}`} aria-label={unique.length ? `Redes de destino: ${unique.join(", ")}` : "Rede social não definida"}>
@@ -25,7 +30,8 @@ export function PostNetworkBadges({
           <Globe2 className="size-3" aria-hidden="true" /> Rede a definir
         </span>
       ) : (
-        unique.map((network) => (
+        <>
+        {visibleNetworks.map((network) => (
           <span
             key={network}
             title={`Publicar em ${network}`}
@@ -34,7 +40,17 @@ export function PostNetworkBadges({
             <NetworkIcon network={network} />
             {compact ? <span className="sr-only">{network}</span> : <span className="truncate">{network}</span>}
           </span>
-        ))
+        ))}
+        {hiddenCount > 0 && (
+          <span
+            className="inline-flex h-5 items-center rounded-md border border-border/60 bg-background/90 px-1 text-[10px] font-medium text-muted-foreground"
+            title={`Outras redes: ${unique.slice(visibleNetworks.length).join(", ")}`}
+            aria-label={`Mais ${hiddenCount} ${hiddenCount === 1 ? "rede" : "redes"}`}
+          >
+            +{hiddenCount}
+          </span>
+        )}
+        </>
       )}
     </span>
   );
