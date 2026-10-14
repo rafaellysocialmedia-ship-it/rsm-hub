@@ -3,6 +3,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { cn } from "@/lib/utils";
 
 export function ListView({
@@ -45,8 +46,9 @@ export function ListView({
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">{p.title}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {[p.client_id ? clientMap.get(p.client_id) : null, postNetworks(p).join("/") || null, p.format].filter(Boolean).join(" · ") || "—"}
+                {[p.client_id ? clientMap.get(p.client_id) : null, p.format].filter(Boolean).join(" · ") || "—"}
               </p>
+              <PostNetworkBadges networks={postNetworks(p)} className="mt-1" />
             </div>
             {p.scheduled_date && (
               <span className="hidden text-xs text-muted-foreground sm:inline">
