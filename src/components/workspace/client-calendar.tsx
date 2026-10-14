@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Clock3, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, Plus, UserRound } from "lucide-react";
 import { ContentFilters } from "@/components/posts/content-filters";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +21,7 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PostCreativeThumb } from "@/components/posts/post-creative-viewer";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { QueryState } from "./account-panels";
 import { statusMeta, postNetworks, POST_STATUS, type Post } from "@/lib/posts";
 export function ClientCalendarPage({
@@ -55,7 +56,8 @@ export function ClientCalendarPage({
   const workspace = usePostWorkspace();
   const prefs = useNavigationPreferences();
   const density = prefs.data?.calendar_density ?? "standard";
-  const limit = density === "compact" ? 5 : density === "expanded" ? 2 : 3;
+  // The monthly grid always shows two cards; other views retain their existing density.
+  const limit = view === "month" ? 2 : density === "compact" ? 5 : density === "expanded" ? 2 : 3;
   const clients = useQuery({
     queryKey: ["calendar-client-labels", user?.id],
     queryFn: async () => {
@@ -111,16 +113,16 @@ export function ClientCalendarPage({
       p.scheduled_date <= to,
   );
 
-  const item = (p: Post, thumb = false, showDate = false) => (
+  const item = (p: Post, thumb = false, showDate = false, modal = false) => (
     <article
       key={p.id}
       data-post-id={p.id}
       onDragStartCapture={(e) => {
-        if (!movable(p)) e.preventDefault();
+        if (modal || !movable(p)) e.preventDefault();
       }}
-      draggable={movable(p) && !moving && !zone.isError && !zone.isPending}
+      draggable={!modal && movable(p) && !moving && !zone.isError && !zone.isPending}
       onDragStart={(e) => {
-        if (!movable(p) || moving) {
+        if (modal || !movable(p) || moving) {
           e.preventDefault();
           return;
         }
@@ -132,79 +134,84 @@ export function ClientCalendarPage({
         setDragging(null);
         setDestination(null);
       }}
-      className={`group min-w-0 select-none rounded-lg border border-border/70 bg-card transition-colors hover:border-[#b283f3]/70 ${density === "compact" ? "p-1.5" : "p-2"} ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
+      className={`group min-w-0 select-none rounded-xl border border-border/70 bg-card p-2.5 shadow-sm transition-colors hover:border-[#b283f3]/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
     >
       <button
+        type="button"
         onClick={() => {
           if (!dragging) {
             setDayList(null);
             workspace.openPost(p);
           }
         }}
-        className="block w-full min-w-0 space-y-1 text-left rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69139b]"
+        aria-label={`Abrir publicação ${p.title}, ${statusMeta(p.status).label}`}
+        className="block w-full min-w-0 space-y-2 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69139b]"
       >
-        <div
-          className={
-            density === "compact"
-              ? "float-left mr-2 w-10 max-h-8 overflow-hidden"
-              : density === "expanded"
-                ? "max-h-56 overflow-hidden"
-                : thumb
-                  ? "max-h-28 overflow-hidden"
-                  : "float-left mr-2 w-10 max-h-10 overflow-hidden rounded"
-          }
-        >
-          <PostCreativeThumb postId={p.id} />
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
+          <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-lg bg-sky-50 px-1.5 py-1 text-[10px] font-medium text-sky-900 dark:bg-sky-950/40 dark:text-sky-100">
+            <UserRound className="size-3 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+            <ClientLabel
+              id={p.client_id ?? "none"}
+              color={p.client_id ? clientColors.get(p.client_id) : null}
+              name={
+                p.client_id
+                  ? (clientNames.get(p.client_id) ??
+                    (clients.isPending ? "Carregando cliente…" : "Cliente indisponível"))
+                  : "Sem cliente"
+              }
+            />
+          </span>
+          <span
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-violet-50 px-1.5 py-1 text-[10px] font-semibold tabular-nums text-[#42145d] dark:bg-violet-950/40 dark:text-violet-200"
+            title={p.scheduled_time ? `Horário: ${p.scheduled_time.slice(0, 5)}` : "Horário a definir"}
+          >
+            <Clock3 className="size-3 shrink-0" aria-hidden="true" />
+            {p.scheduled_time?.slice(0, 5) || "—:—"}
+          </span>
         </div>
-        <ClientLabel
-          id={p.client_id ?? "none"}
-          color={p.client_id ? clientColors.get(p.client_id) : null}
-          name={
-            p.client_id
-              ? (clientNames.get(p.client_id) ??
-                (clients.isPending ? "Carregando cliente…" : "Cliente indisponível"))
-              : "Sem cliente"
-          }
-        />
+        {thumb && (
+          <div className="max-h-28 overflow-hidden rounded-lg">
+            <PostCreativeThumb postId={p.id} />
+          </div>
+        )}
         <p
-          className={`text-xs font-semibold leading-snug ${density === "compact" ? "truncate" : "line-clamp-2"}`}
+          className={`min-w-0 text-xs font-semibold leading-snug text-foreground ${view === "month" && !modal ? "truncate" : "line-clamp-2"}`}
           title={p.title}
         >
           {p.title}
         </p>
-        {density === "compact" && p.format && (
-          <span className="inline-flex max-w-full truncate rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-800"
-            title={p.format}>{p.format}</span>
-        )}
-        {density !== "compact" && (
-          <p className="truncate text-[11px] text-muted-foreground">
-            {[...postNetworks(p), p.format].filter(Boolean).join(" · ")}
-          </p>
-        )}
-        <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-          {showDate && p.scheduled_date && (
-            <span className="text-muted-foreground">{p.scheduled_date.split("-").reverse().join("/")}</span>
-          )}
-          {p.scheduled_time ? (
+        <div className="flex min-w-0 flex-wrap items-center gap-1">
+          <PostNetworkBadges
+            networks={postNetworks(p)}
+            compact
+            maxVisible={view === "month" && !modal ? 2 : undefined}
+          />
+          <span className="mx-0.5 h-4 w-px shrink-0 bg-border" aria-hidden="true" />
+          {p.format && (
             <span
-              className="inline-flex items-center gap-1 rounded-md bg-[#42145d]/10 px-1.5 py-0.5 font-semibold tabular-nums text-[#42145d]"
-              title={`Horário da publicação: ${p.scheduled_time.slice(0, 5)}`}
+              className="inline-flex min-w-0 max-w-full truncate rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-200"
+              title={p.format}
             >
-              <Clock3 className="size-3 shrink-0" aria-hidden="true" />
-              {p.scheduled_time.slice(0, 5)}
+              {p.format}
             </span>
-          ) : (
-            <span className="text-muted-foreground">Sem horário</span>
           )}
+          <span
+            className={`inline-flex min-w-0 max-w-full items-center truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusMeta(p.status).tone}`}
+            title={statusMeta(p.status).label}
+          >
+            {statusMeta(p.status).label}
+          </span>
         </div>
-        <span
-          className={`inline-flex max-w-full items-center truncate rounded-md border px-1.5 py-0.5 text-[10px] ${statusMeta(p.status).tone}`}
-        >
-          {statusMeta(p.status).label}
-        </span>
+        {showDate && p.scheduled_date && (
+          <span className="block text-[10px] text-muted-foreground">
+            {p.scheduled_date.split("-").reverse().join("/")}
+          </span>
+        )}
       </button>
-      {workspace.canEdit && p.publication_source && p.publication_source !== "manual" && (
-        <p className="mt-1 text-xs text-muted-foreground">Reagendamento no provedor externo</p>
+      {!modal && workspace.canEdit && p.publication_source && p.publication_source !== "manual" && (
+        <p className="mt-1 text-[10px] text-muted-foreground" title="Reagendamento gerenciado no provedor externo">
+          Reagendamento no provedor externo
+        </p>
       )}
     </article>
   );
@@ -290,10 +297,11 @@ export function ClientCalendarPage({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full whitespace-normal text-xs"
+            className="h-8 w-full justify-start rounded-lg px-2 text-xs font-semibold text-[#42145d] hover:bg-[#b283f3]/15 dark:text-violet-200"
+            aria-label={`Mostrar mais ${posts.length - limit} ${posts.length - limit === 1 ? "publicação" : "publicações"} de ${format(d, "dd/MM/yyyy")}`}
             onClick={() => setDayList(date)}
           >
-            + {posts.length - limit} publicações
+            +{posts.length - limit} mostrar mais
           </Button>
         )}
         {view === "day" && !posts.length && (
@@ -509,13 +517,13 @@ export function ClientCalendarPage({
           if (!v) setDayList(null);
         }}
       >
-        <DialogContent className="max-h-[85dvh] overflow-auto">
+        <DialogContent className="max-h-[85dvh] overflow-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Publicações de {dayList?.split("-").reverse().join("/")}</DialogTitle>
-            <DialogDescription>Todos os conteúdos do dia com os filtros atuais.</DialogDescription>
+            <DialogDescription>Todos os {list.filter((p) => p.scheduled_date === dayList).length} conteúdos deste dia, com os filtros atuais. Selecione um card para editar.</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            {list.filter((p) => p.scheduled_date === dayList).map((p) => item(p))}
+            {list.filter((p) => p.scheduled_date === dayList).map((p) => item(p, false, false, true))}
           </div>
         </DialogContent>
       </Dialog>

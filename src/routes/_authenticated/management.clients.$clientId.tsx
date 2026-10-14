@@ -18,7 +18,7 @@ import { ChurnCard } from "@/components/clients/churn-card";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Pencil, Video, MoreHorizontal, FilePlus2, CreditCard, Send, Copy } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Video, MoreHorizontal, FilePlus2, CreditCard, CalendarClock, Send, Copy } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -191,6 +191,10 @@ function ClientMasterPage() {
             <Button size="sm" variant="outline" onClick={() => setTaskOpen(true)}>
               Nova demanda
             </Button>
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={openBillingSettings}>
+              <CalendarClock className="size-4" aria-hidden="true" />
+              Serviços e vencimentos
+            </Button>
           </>
         )}
         <DropdownMenu>
@@ -329,7 +333,7 @@ function ClientMasterPage() {
                 className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-64"
               >
                 <option value="info">Informações</option>
-                <option value="services">Serviços</option>
+                <option value="services">Serviços e vencimentos</option>
                 <option value="team">Equipe</option>
                 <option value="accounts">Acessos</option>
                 <option value="assets">Ativos digitais</option>
