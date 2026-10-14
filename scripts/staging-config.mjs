@@ -30,6 +30,7 @@ export function workerConfig(base, config) {
     no_bundle: true, rules: base.rules,
     assets: { binding: 'ASSETS', directory: '../client' },
     workers_dev: true, preview_urls: false, routes: [], keep_vars: true,
+    triggers: { crons: ["* * * * *"] },
     observability: { enabled: false },
     vars: {
       RSM_ENVIRONMENT: 'staging', SUPABASE_URL: config.supabaseUrl,
