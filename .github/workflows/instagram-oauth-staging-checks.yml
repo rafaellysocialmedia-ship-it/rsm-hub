@@ -5,6 +5,7 @@ on:
     branches:
       - fix/instagram-callback-staging-diagnostics
       - fix/instagram-meta-token-error-inspection
+      - fix/instagram-workers-redirect-compat
   pull_request:
     branches:
       - fix/instagram-oauth-validation
