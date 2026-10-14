@@ -1,9 +1,10 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, Hash } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 
 type Props = {
   post: Post;
@@ -34,12 +35,7 @@ export function PostCard({ post, clientName, onClick, compact, dragging }: Props
         <p className={cn("mt-1 text-xs text-muted-foreground", isRejected && "line-through")}>{clientName}</p>
       )}
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {postNetworks(post).map((n) => (
-          <Badge key={n} variant="outline" className="h-5 gap-1 px-1.5 text-[10px] font-normal">
-            <Hash className="h-2.5 w-2.5" />
-            {n}
-          </Badge>
-        ))}
+        <PostNetworkBadges networks={postNetworks(post)} compact={compact} />
         {post.format && (
           <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
             {post.format}
