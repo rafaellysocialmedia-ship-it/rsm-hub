@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { handleInstagramCron } from "../src/lib/instagram-cron.server";
+// @ts-ignore: Cloudflare staging handler intentionally ships as an ESM module.
+import { scheduledStagingInstagram } from "../workers/instagram-primary-cron-staging.mjs";
 
 const isolated = "https://dtladsjhmnzdxcmgivne.supabase.co";
 const base = {
@@ -24,7 +25,7 @@ test("existing OAuth Worker cron does nothing by default or if any safety gate f
     { ...base, SUPABASE_URL: "https://zttgcamgixlkbkbdvrtb.supabase.co" },
     { ...base, SUPABASE_URL: "https://example.supabase.co" },
   ];
-  for (const env of disabled) handleInstagramCron({}, env, ctx);
+  for (const env of disabled) scheduledStagingInstagram({}, env, ctx);
   assert.equal(scheduled, 0);
 });
 
@@ -34,7 +35,7 @@ test("even after explicit double opt-in, missing encryption secret prevents any 
   globalThis.fetch = async () => { requested++; throw Error("must never call upstream"); };
   let pending: Promise<unknown> | undefined;
   try {
-    handleInstagramCron({}, {
+    scheduledStagingInstagram({}, {
       ...base,
       SUPABASE_SERVICE_ROLE_KEY: "test-service-key",
       // Existing Cloudflare encryption secret deliberately unavailable here.
