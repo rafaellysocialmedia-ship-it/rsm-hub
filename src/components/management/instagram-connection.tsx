@@ -65,7 +65,7 @@ export function InstagramConnection({ clientId, canEdit }: { clientId: string; c
     setNetworkChecking(true);
     setNetworkDiagnostic(null);
     try {
-      const data = await authenticatedFetch("/api/integrations/instagram/diagnose", {
+      const data = await authenticatedFetch("/api/integrations/instagram/status", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_id: clientId }),
       }) as NetworkDiagnostic;
