@@ -34,3 +34,15 @@
 8. Preparar revisão de App Meta, monitoramento, armazenamento seguro de tokens, renovações e implementação de formatos adicionais antes de ativar no RSM de produção.
 
 **Não executar** `auto_publish_scheduled_posts()`: essa função antiga apenas troca o campo status no banco e não publica nada no Instagram.
+
+
+## Cloudflare Git deployment do Worker de publicações (homologação)
+
+Worker existente no painel: `rsm-instagram-publisher-staging`. Selecionar somente a branch `fix/instagram-callback-staging-diagnostics` no repositório `rafaellysocialmedia-ship-it/rsm-hub`.
+
+- Build command: `npm run test:instagram && npm run typecheck`
+- Deploy command: `npx wrangler deploy --config wrangler.instagram-publisher.staging.json`
+- Preview builds: desligado
+- Sem `RSM_PUBLISH_ENABLED=true` no Worker até teste explícito autorizado. Ausente = envios desabilitados.
+- `SUPABASE_SERVICE_ROLE_KEY` e `INSTAGRAM_TOKEN_ENCRYPTION_KEY` devem ser configuradas posteriormente apenas como secrets do Worker de homologação, nunca no GitHub ou no chat.
+- O primeiro build ao conectar o GitHub exige novo commit na branch selecionada; esta atualização documental é propositalmente sem alterações de código ou credenciais.
