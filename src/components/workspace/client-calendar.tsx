@@ -62,12 +62,13 @@ export function ClientCalendarPage({
   const clients = useQuery({
     queryKey: ["calendar-client-labels", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("id,name");
+      const { data, error } = await supabase.from("clients").select("id,name,calendar_label_color");
       if (error) throw error;
       return data;
     },
   });
   const clientNames = new Map(clients.data?.map((c) => [c.id, c.name]));
+  const clientColors = new Map(clients.data?.map((c) => [c.id, c.calendar_label_color]));
   const movable = (p: Post) =>
     workspace.canEdit &&
     p.status !== "published" &&
@@ -165,6 +166,7 @@ export function ClientCalendarPage({
         </div>
         <ClientLabel
           id={p.client_id ?? "none"}
+          color={p.client_id ? clientColors.get(p.client_id) : null}
           name={
             p.client_id
               ? (clientNames.get(p.client_id) ??
@@ -178,6 +180,10 @@ export function ClientCalendarPage({
         >
           {p.title}
         </p>
+        {density === "compact" && p.format && (
+          <span className="inline-flex max-w-full truncate rounded border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-800"
+            title={`Formato: ${p.format}`}>Formato: {p.format}</span>
+        )}
         {density !== "compact" && (
           <p className="text-xs text-muted-foreground">
             {postNetworks(p).join(" · ")} · {p.format}
