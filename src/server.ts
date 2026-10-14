@@ -2,6 +2,8 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleInstagramCron } from "./lib/instagram-cron.server";
+import type { StagingCronEnv, StagingCronContext } from "./lib/instagram-cron.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -50,5 +52,8 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
+  },
+  scheduled(event: unknown, env: StagingCronEnv, ctx: StagingCronContext) {
+    handleInstagramCron(event, env, ctx);
   },
 };
