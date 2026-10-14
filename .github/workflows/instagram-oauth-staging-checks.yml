@@ -7,6 +7,7 @@ on:
       - fix/instagram-meta-token-error-inspection
       - fix/instagram-workers-redirect-compat
       - fix/instagram-staging-egress-diagnostic
+      - feat/instagram-scheduled-publishing-staging
   pull_request:
     branches:
       - fix/instagram-oauth-validation
