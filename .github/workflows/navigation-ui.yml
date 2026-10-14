@@ -1,0 +1,25 @@
+name: Navigation UI checks
+on:
+  pull_request:
+    paths:
+      - 'src/components/app-sidebar.tsx'
+      - 'src/components/workspace/grouped-navigation.tsx'
+      - 'src/routes/_authenticated/management.clients.$clientId.tsx'
+      - '.github/workflows/navigation-ui.yml'
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node tests/navigation.mjs
+      - run: npx tsc --noEmit
+      - run: npm run build
