@@ -25,6 +25,7 @@ const safeDiagnostics = new Set([
   "meta_unexpected_redirect",
 ]);
 type Status = { enabled: boolean; connections: { instagram_user_id: string; username: string; expired: boolean }[] };
+type NetworkDiagnostic = { checks: { method: string; reachable: boolean; status: number | null; category: string }[] };
 async function authenticatedFetch(path: string, init?: RequestInit) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error("Entre novamente para conectar o Instagram.");
@@ -41,6 +42,9 @@ export function InstagramConnection({ clientId, canEdit }: { clientId: string; c
   const allowed = !loading && canEdit && isStaff && can("workspace.clients", "edit");
   const [connecting, setConnecting] = useState(false);
   const [connectionDiagnostic, setConnectionDiagnostic] = useState<string | null>(null);
+  const [networkChecking, setNetworkChecking] = useState(false);
+  const [networkDiagnostic, setNetworkDiagnostic] = useState<NetworkDiagnostic | null>(null);
+  const staging = typeof window !== "undefined" && window.location.hostname.startsWith("rsm-hub-instagram-staging.");
   const status = useQuery<Status>({
     queryKey: ["instagram-status", clientId, user?.id], enabled: allowed, retry: false,
     queryFn: () => authenticatedFetch(`/api/integrations/instagram/status?client_id=${encodeURIComponent(clientId)}`),
@@ -57,6 +61,21 @@ export function InstagramConnection({ clientId, canEdit }: { clientId: string; c
     window.history.replaceState(window.history.state, "", url);
   }, []);
   if (!allowed) return null;
+  async function diagnoseNetwork() {
+    setNetworkChecking(true);
+    setNetworkDiagnostic(null);
+    try {
+      const data = await authenticatedFetch("/api/integrations/instagram/diagnose", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: clientId }),
+      }) as NetworkDiagnostic;
+      setNetworkDiagnostic(data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Teste de comunicação indisponível.");
+    } finally {
+      setNetworkChecking(false);
+    }
+  }
   async function connect() {
     setConnectionDiagnostic(null);
     setConnecting(true);
@@ -92,6 +111,18 @@ export function InstagramConnection({ clientId, canEdit }: { clientId: string; c
         Diagnóstico da homologação: <code className="font-semibold">{connectionDiagnostic}</code>.
         Informe apenas este código ao suporte, nunca tokens ou URLs de autorização.
       </p>}
+      {staging && <div className="mt-3 space-y-2">
+        <Button type="button" size="sm" variant="outline" disabled={networkChecking} onClick={diagnoseNetwork}>
+          {networkChecking ? "Verificando comunicação…" : "Testar comunicação com a Meta"}
+        </Button>
+        <p>Este teste não conecta contas, não solicita autorização e não usa suas credenciais.</p>
+        {networkDiagnostic && <div role="status" className="space-y-1">
+          {networkDiagnostic.checks.map(check => <p key={check.method}>
+            {check.method.toUpperCase()}: {check.reachable ? `HTTP ${check.status}` : check.category}
+            {check.reachable ? " (servidor respondeu)" : " (sem resposta HTTP)"}
+          </p>)}
+        </div>}
+      </div>}
     </div>
   </div>;
 }
