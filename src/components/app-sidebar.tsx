@@ -182,17 +182,24 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r bg-background">
       <SidebarHeader>
-        <div className="flex min-h-12 items-center justify-between gap-1">
-          {!collapsed && (
-            <button
-              onClick={() => go(staff ? "/dashboard" : "/portal?tab=home")}
-              className="px-2 text-left font-bold tracking-tight text-[#42145d]"
-            >
-              RSM <span className="text-xs font-normal">Marketing</span>
-            </button>
-          )}
+        <div className={`flex min-h-14 items-center gap-1 ${collapsed ? "flex-col justify-center" : "justify-between"}`}>
+          <button
+            type="button"
+            onClick={() => go(staff ? "/dashboard" : "/portal?tab=home")}
+            aria-label="Ir ao início do RSM Marketing"
+            title="RSM Marketing"
+            className={`flex min-w-0 items-center justify-center rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${collapsed ? "w-full" : "flex-1"}`}
+          >
+            <img
+              src="/rsm-symbol.png"
+              alt="RSM — Estratégia e Performance"
+              width={128}
+              height={74}
+              className={collapsed ? "h-7 w-12 object-contain" : "h-14 w-full max-w-[142px] object-contain"}
+            />
+          </button>
           <SidebarMenuButton
-            className="w-11 shrink-0"
+            className="size-10 shrink-0"
             tooltip={collapsed ? "Expandir menu" : "Recolher menu"}
             aria-label={isMobile ? "Fechar menu" : collapsed ? "Expandir menu" : "Recolher menu"}
             onClick={() => (isMobile ? setOpenMobile(false) : toggleSidebar())}
