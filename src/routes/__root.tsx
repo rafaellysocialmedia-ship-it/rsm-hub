@@ -113,7 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://rsmmarketing.com.br/rsm-logo.png" },
     ],
     links: [
-      { rel: "icon", href: "/rsm-symbol.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.svg?v=calendar-20261019", type: "image/svg+xml" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
