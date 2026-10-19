@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -38,8 +38,8 @@ export const Route = createFileRoute("/auth")({
     typeof s.next === "string" ? { next: s.next } : {},
   head: () => ({
     meta: [
-      { title: "Entrar · Social Media Hub" },
-      { name: "description", content: "Acesse o Social Media Hub para gerenciar seus clientes." },
+      { title: "Entrar · RSM Marketing" },
+      { name: "description", content: "Acesse o RSM Marketing para gerenciar seus clientes." },
     ],
   }),
   component: AuthPage,
@@ -68,11 +68,14 @@ function AuthPage() {
       {/* Brand panel */}
       <div className="relative hidden overflow-hidden bg-gradient-brand lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,theme(colors.white/15),transparent_60%)]" />
-        <div className="relative flex items-center gap-2 text-white">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <span className="text-base font-semibold tracking-tight">Social Media Hub</span>
+        <div className="relative inline-flex w-fit rounded-2xl bg-white/95 px-5 py-3 shadow-lg">
+          <img
+            src="/rsm-logo.png"
+            alt="RSM — Estratégia e Performance"
+            width={360}
+            height={245}
+            className="h-auto w-48 object-contain"
+          />
         </div>
         <div className="relative space-y-4 text-white">
           <h1 className="text-4xl font-semibold leading-tight tracking-tight">
@@ -82,19 +85,20 @@ function AuthPage() {
             Centralize clientes, equipe e operações em uma única plataforma — moderna, rápida e construída para escalar.
           </p>
         </div>
-        <div className="relative text-xs text-white/60">© {new Date().getFullYear()} Social Media Hub</div>
+        <div className="relative text-xs text-white/60">© {new Date().getFullYear()} RSM Marketing</div>
       </div>
 
       {/* Form panel */}
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-brand">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-base font-semibold tracking-tight">Social Media Hub</span>
-            </div>
+            <img
+              src="/rsm-logo.png"
+              alt="RSM — Estratégia e Performance"
+              width={360}
+              height={245}
+              className="h-auto w-44 object-contain"
+            />
           </div>
 
           {authError && (
