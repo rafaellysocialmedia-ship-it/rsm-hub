@@ -180,7 +180,6 @@ function ClientMasterPage() {
         </div>
       </div>
 
-      <AccountHeaderFacts client={client} onConfigureBilling={openBillingSettings} />
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {!client.churned && (
           <>
@@ -246,6 +245,7 @@ function ClientMasterPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <AccountHeaderFacts client={client} onConfigureBilling={openBillingSettings} />
       <Tabs value={tab} onValueChange={setTab} className="mt-4">
         <GroupedNavigation
           groups={profileGroups.map((group) => ({
