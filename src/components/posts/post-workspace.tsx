@@ -212,7 +212,7 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
     <Context.Provider value={{ openPost, canEdit, canCreate, createPost, movePost }}>
       <div
         inert={active && !minimized && mobile}
-        className={`min-w-0 w-full ${active && !minimized ? "lg:pr-[420px] xl:pr-[480px]" : ""}`}
+        className={`min-w-0 w-full ${active && !minimized ? "min-[1600px]:pr-[480px]" : ""}`}
       >
         {children}
       </div>
@@ -240,7 +240,7 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
         />
       )}
       {active && minimized && (
-        <div className="fixed bottom-3 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 rounded-lg border bg-white p-2 shadow-sm">
+        <div className="fixed bottom-3 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 rounded-lg border bg-card p-2 shadow-sm">
           <Button
             ref={minimizedButton}
             variant="ghost"
