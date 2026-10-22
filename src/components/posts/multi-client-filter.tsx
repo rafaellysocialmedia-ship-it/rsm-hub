@@ -22,7 +22,7 @@ export function MultiClientFilter({
         <Button
           id={id}
           variant="outline"
-          className="h-11 w-full justify-start overflow-hidden bg-background font-normal"
+          className="h-8 w-full justify-start overflow-hidden rounded-lg bg-background px-2.5 text-xs font-normal shadow-none"
         >
           <span className="truncate">
             {selected.length === 0
@@ -33,7 +33,7 @@ export function MultiClientFilter({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 space-y-3">
+      <PopoverContent align="start" className="w-64 space-y-2 p-3">
         <Input
           aria-label="Buscar cliente no filtro"
           placeholder="Buscar cliente…"
@@ -49,7 +49,7 @@ export function MultiClientFilter({
             .map((o) => (
               <label
                 key={o.value}
-                className="flex min-h-11 cursor-pointer items-center gap-2 rounded px-2 hover:bg-muted"
+                className="flex min-h-9 cursor-pointer items-center gap-2 rounded px-2 hover:bg-muted"
               >
                 <input
                   type="checkbox"
@@ -62,7 +62,7 @@ export function MultiClientFilter({
                     onChange(next.length ? next.join(",") : "all");
                   }}
                 />
-                <span className="text-sm">{o.label}</span>
+                <span className="text-xs">{o.label}</span>
               </label>
             ))}
           {!options.some((o) =>
