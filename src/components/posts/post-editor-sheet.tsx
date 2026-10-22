@@ -133,10 +133,6 @@ export function PostEditorSheet({
   const [internalComment, setInternalComment] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
-  const panelRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    if (persistent && !minimized) panelRef.current?.focus();
-  }, [persistent, minimized]);
   const dirty =
     !!newComment.trim() ||
     !!editingCommentId ||
@@ -565,8 +561,8 @@ export function PostEditorSheet({
                   </Button>
                 )}
                 <Button type="button" size="icon" variant="ghost"
-                  aria-label={maximized ? "Restaurar editor lateral" : "Ampliar edição em pop-up"}
-                  title={maximized ? "Restaurar painel lateral" : "Ampliar em pop-up"}
+                  aria-label={maximized ? "Restaurar tamanho do editor" : "Ampliar editor"}
+                  title={maximized ? "Restaurar tamanho" : "Ampliar editor"}
                   onClick={() => setMaximized((value) => !value)}>
                   {maximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </Button>
@@ -1258,24 +1254,25 @@ export function PostEditorSheet({
   );
   return (
     <>
-      {persistent ? maximized ? (
-        <Dialog open={maximized} onOpenChange={setMaximized}>
-          <DialogContent className="flex h-[min(94vh,960px)] w-[min(96vw,1120px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none [&>button]:hidden">
+      {persistent ? (
+        <Dialog
+          open={open && !minimized}
+          onOpenChange={(value) => {
+            if (!value) request(() => onOpenChange(false));
+          }}
+        >
+          <DialogContent
+            onPointerDownOutside={(event) => event.preventDefault()}
+            className={cn(
+              "flex h-[100dvh] w-full max-w-none flex-col gap-0 overflow-hidden bg-card p-0 text-card-foreground sm:h-[min(90dvh,900px)] sm:w-[calc(100vw-3rem)] sm:max-w-[960px] sm:rounded-xl [&>button]:hidden",
+              maximized && "sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-none",
+            )}
+          >
             <DialogTitle className="sr-only">{isEdit ? "Editar publicação" : "Nova publicação"}</DialogTitle>
-            <DialogDescription className="sr-only">Janela de edição ampliada da publicação.</DialogDescription>
+            <DialogDescription className="sr-only">Edite a publicação. Minimize para navegar sem perder o rascunho.</DialogDescription>
             {content}
           </DialogContent>
         </Dialog>
-      ) : (
-        <aside
-          aria-label="Editor da publicação"
-          ref={panelRef}
-          tabIndex={-1}
-          style={{ display: minimized ? "none" : undefined }}
-          className="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l bg-card text-card-foreground shadow-elevated lg:top-12 lg:w-[420px] xl:w-[480px]"
-        >
-          {content}
-        </aside>
       ) : (
         <Sheet
           open={open}
