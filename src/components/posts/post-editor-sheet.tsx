@@ -1272,7 +1272,7 @@ export function PostEditorSheet({
           ref={panelRef}
           tabIndex={-1}
           style={{ display: minimized ? "none" : undefined }}
-          className="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l bg-white shadow-sm lg:top-14 lg:w-[420px] xl:w-[480px]"
+          className="fixed inset-y-0 right-0 z-40 flex w-full flex-col border-l bg-card text-card-foreground shadow-elevated lg:top-12 lg:w-[420px] xl:w-[480px]"
         >
           {content}
         </aside>
