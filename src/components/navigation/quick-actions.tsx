@@ -281,7 +281,7 @@ export function QuickActions() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               tooltip="Criar"
-              className="bg-primary text-white hover:bg-[#69139b] hover:text-white"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
             >
               <Plus />
               <span>Criar</span>

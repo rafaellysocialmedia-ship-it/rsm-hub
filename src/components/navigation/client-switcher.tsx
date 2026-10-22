@@ -21,7 +21,7 @@ export function ClientSwitcher({ id, name, tab }: { id: string; name: string; ta
   });
   const href = `/management/clients/${id}?tab=${encodeURIComponent(tab)}`;
   return (
-    <div className="mt-4 space-y-2">
+    <div className="mt-3 space-y-2">
       <p className="text-sm text-muted-foreground">
         Clientes / {name} /{" "}
         {profileGroups.find((g) => g.items.some((i) => i[0] === tab))?.title ?? "Visão geral"}
@@ -32,13 +32,13 @@ export function ClientSwitcher({ id, name, tab }: { id: string; name: string; ta
           placeholder="Buscar cliente…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="min-h-11 rounded-md border bg-white px-3 text-sm"
+          className="min-h-9 rounded-md border bg-card px-3 text-sm"
         />
         <select
           aria-label="Trocar de cliente mantendo a aba"
           value={id}
           disabled={!q.data}
-          className="min-h-11 max-w-full rounded-md border bg-white px-3 text-sm"
+          className="min-h-9 max-w-full rounded-md border bg-card px-3 text-sm"
           onChange={(e) =>
             void router.navigate({
               to: "/management/clients/$clientId",
@@ -57,7 +57,7 @@ export function ClientSwitcher({ id, name, tab }: { id: string; name: string; ta
             ))}
         </select>
         <button
-          className="min-h-11 rounded-md border px-3 text-sm"
+          className="min-h-9 rounded-md border px-3 text-sm"
           disabled={!prefs.data || prefs.update.isPending}
           onClick={() =>
             prefs.toggle({ href, label: name, module: "workspace.clients", clientId: id })

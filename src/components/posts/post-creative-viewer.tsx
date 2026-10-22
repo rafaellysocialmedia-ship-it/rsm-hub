@@ -39,10 +39,31 @@ export function usePostCreatives(postId: string | undefined) {
   return usePostCreativeQuery(postId).data ?? EMPTY_CREATIVES;
 }
 
-export function PostCreativeThumb({ postId }: { postId: string }) {
-  const items = usePostCreatives(postId);
+export function PostCreativeThumb({
+  postId,
+  showEmpty = false,
+  fit = "cover",
+}: {
+  postId: string;
+  showEmpty?: boolean;
+  fit?: "cover" | "contain";
+}) {
+  const query = usePostCreativeQuery(postId);
+  const items = query.data ?? EMPTY_CREATIVES;
   const first = items[0];
-  if (!items.length) return null;
+  if (!items.length)
+    return showEmpty ? (
+      <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed bg-muted/40 text-xs text-muted-foreground">
+        <ImageIcon className="size-6" aria-hidden="true" />
+        <span>
+          {query.isPending
+            ? "Carregando prévia…"
+            : query.isError
+              ? "Prévia indisponível"
+              : "Sem criativo anexado"}
+        </span>
+      </div>
+    ) : null;
   const mime = first?.file.mime_type ?? "";
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-md border border-border bg-muted">
@@ -51,11 +72,16 @@ export function PostCreativeThumb({ postId }: { postId: string }) {
           draggable={false}
           src={first.url}
           alt=""
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
           loading="lazy"
         />
       ) : first?.url && mime.startsWith("video/") ? (
-        <video draggable={false} src={first.url} className="h-full w-full object-cover" muted />
+        <video
+          draggable={false}
+          src={first.url}
+          className={`h-full w-full ${fit === "contain" ? "object-contain" : "object-cover"}`}
+          muted
+        />
       ) : (
         <div className="flex h-full items-center justify-center text-muted-foreground">
           <ImageIcon className="h-6 w-6" />
