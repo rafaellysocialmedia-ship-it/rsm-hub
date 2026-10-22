@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { MultiClientFilter } from "./multi-client-filter";
 import { selectedClients } from "@/lib/calendar-period";
@@ -35,9 +35,6 @@ export function ContentFilters({
   const id = useId();
   const prefs = useNavigationPreferences();
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (prefs.data) setOpen(prefs.data.calendar_filters_open ?? false);
-  }, [prefs.data?.calendar_filters_open]);
   const setFilterOpen = (next: boolean) => {
     setOpen(next);
     if (prefs.data?.calendar_filters_open !== next) {
