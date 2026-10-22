@@ -21,20 +21,20 @@ export function PostCard({ post, clientName, onClick, compact, dragging }: Props
     <div
       onClick={onClick}
       className={cn(
-        "group cursor-pointer rounded-lg border border-border bg-card p-3 shadow-soft transition-all",
+        "group cursor-pointer rounded-lg border border-border/70 bg-card p-2.5 shadow-sm transition-all",
         "hover:border-primary/40 hover:shadow-md",
         dragging && "rotate-1 opacity-60",
         isRejected && "opacity-60 grayscale",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className={cn("line-clamp-2 text-sm font-medium leading-tight", isRejected && "line-through text-muted-foreground")}>{post.title}</p>
+        <p className={cn("line-clamp-2 text-xs font-medium leading-tight", isRejected && "line-through text-muted-foreground")}>{post.title}</p>
         <span className={cn("mt-0.5 h-2 w-2 shrink-0 rounded-full", meta.dot)} />
       </div>
       {!compact && clientName && (
         <p className={cn("mt-1 text-xs text-muted-foreground", isRejected && "line-through")}>{clientName}</p>
       )}
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <div className="mt-1.5 flex flex-wrap items-center gap-1">
         <PostNetworkBadges networks={postNetworks(post)} compact={compact} />
         {post.format && (
           <Badge variant="secondary" className="h-5 px-1.5 text-[10px] font-normal">
@@ -43,7 +43,7 @@ export function PostCard({ post, clientName, onClick, compact, dragging }: Props
         )}
       </div>
       {(post.scheduled_date || post.scheduled_time) && (
-        <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
+        <div className="mt-1.5 flex items-center gap-2 text-[10px] text-muted-foreground">
           {post.scheduled_date && (
             <span className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />

@@ -54,7 +54,7 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-2.5 overflow-x-auto pb-3">
         {POST_STATUS.map((s) => (
           <Column
             key={s.value}
@@ -70,7 +70,7 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
       </div>
       <DragOverlay>
         {active && (
-          <div className="w-72">
+          <div className="w-60">
             <PostCard post={active} clientName={active.client_id ? clientMap.get(active.client_id) : undefined} dragging />
           </div>
         )}
@@ -88,11 +88,11 @@ function Column({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
-    <div className="flex w-72 shrink-0 flex-col">
-      <div className="mb-2 flex items-center justify-between px-1">
+    <div className="flex w-60 shrink-0 flex-col">
+      <div className="mb-1.5 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <span className={cn("h-2 w-2 rounded-full", dot)} />
-          <span className="text-sm font-medium">{label}</span>
+          <span className="text-xs font-medium">{label}</span>
           <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{posts.length}</Badge>
         </div>
         <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onAdd}>
@@ -102,7 +102,7 @@ function Column({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 space-y-2 rounded-lg border border-transparent p-2 transition-colors",
+          "flex-1 space-y-1.5 rounded-lg border border-transparent p-1.5 transition-colors",
           isOver && "border-primary/40 bg-primary/5",
         )}
       >

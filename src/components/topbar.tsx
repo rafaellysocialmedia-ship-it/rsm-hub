@@ -105,8 +105,8 @@ export function Topbar() {
     : (portalNavigation.find(([, t]) => t === tab)?.[0] ??
       (["approvals", "calendar", "feed"].includes(tab) ? "Conteúdos" : "Portal do cliente"));
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-card px-4">
-      <SidebarTrigger className="h-11 w-11" />
+    <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b bg-card px-4">
+      <SidebarTrigger className="h-9 w-9" />
       <span className="truncate text-sm font-medium">{label ?? "RSM Marketing"}</span>
       <div className="ml-auto flex items-center gap-2">
         <NotificationsMenu />

@@ -13,7 +13,6 @@ import {
   GanttChart,
   Table2,
   Plus,
-  Filter,
   X,
   Download,
   Send,
@@ -85,7 +84,7 @@ function PostsPage() {
   const setView = (value: ViewMode) =>
     void navigate({ search: (old) => ({ ...old, view: value }), replace: true });
   const [search, setSearch] = useStickyState<string>(`posts:${user?.id}:search`, "");
-  const [statusFilter, setStatusFilter] = useStickyState<PostStatus | "all">(
+  const [statusFilter, setStatusFilter] = useStickyState<string>(
     `posts:${user?.id}:status`,
     "all",
   );
@@ -218,18 +217,18 @@ function PostsPage() {
     const q = search.trim().toLowerCase();
     return posts.filter((p) => {
       if (!belongsToActiveClient(p, activeIds)) return false;
-      if (formatFilter !== "all" && p.format !== formatFilter) return false;
+      if (formatFilter !== "all" && !formatFilter.split(",").includes(p.format ?? "")) return false;
       if (
         ownerFilter !== "all" &&
-        !owners.data?.tasks.some((t) => t.source_post_id === p.id && t.assignee_id === ownerFilter)
+        !owners.data?.tasks.some((t) => t.source_post_id === p.id && ownerFilter.split(",").includes(t.assignee_id ?? ""))
       )
         return false;
-      if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (statusFilter !== "all" && !statusFilter.split(",").includes(p.status)) return false;
       if (!matchesClients(clientFilter, p.client_id)) return false;
       if (networkFilter !== "all") {
         const nets = (p as { social_networks?: string[] | null }).social_networks ?? [];
         const all = nets.length ? nets : p.social_network ? [p.social_network] : [];
-        if (!all.includes(networkFilter)) return false;
+        if (!networkFilter.split(",").some((value) => all.includes(value))) return false;
       }
       if (q) {
         const hay = [p.title, p.headline, p.caption, p.theme, p.pillar, p.hashtags, p.cta]
@@ -326,68 +325,44 @@ function PostsPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5 px-6 py-8">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Calendário editorial</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Planeje, produza e publique em todas as redes — atualizado em tempo real.
-          </p>
+    <div className="rsm-editorial mx-auto w-full max-w-[1800px] space-y-3 px-3 py-4 sm:px-5 sm:py-5">
+      {/* Compact editorial workspace: heading, quota, filters, view mode, calendar. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">Calendário editorial</h1>
+          <p className="text-[11px] text-muted-foreground">Planejamento e publicações</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button
+            type="button"
+            size="sm"
             variant="outline"
+            title="Exportar publicações para Excel"
+            aria-label="Exportar publicações para Excel"
+            className="h-8 gap-1.5 px-2.5 text-xs"
             onClick={() => {
-              const clientName =
-                clientFilter !== "all"
-                  ? (clientMap.get(clientFilter) ?? "cliente")
-                  : "todos-clientes";
+              const clientName = clientFilter !== "all"
+                ? (clientMap.get(clientFilter) ?? "cliente")
+                : "todos-clientes";
               const stamp = new Date().toISOString().slice(0, 10);
               exportCalendarXlsx(filtered, clientMap, `calendario-${clientName}-${stamp}`);
               toast.success(`${filtered.length} publicações exportadas`);
             }}
-            className="gap-1.5"
           >
-            <Download className="h-4 w-4" /> Exportar Excel
+            <Download className="size-3.5" />
+            <span className="hidden sm:inline">Exportar</span>
           </Button>
-          <Button disabled={!workspace.canCreate} onClick={() => openNew()} className="gap-1.5">
-            <Plus className="h-4 w-4" /> Nova publicação
+          <Button type="button" size="sm" disabled={!workspace.canCreate} onClick={() => openNew()} className="h-8 gap-1.5 rounded-lg px-3 text-xs">
+            <Plus className="size-3.5" /> Nova publicação
           </Button>
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="space-y-3 rounded-2xl border border-border/60 bg-card p-3 sm:p-4">
-        <Tabs
-          className="border-b border-border/50 pb-2"
-          value={view}
-          onValueChange={(v) => setView(v as ViewMode)}
-        >
-          <TabsList className="h-auto flex-wrap justify-start gap-1 bg-muted/40 p-1">
-            <TabsTrigger value="calendar" className="gap-1.5 text-xs">
-              <CalendarDays className="h-3.5 w-3.5" />
-              Calendário
-            </TabsTrigger>
-            <TabsTrigger value="list" className="gap-1.5 text-xs">
-              <ListIcon className="h-3.5 w-3.5" />
-              Lista
-            </TabsTrigger>
-            <TabsTrigger value="kanban" className="gap-1.5 text-xs">
-              <KanbanSquare className="h-3.5 w-3.5" />
-              Kanban
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="gap-1.5 text-xs">
-              <GanttChart className="h-3.5 w-3.5" />
-              Timeline
-            </TabsTrigger>
-            <TabsTrigger value="table" className="gap-1.5 text-xs">
-              <Table2 className="h-3.5 w-3.5" />
-              Tabela
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      {view === "calendar" && selectedClients(clientFilter).length === 1 && (
+        <PostBalanceControlBar clientId={clientFilter} ref={calendarMonth} />
+      )}
 
+      <div className="space-y-2 rounded-xl border border-border/60 bg-card p-2.5 sm:p-3">
         <ContentFilters
           search={search}
           onSearch={setSearch}
@@ -407,8 +382,8 @@ function PostsPage() {
               label: "Status",
               value: statusFilter,
               empty: "all",
-              primary: true,
-              onChange: (v) => setStatusFilter(v as PostStatus | "all"),
+              multiSelect: true,
+              onChange: setStatusFilter,
               options: POST_STATUS.map((s) => ({ value: s.value, label: s.label })),
             },
             {
@@ -416,6 +391,7 @@ function PostsPage() {
               label: "Canal",
               value: networkFilter,
               empty: "all",
+              multiSelect: true,
               onChange: setNetworkFilter,
               options: SOCIAL_NETWORKS.map((n) => ({ value: n, label: n })),
             },
@@ -424,6 +400,7 @@ function PostsPage() {
               label: "Formato",
               value: formatFilter,
               empty: "all",
+              multiSelect: true,
               onChange: setFormatFilter,
               options: [...new Set(posts.map((p) => p.format).filter((f): f is string => !!f))].map(
                 (f) => ({ value: f, label: f }),
@@ -434,6 +411,7 @@ function PostsPage() {
               label: "Responsável",
               value: ownerFilter,
               empty: "all",
+              multiSelect: true,
               onChange: setOwnerFilter,
               loading: owners.isLoading,
               error: !!owners.error,
@@ -444,22 +422,25 @@ function PostsPage() {
             },
           ]}
         />
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2">
+          <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
+            <TabsList className="flex h-8 flex-wrap justify-start gap-0.5 bg-muted/40 p-0.5">
+              <TabsTrigger value="calendar" className="h-7 gap-1 px-2.5 text-[11px]"><CalendarDays className="size-3.5" /> Calendário</TabsTrigger>
+              <TabsTrigger value="list" className="h-7 gap-1 px-2.5 text-[11px]"><ListIcon className="size-3.5" /> Lista</TabsTrigger>
+              <TabsTrigger value="kanban" className="h-7 gap-1 px-2.5 text-[11px]"><KanbanSquare className="size-3.5" /> Kanban</TabsTrigger>
+              <TabsTrigger value="timeline" className="h-7 gap-1 px-2.5 text-[11px]"><GanttChart className="size-3.5" /> Timeline</TabsTrigger>
+              <TabsTrigger value="table" className="h-7 gap-1 px-2.5 text-[11px]"><Table2 className="size-3.5" /> Tabela</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <span className="text-[11px] tabular-nums text-muted-foreground">
+            {isLoading ? "Carregando…" : `${filtered.length} conteúdos`}
+          </span>
+        </div>
       </div>
 
-      {/* Calendar balance control bar — tied to the displayed month and selected client */}
-      {view === "calendar" && selectedClients(clientFilter).length === 1 && (
-        <PostBalanceControlBar clientId={clientFilter} ref={calendarMonth} />
-      )}
-
-      {/* Result count + bulk actions */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Filter className="h-3 w-3" />
-          {isLoading
-            ? "Carregando..."
-            : `${filtered.length} publicação${filtered.length === 1 ? "" : "ões"}`}
-        </div>
-        {view === "list" && selected.size > 0 && (
+      {/* Bulk actions are visible only when content is selected. */}
+      {view === "list" && selected.size > 0 && <div className="flex flex-wrap items-center justify-end gap-2">
+        {(
           <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-2 py-1 shadow-soft">
             <span className="flex items-center gap-1.5 pl-1 text-xs font-medium">
               <CheckSquare className="h-3.5 w-3.5" /> {selected.size} selecionada
@@ -483,7 +464,7 @@ function PostsPage() {
             </Button>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Views */}
       <div>

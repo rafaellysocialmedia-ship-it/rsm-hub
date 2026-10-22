@@ -87,114 +87,62 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
       ? "Total previsto cadastrado"
       : `${remaining} publicaç${remaining === 1 ? "ão" : "ões"} ainda ${remaining === 1 ? "pendente" : "pendentes"}`;
 
+  const inMonth = usage.filter((post) => {
+    if (post.client_id !== clientId || !post.scheduled_date) return false;
+    const [postYear, postMonth] = post.scheduled_date.split("-").map(Number);
+    return postYear === year && postMonth === month && !["archived", "rejected"].includes(post.status ?? "");
+  });
+  const published = inMonth.filter((post) => post.status === "published").length;
+  const waitingApproval = inMonth.filter((post) => post.status === "review" || post.status === "changes_requested").length;
+  const metric = (title: string, value: number, explanation: string, attention = false) => (
+    <div key={title} title={explanation} className="min-w-[95px] flex-1 px-2 py-1.5 sm:min-w-[116px]">
+      <p className="truncate text-[10px] text-muted-foreground">{title}</p>
+      <p className={cn("text-lg font-semibold leading-snug tabular-nums", attention && "text-amber-600 dark:text-amber-400")}>{value}</p>
+    </div>
+  );
   return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-soft">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-600/10">
-            <Gauge className="h-5 w-5 text-violet-600" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-sm font-semibold">{client.name}</p>
-              <Badge variant="outline" className="text-[10px] font-normal capitalize">
-                {labelMonth(year, month)}
-              </Badge>
-              {summary.closed && (
-                <Badge variant="secondary" className="text-[10px]">Mês fechado</Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">Controle de publicações do calendário</p>
-          </div>
+    <div className="rounded-xl border border-border/70 bg-card px-3 py-2.5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <div className="flex min-w-0 items-center gap-2 text-xs">
+          <Gauge className="size-3.5 shrink-0 text-primary" aria-hidden />
+          <span className="truncate font-semibold">{client.name}</span>
+          <span className="shrink-0 text-[11px] capitalize text-muted-foreground">{labelMonth(year, month)}</span>
+          {summary.closed && <Badge variant="secondary" className="h-5 text-[10px]">Mês fechado</Badge>}
         </div>
+        <span className={cn("text-[11px] font-medium", oneLeft ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+          {statusLabel}
+        </span>
       </div>
-
-      <div className="mt-4 space-y-2.5">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold">
-              <span className="text-base">{currentCount}</span> publicações cadastradas no calendário
-            </p>
-            <p
-              className={cn(
-                "mt-0.5 text-xs font-medium",
-                overPlan
-                  ? "text-violet-700 dark:text-violet-300"
-                  : oneLeft
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-muted-foreground",
-              )}
-            >
-              {statusLabel}
-            </p>
-          </div>
-
-          <div className="text-right">
-            {overPlan ? (
-              <>
-                <p className="text-lg font-semibold text-violet-700 dark:text-violet-300">+{extras}</p>
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">extras</p>
-              </>
-            ) : remaining > 0 ? (
-              <>
-                <p className={cn("text-lg font-semibold", oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</p>
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">faltam</p>
-              </>
-            ) : (
-              <>
-                <p className="text-lg font-semibold">✓</p>
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">completo</p>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div
-          className="h-2.5 w-full overflow-hidden rounded-full bg-violet-100 dark:bg-violet-950/50"
-          role="progressbar"
-          aria-label="Progresso das publicações previstas para o período"
-          aria-valuemin={0}
-          aria-valuemax={Math.max(totalToDeliver, 1)}
-          aria-valuenow={Math.min(currentCount, Math.max(totalToDeliver, 1))}
-        >
-          <div
-            className={cn(
-              "h-full rounded-full transition-[width,background-color] duration-500 ease-out",
-              overPlan
-                ? "bg-violet-700"
-                : oneLeft
-                  ? "bg-amber-500"
-                  : "bg-violet-600",
-            )}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2 border-t border-border/60 pt-2 text-xs sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span><span className="text-muted-foreground">Plano do mês:</span> <strong>{contracted}</strong></span>
-            <span><span className="text-muted-foreground">Cadastradas:</span> <strong>{currentCount}</strong></span>
-            <span><span className="text-muted-foreground">Total a entregar:</span> <strong>{totalToDeliver}</strong></span>
-            {remaining > 0 && (
-              <span><span className="text-muted-foreground">Faltam:</span> <strong className={cn(oneLeft && "text-amber-600 dark:text-amber-400")}>{remaining}</strong></span>
-            )}
-            {extras > 0 && (
-              <span><span className="text-muted-foreground">Extras:</span> <strong className="text-violet-700 dark:text-violet-300">+{extras}</strong></span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-            {pendingPrevious > 0 ? (
-              <span>Pendência anterior: <strong className="text-amber-600 dark:text-amber-400">+{pendingPrevious} a entregar</strong></span>
-            ) : previousExcess > 0 ? (
-              <span>Excedente anterior: <strong className="text-violet-700 dark:text-violet-300">{previousExcess} já entregue{previousExcess === 1 ? "" : "s"}</strong></span>
-            ) : (
-              <span>Saldo anterior: 0</span>
-            )}
-            {adjustment !== 0 && <span>Ajustes: {balanceLabel(adjustment)}</span>}
-          </div>
-        </div>
+      <div className="mt-2 flex flex-wrap divide-x divide-border/60 rounded-lg border border-border/50 bg-muted/10">
+        {metric("Cadastradas", currentCount, "Conteúdos registrados e elegíveis à cota deste mês. Não equivale a publicados.")}
+        {metric("Meta contratada", contracted, "Quantidade contratada para o mês, sem saldo anterior.")}
+        {metric("Total a entregar", totalToDeliver, "Meta contratada mais saldo anterior e ajustes.")}
+        {metric("Publicadas¹", published, "Posts com status Publicado no calendário. Postagem externa requer confirmação da rede social.")}
+        {metric("Em aprovação", waitingApproval, "Conteúdos em revisão pelo cliente ou com ajustes solicitados.")}
+        {metric("Faltam cadastrar", remaining, "Total a entregar menos conteúdos já cadastrados, não significa falta de publicação.", remaining > 0)}
       </div>
+      <div
+        className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-label="Progresso de conteúdos cadastrados sobre o total a entregar"
+        aria-valuemin={0}
+        aria-valuemax={Math.max(totalToDeliver, 1)}
+        aria-valuenow={Math.min(currentCount, Math.max(totalToDeliver, 1))}
+      >
+        <div className="h-full rounded-full bg-[#69139b] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+      </div>
+      <details className="group mt-1.5 text-[11px] text-muted-foreground">
+        <summary className="cursor-pointer select-none hover:text-foreground">Entenda os números e ajustes ▾</summary>
+        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 rounded-lg bg-muted/30 p-2">
+          <span>Plano: {contracted}</span>
+          <span>Cadastradas: {currentCount}</span>
+          <span>Meta com saldo e ajustes: {totalToDeliver}</span>
+          <span>Saldo anterior: {pendingPrevious > 0 ? `${pendingPrevious} pendentes` : previousExcess > 0 ? `${previousExcess} excedentes` : "0"}</span>
+          {adjustment !== 0 && <span>Ajustes: {balanceLabel(adjustment)}</span>}
+          {extras > 0 && <span>Excedente atual: +{extras}</span>}
+          <span>¹ "Publicado" reflete o status no RSM; a publicação externa depende de confirmação da plataforma.</span>
+        </div>
+      </details>
     </div>
   );
 }

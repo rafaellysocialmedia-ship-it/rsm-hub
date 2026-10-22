@@ -46,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     >
       <PostWorkspaceProvider key={user?.id}>
         <QuickActionsProvider>
-          <div className="flex min-h-screen w-full bg-[#f7f7f9]">
+          <div className="rsm-app-dense flex min-h-screen w-full bg-[#f7f7f9]">
             <AppSidebar />
             <SidebarInset className="flex min-w-0 flex-1 flex-col bg-transparent">
               <Topbar />
