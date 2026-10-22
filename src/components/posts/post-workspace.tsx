@@ -39,22 +39,6 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
   const opener = useRef<HTMLElement | null>(null);
   const loadSequence = useRef(0);
   const minimizedButton = useRef<HTMLButtonElement>(null);
-  const [mobile, setMobile] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 1023px)");
-    const sync = () => setMobile(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
-  useEffect(() => {
-    if (!active || minimized || !mobile) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
-  }, [active, minimized, mobile]);
   useEffect(() => {
     if (minimized) minimizedButton.current?.focus();
   }, [minimized]);
@@ -211,8 +195,7 @@ export function PostWorkspaceProvider({ children }: { children: ReactNode }) {
   return (
     <Context.Provider value={{ openPost, canEdit, canCreate, createPost, movePost }}>
       <div
-        inert={active && !minimized && mobile}
-        className={`min-w-0 w-full ${active && !minimized ? "min-[1600px]:pr-[480px]" : ""}`}
+        className="min-w-0 w-full"
       >
         {children}
       </div>
