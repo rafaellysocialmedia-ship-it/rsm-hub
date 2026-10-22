@@ -217,21 +217,32 @@ export function OperationalDashboard({ name }: { name: string }) {
             Pendências e próximos compromissos das contas ativas.
           </p>
         </div>
-        <Button asChild>
+        <Button asChild variant="outline">
           <Link to="/management/clients">Gerenciar clientes e histórico</Link>
         </Button>
       </header>
       <QueryState loading={q.isLoading} error={q.error}>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
           {Object.entries(groups).map(([title, items]) => (
             <button
               key={title}
               onClick={() => setSelection(title)}
-              className="rounded-xl border bg-card p-5 text-left hover:border-primary/50"
+              className={`group rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring ${items.length > 0 && ["Aprovações atrasadas", "Tarefas vencidas", "Cobranças vencidas"].includes(title) ? "border-amber-300/70 dark:border-amber-700/60" : "border-border"}`}
             >
-              <span className="text-sm text-muted-foreground">{title}</span>
-              <strong className="mt-3 block text-3xl">{items.length}</strong>
-              <span className="mt-2 block text-xs text-primary">Ver lista filtrada →</span>
+              <span className="block text-xs font-medium leading-5 text-muted-foreground">
+                {title}
+              </span>
+              <strong
+                className={`mt-2 block text-2xl font-semibold tabular-nums tracking-tight ${items.length ? "text-foreground" : "text-muted-foreground"}`}
+              >
+                {items.length}
+              </strong>
+              <span className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                {title === "Publicações próximas" ? "Hoje + próximos 7 dias" : "Ver detalhes"}
+                <span aria-hidden="true" className="text-primary">
+                  →
+                </span>
+              </span>
             </button>
           ))}
         </div>
