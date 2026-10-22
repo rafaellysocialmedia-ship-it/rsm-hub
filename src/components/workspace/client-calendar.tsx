@@ -55,9 +55,9 @@ export function ClientCalendarPage({
   const [moving, setMoving] = useState(false);
   const workspace = usePostWorkspace();
   const prefs = useNavigationPreferences();
-  const density = prefs.data?.calendar_density ?? "standard";
+  const density = prefs.data?.calendar_density ?? "compact";
   // The monthly grid always shows two cards; other views retain their existing density.
-  const limit = view === "month" ? 2 : density === "compact" ? 5 : density === "expanded" ? 2 : 3;
+  const limit = view === "month" ? (density === "expanded" ? 3 : 2) : density === "compact" ? 5 : density === "expanded" ? 2 : 3;
   const clients = useQuery({
     queryKey: ["calendar-client-labels", user?.id],
     queryFn: async () => {
@@ -134,7 +134,7 @@ export function ClientCalendarPage({
         setDragging(null);
         setDestination(null);
       }}
-      className={`group min-w-0 select-none rounded-xl border border-border/70 bg-card p-2.5 shadow-sm transition-colors hover:border-[#b283f3]/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
+      className={`group min-w-0 select-none rounded-lg border border-border/70 bg-card ${view === "month" && !modal ? "p-1.5" : density === "compact" && !modal ? "p-2" : "p-2.5"} shadow-none transition-colors hover:border-[#b283f3]/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
     >
       <button
         type="button"
@@ -145,8 +145,31 @@ export function ClientCalendarPage({
           }
         }}
         aria-label={`Abrir publicação ${p.title}, ${statusMeta(p.status).label}`}
-        className="block w-full min-w-0 space-y-2 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69139b]"
+        className="block w-full min-w-0 space-y-1.5 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69139b]"
       >
+        {view === "month" && !modal ? (
+          <div className="min-w-0 space-y-1">
+            <div className="flex min-w-0 items-center gap-1.5">
+              {p.scheduled_time && (
+                <span className="shrink-0 text-[10px] font-semibold tabular-nums text-[#42145d] dark:text-violet-200">
+                  {p.scheduled_time.slice(0, 5)}
+                </span>
+              )}
+              <span className="min-w-0 flex-1 truncate text-[11px] font-medium" title={p.title}>{p.title}</span>
+              <span className={`size-1.5 shrink-0 rounded-full ${statusMeta(p.status).dot}`} title={statusMeta(p.status).label} aria-label={statusMeta(p.status).label} />
+            </div>
+            <div className="flex min-w-0 items-center gap-1">
+              <PostNetworkBadges networks={postNetworks(p)} compact maxVisible={1} />
+              <span className="min-w-0 flex-1 truncate text-[9px] text-muted-foreground" title={p.client_id ? clientNames.get(p.client_id) ?? "Cliente indisponível" : "Sem cliente"}>
+                {p.client_id ? (clientNames.get(p.client_id) ?? "Cliente indisponível") : "Sem cliente"}
+              </span>
+              <span className="max-w-[75px] shrink-0 truncate rounded bg-muted px-1 text-[9px] text-muted-foreground" title={statusMeta(p.status).label}>
+                {statusMeta(p.status).label}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <>
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
           <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-lg bg-sky-50 px-1.5 py-1 text-[10px] font-medium text-sky-900 dark:bg-sky-950/40 dark:text-sky-100">
             <UserRound className="size-3 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
@@ -207,6 +230,8 @@ export function ClientCalendarPage({
             {p.scheduled_date.split("-").reverse().join("/")}
           </span>
         )}
+          </>
+        )}
       </button>
       {!modal && workspace.canEdit && p.publication_source && p.publication_source !== "manual" && (
         <p className="mt-1 text-[10px] text-muted-foreground" title="Reagendamento gerenciado no provedor externo">
@@ -239,7 +264,7 @@ export function ClientCalendarPage({
         key={date}
         data-calendar-date={date}
         aria-current={isToday ? "date" : undefined}
-        className={`min-w-0 space-y-2 rounded-xl border border-border/60 p-2 transition-colors ${view === "day" ? "min-h-64" : density === "compact" ? "@[760px]:min-h-24" : density === "expanded" ? "@[760px]:min-h-64" : "@[760px]:min-h-40"} ${isToday ? "bg-[#b283f3]/10" : "bg-card"} ${selected ? "outline outline-2 -outline-offset-2 outline-[#69139b]" : ""} ${destination === date ? "ring-2 ring-inset ring-[#b283f3]" : ""}`}
+        className={`min-w-0 space-y-1 rounded-md border border-border/60 p-1.5 transition-colors ${view === "day" ? "min-h-40" : density === "compact" ? "min-h-[88px]" : density === "expanded" ? "min-h-48" : "min-h-28"} ${isToday ? "bg-[#b283f3]/10" : "bg-card"} ${selected ? "outline outline-2 -outline-offset-2 outline-[#69139b]" : ""} ${destination === date ? "ring-2 ring-inset ring-[#b283f3]" : ""}`}
         onDragOver={(e) => {
           if (dragging && date >= today && !moving) {
             e.preventDefault();
@@ -261,13 +286,13 @@ export function ClientCalendarPage({
             aria-label={`${format(d, "dd/MM/yyyy")}${isToday ? ", hoje" : ""}`}
             aria-pressed={selected}
             onClick={() => setSelectedDay(date)}
-            className="flex items-center gap-1.5 rounded focus-visible:ring-2 focus-visible:ring-[#69139b]"
+            className="flex items-center gap-1 rounded focus-visible:ring-2 focus-visible:ring-[#69139b]"
           >
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] text-muted-foreground">
               {format(d, "EEE", { locale: ptBR })}
             </span>
             <span
-              className={`inline-flex size-7 items-center justify-center rounded-full text-sm font-semibold ${isToday ? "bg-[#42145d] text-white" : "text-foreground"}`}
+              className={`inline-flex size-5 items-center justify-center rounded-full text-xs font-semibold ${isToday ? "bg-[#42145d] text-white" : "text-foreground"}`}
             >
               {format(d, "dd")}
             </span>
@@ -277,7 +302,7 @@ export function ClientCalendarPage({
             <Button
               size="icon"
               variant="ghost"
-              className="size-8"
+              className="size-6"
               aria-label={`Criar publicação em ${format(d, "dd/MM/yyyy")}`}
               onClick={() =>
                 workspace.createPost({
@@ -290,14 +315,14 @@ export function ClientCalendarPage({
             </Button>
           )}
         </div>
-        <div className={view === "day" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-3" : "space-y-2"}>
+        <div className={view === "day" ? "grid gap-2 sm:grid-cols-2 xl:grid-cols-3" : "space-y-1"}>
           {shown.map((p) => item(p))}
         </div>
         {view !== "day" && posts.length > limit && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-start rounded-lg px-2 text-xs font-semibold text-[#42145d] hover:bg-[#b283f3]/15 dark:text-violet-200"
+            className="h-6 w-full justify-start rounded px-1 text-[10px] font-semibold text-[#42145d] hover:bg-[#b283f3]/15 dark:text-violet-200"
             aria-label={`Mostrar mais ${posts.length - limit} ${posts.length - limit === 1 ? "publicação" : "publicações"} de ${format(d, "dd/MM/yyyy")}`}
             onClick={() => setDayList(date)}
           >
@@ -313,7 +338,7 @@ export function ClientCalendarPage({
     );
   };
   return (
-    <section className="@container space-y-3">
+    <section className="@container space-y-2">
       {(zone.isError || moving) && (
         <p className="text-xs text-muted-foreground" role="status">
           {zone.isError
@@ -326,14 +351,14 @@ export function ClientCalendarPage({
           Não foi possível carregar suas preferências.
         </p>
       )}
-      <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
+      <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-card px-2.5 py-2 md:flex-row md:flex-wrap md:items-center md:justify-between">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           <Button
             type="button"
             size="icon"
             aria-label="Período anterior"
             variant="ghost"
-            className="size-8 shrink-0"
+            className="size-7 shrink-0"
             onClick={() => go(-1)}
             title={dragging ? "Solte para mover ao mesmo dia do período anterior" : "Período anterior"}
             onDragOver={(e) => {
@@ -349,7 +374,7 @@ export function ClientCalendarPage({
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
-          <h2 className="min-w-[110px] text-sm font-semibold capitalize sm:text-base">
+          <h2 className="min-w-[105px] text-xs font-semibold capitalize sm:text-sm">
             {view === "day"
               ? format(cursor, "dd 'de' MMMM yyyy", { locale: ptBR })
               : view === "week"
@@ -381,7 +406,7 @@ export function ClientCalendarPage({
             type="button"
             size="sm"
             variant="outline"
-            className="h-8 text-xs shadow-none"
+            className="h-7 px-2 text-xs shadow-none"
             onClick={() => {
               setCursorText(today);
               setSelectedDay(today);
@@ -391,13 +416,20 @@ export function ClientCalendarPage({
           </Button>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-1.5" role="group" aria-label="Visão do calendário">
-          {[
-            { value: "month", label: "Mês" },
-            { value: "week", label: "Semana" },
-            { value: "day", label: "Dia" },
-            { value: "list", label: "Lista" },
-            { value: "grid", label: "Grade" },
-          ].map((mode) => (
+          {(providedPosts !== undefined
+            ? [
+                { value: "month", label: "Mês" },
+                { value: "week", label: "Semana" },
+                { value: "day", label: "Dia" },
+              ]
+            : [
+                { value: "month", label: "Mês" },
+                { value: "week", label: "Semana" },
+                { value: "day", label: "Dia" },
+                { value: "list", label: "Lista" },
+                { value: "grid", label: "Grade" },
+              ]
+          ).map((mode) => (
             <Button
               type="button"
               key={mode.value}
@@ -405,17 +437,36 @@ export function ClientCalendarPage({
               variant={view === mode.value ? "secondary" : "ghost"}
               aria-pressed={view === mode.value}
               onClick={() => setView(mode.value)}
-              className={`h-8 rounded-lg px-2 text-xs shadow-none ${view === mode.value ? "font-semibold text-[#42145d]" : "text-muted-foreground"}`}
+              className={`h-7 rounded-md px-2 text-[11px] shadow-none ${view === mode.value ? "font-semibold text-[#42145d]" : "text-muted-foreground"}`}
             >
               {mode.label}
             </Button>
           ))}
+          {providedPosts !== undefined && (
+            <>
+              <label htmlFor="calendar-more-views" className="sr-only">Outras visualizações do calendário</label>
+              <select
+                id="calendar-more-views"
+                aria-label="Outras visualizações do calendário"
+                title="Outras visualizações do calendário"
+                value={view === "list" || view === "grid" ? view : "other"}
+                onChange={(e) => {
+                  if (e.target.value !== "other") setView(e.target.value);
+                }}
+                className="h-7 max-w-[94px] rounded-md border border-border/70 bg-background px-1 text-[11px]"
+              >
+                <option value="other">Mais visões</option>
+                <option value="list">Lista por período</option>
+                <option value="grid">Grade de prévias</option>
+              </select>
+            </>
+          )}
           <label htmlFor="calendar-date-jump" className="sr-only">Ir para data</label>
           <input
             type="date"
             id="calendar-date-jump"
             title="Ir diretamente para uma data"
-            className="h-8 w-[126px] max-w-full rounded-lg border border-border/70 bg-background px-1.5 text-xs shadow-none"
+            className="h-7 w-[120px] max-w-full rounded-md border border-border/70 bg-background px-1.5 text-xs shadow-none"
             value={format(cursor, "yyyy-MM-dd")}
             onChange={(e) => {
               if (e.target.value) {
@@ -430,7 +481,7 @@ export function ClientCalendarPage({
             title="Tamanho dos cartões"
             aria-label="Tamanho dos cartões"
             disabled={prefs.isPending || prefs.update.isPending}
-            className="h-8 w-[94px] rounded-lg border border-border/70 bg-background px-1.5 text-xs shadow-none"
+            className="h-7 w-[84px] rounded-md border border-border/70 bg-background px-1.5 text-xs shadow-none"
             value={density}
             onChange={(e) => prefs.update.mutate({ calendar_density: e.target.value })}
           >
@@ -493,10 +544,13 @@ export function ClientCalendarPage({
       )}
       <QueryState loading={!providedPosts && q.isLoading} error={q.error}>
         {view === "month" || view === "week" || view === "day" ? (
+          <div className="w-full overflow-x-auto rounded-lg">
           <div
-            className={`gap-1 rounded-2xl border border-border/60 bg-muted/20 p-1 ${view === "day" ? "grid grid-cols-1" : "grid grid-cols-1 @[760px]:grid-cols-7"}`}
+            className={`grid gap-1 rounded-lg border border-border/60 bg-muted/20 p-1 ${view === "day" ? "grid-cols-1" : "grid-cols-7"}`}
+            style={view === "day" ? undefined : { minWidth: "620px" }}
           >
             {days.map(dayCell)}
+          </div>
           </div>
         ) : (
           <div
