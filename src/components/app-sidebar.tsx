@@ -139,7 +139,7 @@ export function AppSidebar() {
     return (
       <SidebarMenuItem key={n.href}>
         <SidebarMenuButton
-          className="min-h-10 rounded-lg text-sm"
+          className="min-h-10 rounded-lg text-sm text-sidebar-foreground/80"
           tooltip={
             n.label +
             (count === null
@@ -195,7 +195,7 @@ export function AppSidebar() {
               alt="RSM — Estratégia e Performance"
               width={128}
               height={74}
-              className={collapsed ? "h-7 w-12 object-contain" : "h-14 w-full max-w-[142px] object-contain"}
+              className={collapsed ? "h-7 w-12 object-contain dark:brightness-0 dark:invert" : "h-14 w-full max-w-[142px] object-contain dark:brightness-0 dark:invert"}
             />
           </button>
           <SidebarMenuButton
