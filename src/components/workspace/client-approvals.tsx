@@ -168,9 +168,14 @@ export function ClientPortal({
       >
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((p) => (
-            <article key={p.id} className="overflow-hidden rounded-xl border bg-card">
+            <article key={p.id} className="overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/40">
               <button className="block w-full p-3 text-left" onClick={() => setOpen(p)}>
-                <PostCreativeThumb postId={p.id} />
+                <PostCreativeThumb postId={p.id} showEmpty fit="contain" />
+                {staff && !clientId && (
+                  <p className="mt-3 truncate text-xs font-medium text-muted-foreground">
+                    {accounts.data?.find((account) => account.id === p.client_id)?.name ?? "Cliente"}
+                  </p>
+                )}
                 <Badge className={`mt-3 ${statusMeta(p.status).tone}`} variant="outline">
                   {statusMeta(p.status).label}
                 </Badge>
