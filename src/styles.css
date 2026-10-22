@@ -52,8 +52,8 @@
 :root {
   --radius: 0.75rem;
 
-  --background: #f6f5f8;
-  --foreground: #25212b;
+  --background: #f7f7f9;
+  --foreground: #27242d;
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.015 260);
@@ -67,7 +67,7 @@
   --secondary: #f0eaf5;
   --secondary-foreground: #42145d;
 
-  --muted: #f3f1f5;
+  --muted: #f0eff3;
   --muted-foreground: #696171;
 
   --accent: #ede3fb;
@@ -89,7 +89,7 @@
   --chart-4: oklch(0.6 0.2 320);
   --chart-5: oklch(0.65 0.18 140);
 
-  --sidebar: #ffffff;
+  --sidebar: #f1f0f4;
   --sidebar-foreground: oklch(0.25 0.015 260);
   --sidebar-primary: #42145d;
   --sidebar-primary-foreground: oklch(0.98 0.003 250);
@@ -114,14 +114,14 @@
   --popover: oklch(0.18 0.014 260);
   --popover-foreground: oklch(0.96 0.005 250);
 
-  --primary: oklch(0.96 0.005 250);
-  --primary-foreground: oklch(0.18 0.014 260);
+  --primary: #c9a5f5;
+  --primary-foreground: #21132f;
 
   --secondary: oklch(0.22 0.014 260);
   --secondary-foreground: oklch(0.96 0.005 250);
 
   --muted: oklch(0.22 0.014 260);
-  --muted-foreground: oklch(0.65 0.012 260);
+  --muted-foreground: #aaa5b5;
 
   --accent: oklch(0.24 0.018 265);
   --accent-foreground: oklch(0.96 0.005 250);
@@ -206,3 +206,22 @@
 
 /* Compact desktop density without sacrificing mobile tap targets. */
 @media(max-width:640px) { .rsm-app-dense button:not([data-radix-collection-item]) { min-height: 36px; } .rsm-tabs button, .rsm-subnav button { min-height:40px; } }
+
+/* A consistent reading rhythm across the workspace, in either theme. */
+@layer base {
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+  ::selection { background: var(--accent); color: var(--accent-foreground); }
+}
+.rsm-app-dense [data-sidebar="menu-button"] { transition: background-color 150ms, color 150ms; }
+.rsm-app-dense [data-sidebar="menu-button"][data-active="true"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  font-weight: 600;
+}
+.rsm-account-details > summary { list-style: none; }
+.rsm-account-details > summary::-webkit-details-marker { display: none; }
+.rsm-account-details[open] > summary svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
