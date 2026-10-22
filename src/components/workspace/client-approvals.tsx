@@ -168,26 +168,31 @@ export function ClientPortal({
       >
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((p) => (
-            <article key={p.id} className="overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/40">
+            <article
+              key={p.id}
+              className="overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/40"
+            >
               <button className="block w-full p-3 text-left" onClick={() => setOpen(p)}>
                 <PostCreativeThumb postId={p.id} showEmpty fit="contain" />
                 {staff && !clientId && (
                   <p className="mt-3 truncate text-xs font-medium text-muted-foreground">
-                    {accounts.data?.find((account) => account.id === p.client_id)?.name ?? "Cliente"}
+                    {accounts.data?.find((account) => account.id === p.client_id)?.name ??
+                      "Cliente"}
                   </p>
                 )}
                 <Badge className={`mt-3 ${statusMeta(p.status).tone}`} variant="outline">
                   {statusMeta(p.status).label}
                 </Badge>
-                <h3 className="mt-2 font-semibold">{p.title}</h3>
+                <h3 className="mt-2 line-clamp-2 min-h-12 font-semibold">{p.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {postNetworks(p).join(" · ")} · {p.format || "Formato a definir"}
+                  {postNetworks(p).join(" · ") || "Rede a definir"} ·{" "}
+                  {p.format || "Formato a definir"}
                 </p>
                 <p className="mt-1 text-sm">
                   {p.scheduled_date
                     ? new Date(p.scheduled_date + "T12:00:00").toLocaleDateString("pt-BR")
                     : "Data a definir"}{" "}
-                  · Versão {p.content_revision}
+                  · Revisão {p.content_revision}
                 </p>
                 <span className="mt-3 block text-sm font-medium text-primary">Abrir revisão →</span>
               </button>

@@ -60,7 +60,21 @@ export function ReviewDialog({
 }) {
   const { hasRole } = useAuth();
   const staff = hasRole("administrator") || hasRole("team");
+  const creative = usePostCreativeQuery(post.id);
   const qc = useQueryClient();
+  const client = useQuery({
+    queryKey: ["review-client-name", post.client_id],
+    enabled: !!post.client_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("name")
+        .eq("id", post.client_id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
   const [feedback, setFeedback] = useState(""),
     [adjust, setAdjust] = useState(false);
   const permissions = useQuery({
@@ -115,9 +129,19 @@ export function ReviewDialog({
               {statusMeta(post.status).label}
             </Badge>
             <span className="text-sm text-muted-foreground">
-              Versão {post.content_revision ?? 1}
+              Revisão do conteúdo {post.content_revision ?? 1}
             </span>
           </div>
+          <p className="text-sm font-medium text-primary">
+            {client.data?.name ?? "Conta vinculada"}
+          </p>
+          {creative.isSuccess && (
+            <p className="text-xs text-muted-foreground">
+              {creative.data.length
+                ? "Revisão de texto e mídia anexada"
+                : "Somente texto disponível para revisão · mídia não anexada"}
+            </p>
+          )}
           <DialogTitle className="text-lg">{post.title}</DialogTitle>
           <DialogDescription>
             {postNetworks(post).join(" · ")}

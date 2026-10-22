@@ -126,10 +126,8 @@ function FinancePage() {
   useEffect(() => {
     const channel = supabase
       .channel("finance-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "finance_transactions" },
-        () => qc.invalidateQueries({ queryKey: ["finance", "transactions"] }),
+      .on("postgres_changes", { event: "*", schema: "public", table: "finance_transactions" }, () =>
+        qc.invalidateQueries({ queryKey: ["finance", "transactions"] }),
       )
       .subscribe();
     return () => {
@@ -157,7 +155,7 @@ function FinancePage() {
         t.description.toLowerCase().includes(q) ||
         (t.category ?? "").toLowerCase().includes(q) ||
         (t.payment_method ?? "").toLowerCase().includes(q) ||
-        (t.client_id ? clientNameById.get(t.client_id) ?? "" : "").toLowerCase().includes(q)
+        (t.client_id ? (clientNameById.get(t.client_id) ?? "") : "").toLowerCase().includes(q)
       );
     });
   }, [transactions, search, typeFilter, statusFilter, clientFilter, clientNameById]);
@@ -192,7 +190,18 @@ function FinancePage() {
 
   const exportCsv = () => {
     const rows = [
-      ["Emissão", "Vencimento", "Pagamento", "Tipo", "Status", "Descrição", "Categoria", "Cliente", "Método", "Valor"],
+      [
+        "Emissão",
+        "Vencimento",
+        "Pagamento",
+        "Tipo",
+        "Status",
+        "Descrição",
+        "Categoria",
+        "Cliente",
+        "Método",
+        "Valor",
+      ],
       ...filtered.map((t) => [
         t.issue_date,
         t.due_date ?? "",
@@ -201,7 +210,7 @@ function FinancePage() {
         STATUS_META[t.status].label,
         `"${t.description.replace(/"/g, '""')}"`,
         t.category ?? "",
-        t.client_id ? clientNameById.get(t.client_id) ?? "" : "",
+        t.client_id ? (clientNameById.get(t.client_id) ?? "") : "",
         t.payment_method ?? "",
         String(Number(t.amount).toFixed(2)).replace(".", ","),
       ]),
@@ -229,8 +238,14 @@ function FinancePage() {
     return (
       <div className="p-6">
         <Card>
-          <CardHeader><CardTitle className="text-base">Acesso restrito</CardTitle></CardHeader>
-          <CardContent><p className="text-sm text-muted-foreground">Somente equipe e administradores acessam o financeiro.</p></CardContent>
+          <CardHeader>
+            <CardTitle className="text-base">Acesso restrito</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Somente equipe e administradores acessam o financeiro.
+            </p>
+          </CardContent>
         </Card>
       </div>
     );
@@ -252,20 +267,58 @@ function FinancePage() {
           <Button variant="outline" onClick={exportCsv}>
             <Download className="mr-2 h-4 w-4" /> Exportar
           </Button>
-          <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setDialogOpen(true);
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" /> Nova transação
           </Button>
         </div>
       </header>
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Kpi icon={<TrendingUp className="h-4 w-4 text-emerald-500" />} label="Receita paga" value={brl(kpis.paid)} hint="Recebido no mês atual" />
-        <Kpi icon={<TrendingDown className="h-4 w-4 text-rose-500" />} label="Despesas" value={brl(kpis.expenses)} hint="Saídas do mês atual" />
-        <Kpi icon={<Wallet className="h-4 w-4 text-primary" />} label="Resultado líquido" value={brl(kpis.net)} hint="Receitas pagas − despesas" />
-        <Kpi icon={<AlertTriangle className="h-4 w-4 text-amber-500" />} label="A receber / vencidos" value={brl(kpis.pending + kpis.overdue)} hint={`${brl(kpis.overdue)} vencidos`} />
+      <section aria-label="Livro de transações" className="space-y-3">
+        <h2 className="text-base font-semibold">Livro de transações</h2>
+        <p className="text-sm text-muted-foreground">
+          Lançamentos pela data de emissão no mês. Os valores abaixo não são somados aos recebíveis:
+          são bases distintas.
+        </p>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <Kpi
+            icon={<TrendingUp className="h-4 w-4 text-emerald-500" />}
+            label="Receita paga"
+            value={brl(kpis.paid)}
+            hint="Transações pagas emitidas no mês"
+          />
+          <Kpi
+            icon={<TrendingDown className="h-4 w-4 text-rose-500" />}
+            label="Despesas"
+            value={brl(kpis.expenses)}
+            hint="Saídas do mês atual"
+          />
+          <Kpi
+            icon={<Wallet className="h-4 w-4 text-primary" />}
+            label="Resultado líquido"
+            value={brl(kpis.net)}
+            hint="Receitas pagas − despesas"
+          />
+          <Kpi
+            icon={<AlertTriangle className="h-4 w-4 text-amber-500" />}
+            label="Transações em aberto"
+            value={brl(kpis.pending + kpis.overdue)}
+            hint={`${brl(kpis.overdue)} com status vencido no livro`}
+          />
+        </div>
       </section>
 
-      <ReceivablesKpis />
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold">Cobranças e recebimentos</h2>
+        <p className="text-sm text-muted-foreground">
+          Recebido: pela data do pagamento. Pendente e vencido: pelo vencimento da cobrança no mês.
+        </p>
+        <ReceivablesKpis />
+      </section>
 
       <Card className="shadow-soft">
         <CardHeader>
@@ -275,30 +328,53 @@ function FinancePage() {
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input className="pl-8" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar transação..." />
+              <Input
+                className="pl-8"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar transação..."
+              />
             </div>
             <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Cliente" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os clientes</SelectItem>
                 <SelectItem value="none">Sem cliente</SelectItem>
-                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | FinanceType)}>
-              <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+            <Select
+              value={typeFilter}
+              onValueChange={(v) => setTypeFilter(v as "all" | FinanceType)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os tipos</SelectItem>
                 <SelectItem value="income">Receita</SelectItem>
                 <SelectItem value="expense">Despesa</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | FinanceStatus)}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => setStatusFilter(v as "all" | FinanceStatus)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
                 {(Object.keys(STATUS_META) as FinanceStatus[]).map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_META[s].label}</SelectItem>
+                  <SelectItem key={s} value={s}>
+                    {STATUS_META[s].label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -320,30 +396,72 @@ function FinancePage() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">Carregando…</TableCell></TableRow>
-                ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">Nenhuma transação no mês atual.</TableCell></TableRow>
-                ) : filtered.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell>{formatDate(t.issue_date)}</TableCell>
-                    <TableCell className="max-w-[280px] truncate font-medium">{t.description}</TableCell>
-                    <TableCell>{t.client_id ? clientNameById.get(t.client_id) ?? "—" : "—"}</TableCell>
-                    <TableCell><Badge variant="outline">{TYPE_META[t.type].label}</Badge></TableCell>
-                    <TableCell><Badge variant="outline">{STATUS_META[t.status].label}</Badge></TableCell>
-                    <TableCell>{t.payment_method ?? "—"}</TableCell>
-                    <TableCell className="text-right font-medium">{brl(Number(t.amount))}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setEditing(t); setDialogOpen(true); }}><Pencil className="mr-2 h-4 w-4" /> Editar</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(t.id)}><Trash2 className="mr-2 h-4 w-4" /> Excluir</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
+                      Carregando…
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
+                      Nenhuma transação no mês atual.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell>{formatDate(t.issue_date)}</TableCell>
+                      <TableCell className="max-w-[280px] truncate font-medium">
+                        {t.description}
+                      </TableCell>
+                      <TableCell>
+                        {t.client_id ? (clientNameById.get(t.client_id) ?? "—") : "—"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{TYPE_META[t.type].label}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{STATUS_META[t.status].label}</Badge>
+                      </TableCell>
+                      <TableCell>{t.payment_method ?? "—"}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {brl(Number(t.amount))}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setEditing(t);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => setDeleteId(t.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -365,7 +483,9 @@ function FinancePage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && remove.mutate(deleteId)}>Excluir</AlertDialogAction>
+            <AlertDialogAction onClick={() => deleteId && remove.mutate(deleteId)}>
+              Excluir
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -373,11 +493,24 @@ function FinancePage() {
   );
 }
 
-function Kpi({ icon, label, value, hint }: { icon: React.ReactNode; label: string; value: string; hint: string }) {
+function Kpi({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint: string;
+}) {
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}<span>{label}</span></div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {icon}
+          <span>{label}</span>
+        </div>
         <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
         <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
       </CardContent>

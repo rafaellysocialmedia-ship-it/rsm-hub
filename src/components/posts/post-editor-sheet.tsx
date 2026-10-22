@@ -10,7 +10,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { ReviewDialog } from "@/components/approval/review-dialog";
 import { refreshPostViews } from "./post-workspace";
 import type { Json } from "@/integrations/supabase/types";
-import { useEffect, useState, useRef } from "react";
+import { Children, cloneElement, isValidElement, useEffect, useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckSquare,
@@ -116,6 +116,7 @@ export function PostEditorSheet({
   onMinimize,
   onController,
 }: Props) {
+  const modalRef = useRef<HTMLDivElement>(null);
   const qc = useQueryClient();
   const { user } = useAuth();
   const [form, setForm] = useState<Partial<Post>>(EMPTY);
@@ -552,21 +553,28 @@ export function PostEditorSheet({
             )}
             {persistent && (
               <>
-                {isEdit && !readOnly && permissions.can("social.calendar", "delete") && (
-                  <Button type="button" size="icon" variant="ghost"
-                    className="text-destructive hover:text-destructive" aria-label="Excluir publicação"
-                    title="Excluir publicação" onClick={() => setShowDeleteConfirm(true)}
-                    disabled={deleteMutation.isPending || saveMutation.isPending || uploading}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button type="button" size="icon" variant="ghost"
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
                   aria-label={maximized ? "Restaurar tamanho do editor" : "Ampliar editor"}
                   title={maximized ? "Restaurar tamanho" : "Ampliar editor"}
-                  onClick={() => setMaximized((value) => !value)}>
-                  {maximized ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                  onClick={() => setMaximized((value) => !value)}
+                >
+                  {maximized ? (
+                    <Minimize2 className="h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="h-4 w-4" />
+                  )}
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setMaximized(false); onMinimize?.(); }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setMaximized(false);
+                    onMinimize?.();
+                  }}
+                >
                   Minimizar
                 </Button>
                 <Button
@@ -602,7 +610,11 @@ export function PostEditorSheet({
                   size="sm"
                   variant="ghost"
                   onClick={() => setShowDeleteConfirm(true)}
-                  disabled={readOnly || !permissions.can("social.calendar", "delete") || deleteMutation.isPending}
+                  disabled={
+                    readOnly ||
+                    !permissions.can("social.calendar", "delete") ||
+                    deleteMutation.isPending
+                  }
                   aria-label="Excluir publicação"
                   title="Excluir"
                 >
@@ -638,35 +650,24 @@ export function PostEditorSheet({
           disabled={saveMutation.isPending || readOnly}
           className="min-w-0 space-y-6 px-6 py-5"
         >
-          <label className="mb-4 block text-sm font-medium">
-            Entrega do plano ou extra
-            <select
-              className="mt-2 block min-h-11 w-full rounded border bg-background px-3"
-              value={form.extra_request_id ?? ""}
-              onChange={(e) => update("extra_request_id", e.target.value || null)}
-            >
-              <option value="">Entrega do plano</option>
-              {extras.data?.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.title} · orçamento aceito
-                </option>
-              ))}
-            </select>
-          </label>
           {/* Title + status */}
           <div className="space-y-2">
             <Input
               value={form.title ?? ""}
               onChange={(e) => update("title", e.target.value)}
               placeholder="Título da publicação"
-              className="h-11 border-0 px-0 text-lg font-semibold shadow-none focus-visible:ring-0"
+              aria-label="Título da publicação"
+              className="h-11 border-border px-3 text-base font-semibold focus-visible:ring-2"
             />
             <div className="flex flex-wrap items-center gap-2">
               <Select
                 value={form.status ?? "idea"}
                 onValueChange={(v) => update("status", v as PostStatus)}
               >
-                <SelectTrigger className="h-7 w-auto gap-1.5 border-0 bg-muted px-2 text-xs">
+                <SelectTrigger
+                  aria-label="Situação da publicação"
+                  className="h-8 w-auto gap-1.5 border-0 bg-muted px-2 text-xs"
+                >
                   <span
                     className={cn(
                       "h-2 w-2 rounded-full",
@@ -688,121 +689,25 @@ export function PostEditorSheet({
 
           <Separator />
 
-          {/* Properties grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Cliente">
-              <Select
-                disabled={isEdit}
-                value={form.client_id ?? "none"}
-                onValueChange={(v) => update("client_id", v === "none" ? null : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Redes sociais">
-              <div className="flex flex-wrap gap-1.5">
-                {SOCIAL_NETWORKS.map((n) => {
-                  const list = (form as { social_networks?: string[] }).social_networks ?? [];
-                  const active = list.includes(n);
-                  return (
-                    <button
-                      type="button"
-                      key={n}
-                      onClick={() => {
-                        const next = active ? list.filter((x) => x !== n) : [...list, n];
-                        setForm((f) => ({ ...f, social_networks: next }) as Partial<Post>);
-                      }}
-                      className={cn(
-                        "rounded-full border px-2.5 py-1 text-xs transition-colors",
-                        active
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground hover:bg-muted",
-                      )}
-                    >
-                      {n}
-                    </button>
-                  );
-                })}
-              </div>
-            </Field>
-            <Field label="Data">
-              <Input
-                type="date"
-                value={form.scheduled_date ?? ""}
-                onChange={(e) => update("scheduled_date", e.target.value || null)}
-              />
-            </Field>
-            <Field label="Hora">
-              <Input
-                type="time"
-                value={form.scheduled_time ?? ""}
-                onChange={(e) => update("scheduled_time", e.target.value || null)}
-              />
-            </Field>
-            <Field label="Objetivo">
-              <Select
-                value={form.objective ?? "none"}
-                onValueChange={(v) => update("objective", v === "none" ? null : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">—</SelectItem>
-                  {POST_OBJECTIVES.map((n) => (
-                    <SelectItem key={n} value={n}>
-                      {n}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Formato">
-              <Select
-                value={form.format ?? "none"}
-                onValueChange={(v) => update("format", v === "none" ? null : v)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">—</SelectItem>
-                  {POST_FORMATS.map((n) => (
-                    <SelectItem key={n} value={n}>
-                      {n}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field label="Tema">
-              <Input
-                value={form.theme ?? ""}
-                onChange={(e) => update("theme", e.target.value || null)}
-                placeholder="Ex: Lançamento"
-              />
-            </Field>
-            <Field label="Pilar">
-              <Input
-                value={form.pillar ?? ""}
-                onChange={(e) => update("pillar", e.target.value || null)}
-                placeholder="Ex: Autoridade"
-              />
-            </Field>
-          </div>
-
-          <Separator />
-
+          <Field label="Formato">
+            <Select
+              value={form.format ?? "none"}
+              onValueChange={(v) => update("format", v === "none" ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">—</SelectItem>
+                {POST_FORMATS.map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <h3 className="text-sm font-semibold">Conteúdo</h3>
           {(() => {
             const fmt = (form.format ?? "").toLowerCase();
             const isCarousel = fmt === "carrossel";
@@ -937,49 +842,76 @@ export function PostEditorSheet({
 
           <Separator />
 
-          {/* Recurrence */}
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <Repeat className="h-3.5 w-3.5" /> Recorrência
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Select
-                value={recurrence.frequency}
-                onValueChange={(v) =>
-                  setRecurrence((r) => ({ ...r, frequency: v as RecurrenceRule["frequency"] }))
-                }
-              >
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem recorrência</SelectItem>
-                  <SelectItem value="daily">Diária</SelectItem>
-                  <SelectItem value="weekly">Semanal</SelectItem>
-                  <SelectItem value="biweekly">Quinzenal</SelectItem>
-                  <SelectItem value="monthly">Mensal</SelectItem>
-                </SelectContent>
-              </Select>
-              {recurrence.frequency !== "none" && (
-                <>
+          <details className="rounded-lg border p-4" open>
+            <summary className="cursor-pointer text-sm font-medium">Redes e agendamento</summary>
+            <div className="mt-4">
+              {" "}
+              {/* Properties grid */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Cliente">
+                  <Select
+                    disabled={isEdit}
+                    value={form.client_id ?? "none"}
+                    onValueChange={(v) => update("client_id", v === "none" ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Redes sociais">
+                  <div className="flex flex-wrap gap-1.5">
+                    {SOCIAL_NETWORKS.map((n) => {
+                      const list = (form as { social_networks?: string[] }).social_networks ?? [];
+                      const active = list.includes(n);
+                      return (
+                        <button
+                          type="button"
+                          key={n}
+                          aria-pressed={active}
+                          onClick={() => {
+                            const next = active ? list.filter((x) => x !== n) : [...list, n];
+                            setForm((f) => ({ ...f, social_networks: next }) as Partial<Post>);
+                          }}
+                          className={cn(
+                            "rounded-full border px-2.5 py-1 text-xs transition-colors",
+                            active
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-background text-muted-foreground hover:bg-muted",
+                          )}
+                        >
+                          {n}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+                <Field label="Data">
                   <Input
-                    type="number"
-                    min={2}
-                    max={52}
-                    value={recurrence.count ?? 4}
-                    onChange={(e) =>
-                      setRecurrence((r) => ({ ...r, count: Number(e.target.value) || 1 }))
-                    }
-                    className="w-24"
+                    type="date"
+                    value={form.scheduled_date ?? ""}
+                    onChange={(e) => update("scheduled_date", e.target.value || null)}
                   />
-                  <span className="text-xs text-muted-foreground">
-                    ocorrências (incluindo esta)
-                  </span>
-                </>
-              )}
+                </Field>
+                <Field label="Hora">
+                  <Input
+                    type="time"
+                    value={form.scheduled_time ?? ""}
+                    onChange={(e) => update("scheduled_time", e.target.value || null)}
+                  />
+                </Field>
+              </div>
+              <Separator />
             </div>
-          </div>
-
+          </details>
           {/* Files (edit only) */}
           {isEdit && (
             <>
@@ -1196,6 +1128,106 @@ export function PostEditorSheet({
               </div>
             </>
           )}
+          <details className="rounded-lg border p-4">
+            <summary className="cursor-pointer text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+              Planejamento e recorrência
+            </summary>
+            <div className="mt-4 space-y-4">
+              {" "}
+              <label className="mb-4 block text-sm font-medium">
+                Entrega do plano ou extra
+                <select
+                  className="mt-2 block min-h-11 w-full rounded border bg-background px-3"
+                  value={form.extra_request_id ?? ""}
+                  onChange={(e) => update("extra_request_id", e.target.value || null)}
+                >
+                  <option value="">Entrega do plano</option>
+                  {extras.data?.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.title} · orçamento aceito
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {" "}
+                <Field label="Objetivo">
+                  <Select
+                    value={form.objective ?? "none"}
+                    onValueChange={(v) => update("objective", v === "none" ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">—</SelectItem>
+                      {POST_OBJECTIVES.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>{" "}
+                <Field label="Tema">
+                  <Input
+                    value={form.theme ?? ""}
+                    onChange={(e) => update("theme", e.target.value || null)}
+                    placeholder="Ex: Lançamento"
+                  />
+                </Field>{" "}
+                <Field label="Pilar">
+                  <Input
+                    value={form.pillar ?? ""}
+                    onChange={(e) => update("pillar", e.target.value || null)}
+                    placeholder="Ex: Autoridade"
+                  />
+                </Field>
+              </div>{" "}
+              {/* Recurrence */}
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                  <Repeat className="h-3.5 w-3.5" /> Recorrência
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select
+                    value={recurrence.frequency}
+                    onValueChange={(v) =>
+                      setRecurrence((r) => ({ ...r, frequency: v as RecurrenceRule["frequency"] }))
+                    }
+                  >
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem recorrência</SelectItem>
+                      <SelectItem value="daily">Diária</SelectItem>
+                      <SelectItem value="weekly">Semanal</SelectItem>
+                      <SelectItem value="biweekly">Quinzenal</SelectItem>
+                      <SelectItem value="monthly">Mensal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {recurrence.frequency !== "none" && (
+                    <>
+                      <Input
+                        type="number"
+                        min={2}
+                        max={52}
+                        value={recurrence.count ?? 4}
+                        onChange={(e) =>
+                          setRecurrence((r) => ({ ...r, count: Number(e.target.value) || 1 }))
+                        }
+                        className="w-24"
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        ocorrências (incluindo esta)
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </details>
         </fieldset>
       </ScrollArea>
 
@@ -1209,6 +1241,20 @@ export function PostEditorSheet({
                 ? "Salvo"
                 : ""}
         </p>
+        {persistent && isEdit && !readOnly && permissions.can("social.calendar", "delete") && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="text-destructive hover:text-destructive"
+            aria-label="Excluir publicação"
+            title="Excluir publicação"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleteMutation.isPending || saveMutation.isPending || uploading}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
         <Button variant="ghost" onClick={() => request(() => onOpenChange(false))}>
           Fechar
         </Button>
@@ -1262,14 +1308,23 @@ export function PostEditorSheet({
           }}
         >
           <DialogContent
+            ref={modalRef}
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              modalRef.current?.focus();
+            }}
             onPointerDownOutside={(event) => event.preventDefault()}
             className={cn(
               "flex h-[100dvh] w-full max-w-none flex-col gap-0 overflow-hidden bg-card p-0 text-card-foreground sm:h-[min(90dvh,900px)] sm:w-[calc(100vw-3rem)] sm:max-w-[960px] sm:rounded-xl [&>button]:hidden",
               maximized && "sm:h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-none",
             )}
           >
-            <DialogTitle className="sr-only">{isEdit ? "Editar publicação" : "Nova publicação"}</DialogTitle>
-            <DialogDescription className="sr-only">Edite a publicação. Minimize para navegar sem perder o rascunho.</DialogDescription>
+            <DialogTitle className="sr-only">
+              {isEdit ? "Editar publicação" : "Nova publicação"}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Edite a publicação. Minimize para navegar sem perder o rascunho.
+            </DialogDescription>
             {content}
           </DialogContent>
         </Dialog>
@@ -1284,26 +1339,35 @@ export function PostEditorSheet({
         </Sheet>
       )}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-         <DialogContent>
-           <DialogHeader>
-             <DialogTitle>Excluir publicação?</DialogTitle>
-             <DialogDescription>
-               A publicação “{post?.title}” será removida permanentemente do calendário.
-               Essa ação não pode ser desfeita.
-             </DialogDescription>
-           </DialogHeader>
-           <div className="flex justify-end gap-2">
-             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} disabled={deleteMutation.isPending}>
-               Cancelar
-             </Button>
-             <Button variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
-               {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-               Excluir publicação
-             </Button>
-           </div>
-         </DialogContent>
-       </Dialog>
-       <Dialog open={!!pendingAction}
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir publicação?</DialogTitle>
+            <DialogDescription>
+              A publicação “{post?.title}” será removida permanentemente do calendário. Essa ação
+              não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleteMutation.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Excluir publicação
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!pendingAction}
         onOpenChange={(value) => {
           if (!value) setPendingAction(null);
         }}
@@ -1360,12 +1424,20 @@ export function PostEditorSheet({
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const accessible = (nodes: React.ReactNode): React.ReactNode =>
+    Children.map(nodes, (child) => {
+      if (!isValidElement<{ children?: React.ReactNode; "aria-label"?: string }>(child))
+        return child;
+      if (child.type === Input || child.type === Textarea || child.type === SelectTrigger)
+        return cloneElement(child, { "aria-label": child.props["aria-label"] ?? label });
+      return child.props.children
+        ? cloneElement(child, {}, accessible(child.props.children))
+        : child;
+    });
   return (
-    <div className="space-y-1.5">
-      <Label className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </Label>
-      {children}
+    <div role="group" aria-label={label} className="space-y-1.5">
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      {accessible(children)}
     </div>
   );
 }

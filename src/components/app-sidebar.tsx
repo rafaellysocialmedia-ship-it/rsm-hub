@@ -98,23 +98,48 @@ export function AppSidebar() {
   );
   // Keep every permitted destination in exactly one group; no routes are removed.
   const primaryOrder = [
-    "Início", "Calendário", "Conteúdos", "Clientes",
-    "Minhas tarefas", "Aprovações", "Resultados",
+    "Início",
+    "Calendário",
+    "Conteúdos",
+    "Clientes",
+    "Minhas tarefas",
+    "Aprovações",
+    "Resultados",
   ];
   const primaryItems = primaryOrder.flatMap((label) => allowed.filter((n) => n.label === label));
-  const managementItems = allowed.filter((n) =>
-    !n.admin &&
-    (n.href.startsWith("/finance") ||
-      n.href.startsWith("/traffic") ||
-      n.href === "/commercial" ||
-      n.href === "/retention"),
+  const managementItems = allowed.filter(
+    (n) =>
+      !n.admin &&
+      (n.href.startsWith("/finance") ||
+        n.href.startsWith("/traffic") ||
+        n.href === "/commercial" ||
+        n.href === "/retention"),
   );
   const administrationItems = allowed.filter((n) => n.admin);
   const toolsItems = allowed.filter(
     (n) => !primaryItems.includes(n) && !managementItems.includes(n) && !n.admin,
   );
   const sections = [
-    { key: "management", label: "Gestão", icon: BriefcaseBusiness, items: managementItems },
+    {
+      key: "finance",
+      label: "Financeiro",
+      icon: CircleDollarSign,
+      items: managementItems.filter((n) => n.href.startsWith("/finance")),
+    },
+    {
+      key: "traffic",
+      label: "Tráfego",
+      icon: BarChart3,
+      items: managementItems.filter((n) => n.href.startsWith("/traffic")),
+    },
+    {
+      key: "management",
+      label: "Comercial e retenção",
+      icon: BriefcaseBusiness,
+      items: managementItems.filter(
+        (n) => !n.href.startsWith("/finance") && !n.href.startsWith("/traffic"),
+      ),
+    },
     { key: "tools", label: "Ferramentas", icon: Grid2X2, items: toolsItems },
     { key: "admin", label: "Administração", icon: ShieldCheck, items: administrationItems },
   ];
@@ -156,7 +181,7 @@ export function AppSidebar() {
           onClick={() => go(n.href)}
         >
           <Icon />
-          <span className="flex flex-1 items-center justify-between gap-2">
+          <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
             {n.label}
             {count === null ? (
               <span aria-label="Falha ao carregar pendências">!</span>
@@ -182,7 +207,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r bg-background">
       <SidebarHeader>
-        <div className={`flex min-h-14 items-center gap-1 ${collapsed ? "flex-col justify-center" : "justify-between"}`}>
+        <div
+          className={`flex min-h-14 items-center gap-1 ${collapsed ? "flex-col justify-center" : "justify-between"}`}
+        >
           <button
             type="button"
             onClick={() => go(staff ? "/dashboard" : "/portal?tab=home")}
@@ -195,7 +222,11 @@ export function AppSidebar() {
               alt="RSM — Estratégia e Performance"
               width={128}
               height={74}
-              className={collapsed ? "h-7 w-12 object-contain dark:brightness-0 dark:invert" : "h-14 w-full max-w-[142px] object-contain dark:brightness-0 dark:invert"}
+              className={
+                collapsed
+                  ? "h-7 w-12 object-contain dark:brightness-0 dark:invert"
+                  : "h-14 w-full max-w-[142px] object-contain dark:brightness-0 dark:invert"
+              }
             />
           </button>
           <SidebarMenuButton
@@ -218,7 +249,7 @@ export function AppSidebar() {
         )}
         <QuickActions />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="overflow-x-hidden">
         {staff ? (
           <>
             <SidebarGroup className="pb-1">
@@ -232,36 +263,40 @@ export function AppSidebar() {
                 Outras áreas
               </SidebarGroupLabel>
               <SidebarMenu>
-                {sections.filter(({ items }) => items.length > 0).map(({ key, label, icon: Icon, items }) => {
-                  const open =
-                    expandedSection === key ||
-                    (expandedSection === null && sectionIsActive(items));
-                  return (
-                    <SidebarMenuItem key={key}>
-                      <SidebarMenuButton
-                        tooltip={label}
-                        className="min-h-10 rounded-lg"
-                        isActive={sectionIsActive(items)}
-                        aria-expanded={open}
-                        onClick={() => {
-                          if (collapsed) toggleSidebar();
-                          setExpandedSection(open ? "none" : key);
-                        }}
-                      >
-                        <Icon />
-                        <span className="flex-1 text-sm">{label}</span>
-                        {!collapsed && (
-                          <ChevronDown className={`size-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                {sections
+                  .filter(({ items }) => items.length > 0)
+                  .map(({ key, label, icon: Icon, items }) => {
+                    const open =
+                      expandedSection === key ||
+                      (expandedSection === null && sectionIsActive(items));
+                    return (
+                      <SidebarMenuItem key={key}>
+                        <SidebarMenuButton
+                          tooltip={label}
+                          className="min-h-10 rounded-lg"
+                          isActive={sectionIsActive(items)}
+                          aria-expanded={open}
+                          onClick={() => {
+                            if (collapsed) toggleSidebar();
+                            setExpandedSection(open ? "none" : key);
+                          }}
+                        >
+                          <Icon />
+                          <span className="flex-1 text-sm">{label}</span>
+                          {!collapsed && (
+                            <ChevronDown
+                              className={`size-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+                            />
+                          )}
+                        </SidebarMenuButton>
+                        {open && !collapsed && (
+                          <SidebarMenu className="w-auto min-w-0 border-l border-border/60 pl-2">
+                            {items.map(item)}
+                          </SidebarMenu>
                         )}
-                      </SidebarMenuButton>
-                      {open && !collapsed && (
-                        <SidebarMenu className="ml-3 border-l border-border/60 pl-2">
-                          {items.map(item)}
-                        </SidebarMenu>
-                      )}
-                    </SidebarMenuItem>
-                  );
-                })}
+                      </SidebarMenuItem>
+                    );
+                  })}
               </SidebarMenu>
             </SidebarGroup>
             <SidebarGroup className="pt-1">
@@ -277,61 +312,68 @@ export function AppSidebar() {
                 <Star />
                 <span className="flex-1 text-sm">Favoritos</span>
                 {!collapsed && (
-                  <ChevronDown className={`size-4 shrink-0 transition-transform ${favoritesOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`size-4 shrink-0 transition-transform ${favoritesOpen ? "rotate-180" : ""}`}
+                  />
                 )}
               </SidebarMenuButton>
               {favoritesOpen && !collapsed && (
                 <div className="pt-1">
-                <SidebarMenuButton
-                  tooltip="Fixar ou remover esta visualização"
-                  disabled={!current || prefs.isLoading || !!prefs.error || prefs.update.isPending}
-                  onClick={() =>
-                    current &&
-                    prefs.toggle({
-                      href: location.href,
-                      label: current.label,
-                      module: current.module,
-                    })
-                  }
-                >
-                  <Star />
-                  <span>
-                    {prefs.favorites.some((f) => f.href === location.href)
-                      ? "Remover favorito"
-                      : "Fixar esta visualização"}
-                  </span>
-                </SidebarMenuButton>
-                {prefs.error ? (
-                  <p role="alert" className="p-2 text-xs">
-                    Falha nos favoritos.{" "}
-                    <button onClick={() => void prefs.refetch()}>Tentar novamente</button>
-                  </p>
-                ) : (
-                  <SidebarMenu>
-                    {(all ? favorites : favorites.slice(0, 5)).map((f) => (
-                      <SidebarMenuItem key={f.href} className="flex items-center">
-                        <SidebarMenuButton tooltip={f.label} onClick={() => go(f.href)}>
-                          <Star />
-                          <span>{f.label}</span>
-                        </SidebarMenuButton>
-                        {!collapsed && (
-                          <button
-                            aria-label={`Remover ${f.label} dos favoritos`}
-                            className="rounded p-2 focus-visible:ring-2"
-                            onClick={() => prefs.toggle(f)}
-                          >
-                            <X className="size-3" />
-                          </button>
-                        )}
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                )}
-                {favorites.length > 5 && !collapsed && (
-                  <button className="p-2 text-left text-xs underline" onClick={() => setAll(!all)}>
-                    {all ? "Ver menos" : "Ver todos"}
-                  </button>
-                )}
+                  <SidebarMenuButton
+                    tooltip="Fixar ou remover esta visualização"
+                    disabled={
+                      !current || prefs.isLoading || !!prefs.error || prefs.update.isPending
+                    }
+                    onClick={() =>
+                      current &&
+                      prefs.toggle({
+                        href: location.href,
+                        label: current.label,
+                        module: current.module,
+                      })
+                    }
+                  >
+                    <Star />
+                    <span>
+                      {prefs.favorites.some((f) => f.href === location.href)
+                        ? "Remover favorito"
+                        : "Fixar esta visualização"}
+                    </span>
+                  </SidebarMenuButton>
+                  {prefs.error ? (
+                    <p role="alert" className="p-2 text-xs">
+                      Falha nos favoritos.{" "}
+                      <button onClick={() => void prefs.refetch()}>Tentar novamente</button>
+                    </p>
+                  ) : (
+                    <SidebarMenu>
+                      {(all ? favorites : favorites.slice(0, 5)).map((f) => (
+                        <SidebarMenuItem key={f.href} className="flex items-center">
+                          <SidebarMenuButton tooltip={f.label} onClick={() => go(f.href)}>
+                            <Star />
+                            <span>{f.label}</span>
+                          </SidebarMenuButton>
+                          {!collapsed && (
+                            <button
+                              aria-label={`Remover ${f.label} dos favoritos`}
+                              className="rounded p-2 focus-visible:ring-2"
+                              onClick={() => prefs.toggle(f)}
+                            >
+                              <X className="size-3" />
+                            </button>
+                          )}
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  )}
+                  {favorites.length > 5 && !collapsed && (
+                    <button
+                      className="p-2 text-left text-xs underline"
+                      onClick={() => setAll(!all)}
+                    >
+                      {all ? "Ver menos" : "Ver todos"}
+                    </button>
+                  )}
                 </div>
               )}
             </SidebarGroup>

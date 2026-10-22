@@ -3,7 +3,19 @@ import { isActiveClient } from "@/lib/active-clients";
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpDown, ArrowUpRight, Building2, CalendarDays, LayoutGrid, List, Plus, Search, UserRound, BriefcaseBusiness, Clock3 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowUpRight,
+  Building2,
+  CalendarDays,
+  LayoutGrid,
+  List,
+  Plus,
+  Search,
+  UserRound,
+  BriefcaseBusiness,
+  Clock3,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -122,7 +134,9 @@ function ManagementClientsPage() {
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-              <p className="text-sm text-muted-foreground">Todos os clientes e suas principais informações em um só lugar.</p>
+              <p className="text-sm text-muted-foreground">
+                Todos os clientes e suas principais informações em um só lugar.
+              </p>
             </div>
           </div>
         </div>
@@ -132,13 +146,19 @@ function ManagementClientsPage() {
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3">
         {[
           { label: "Clientes cadastrados", value: clients?.length ?? 0, icon: Building2 },
-          { label: "Contas ativas", value: (clients ?? []).filter(isActiveClient).length, icon: BriefcaseBusiness },
-          { label: "Na visualização", value: rows.length, icon: LayoutGrid },
+          {
+            label: "Contas ativas",
+            value: (clients ?? []).filter(isActiveClient).length,
+            icon: BriefcaseBusiness,
+          },
         ].map(({ label, value, icon: Icon }) => (
-          <div key={label} className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm">
+          <div
+            key={label}
+            className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm"
+          >
             <div className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary sm:flex">
               <Icon className="size-4" aria-hidden />
             </div>
@@ -187,13 +207,30 @@ function ManagementClientsPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground" role="status">
-          {isLoading ? "Carregando clientes…" : `${rows.length} cliente${rows.length === 1 ? "" : "s"} encontrado${rows.length === 1 ? "" : "s"}`}
+          {isLoading
+            ? "Carregando clientes…"
+            : `${rows.length} cliente${rows.length === 1 ? "" : "s"} encontrado${rows.length === 1 ? "" : "s"}`}
         </p>
-        <div className="flex items-center gap-1 rounded-lg border bg-card p-1" aria-label="Visualização de clientes">
-          <Button size="sm" variant={viewMode === "grid" ? "secondary" : "ghost"} aria-pressed={viewMode === "grid"} onClick={() => setViewMode("grid")} className="h-8 gap-1.5 text-xs">
+        <div
+          className="flex items-center gap-1 rounded-lg border bg-card p-1"
+          aria-label="Visualização de clientes"
+        >
+          <Button
+            size="sm"
+            variant={viewMode === "grid" ? "secondary" : "ghost"}
+            aria-pressed={viewMode === "grid"}
+            onClick={() => setViewMode("grid")}
+            className="h-8 gap-1.5 text-xs"
+          >
             <LayoutGrid className="size-3.5" aria-hidden /> Cards
           </Button>
-          <Button size="sm" variant={viewMode === "list" ? "secondary" : "ghost"} aria-pressed={viewMode === "list"} onClick={() => setViewMode("list")} className="h-8 gap-1.5 text-xs">
+          <Button
+            size="sm"
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            aria-pressed={viewMode === "list"}
+            onClick={() => setViewMode("list")}
+            className="h-8 gap-1.5 text-xs"
+          >
             <List className="size-3.5" aria-hidden /> Lista
           </Button>
         </div>
@@ -207,7 +244,9 @@ function ManagementClientsPage() {
           Nenhum cliente encontrado com os filtros atuais.
         </Card>
       ) : (
-        <div className={viewMode === "grid" ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "space-y-2"}>
+        <div
+          className={viewMode === "grid" ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "space-y-2"}
+        >
           {rows.map((client) => {
             const extra = client as Client & {
               trade_name?: string | null;
@@ -221,48 +260,86 @@ function ManagementClientsPage() {
                 params={{ clientId: client.id }}
                 className={`group relative flex min-w-0 flex-col gap-4 rounded-xl border border-border/75 bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === "list" ? "lg:flex-row lg:items-center" : ""}`}
               >
-                <div className={`flex min-w-0 items-center gap-3 ${viewMode === "list" ? "lg:min-w-[230px] lg:flex-1" : ""}`}>
-                  <ClientLogo path={client.logo_url} name={client.name} className="size-12 shrink-0 rounded-xl" />
+                <div
+                  className={`flex min-w-0 items-center gap-3 ${viewMode === "list" ? "lg:min-w-[230px] lg:flex-1" : ""}`}
+                >
+                  <ClientLogo
+                    path={client.logo_url}
+                    name={client.name}
+                    className="size-12 shrink-0 rounded-xl"
+                  />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold" title={client.name}>{client.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {extra.trade_name || client.legal_name || client.segment || "Empresa não informada"}
+                    <p className="truncate text-sm font-semibold" title={client.name}>
+                      {client.name}
                     </p>
-                    <div className="mt-1.5"><StatusBadge status={client.status} /></div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {extra.trade_name ||
+                        client.legal_name ||
+                        client.segment ||
+                        "Empresa não informada"}
+                    </p>
+                    <div className="mt-1.5">
+                      <StatusBadge status={client.status} />
+                    </div>
                   </div>
-                  <ArrowUpRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" aria-hidden />
+                  <ArrowUpRight
+                    className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                    aria-hidden
+                  />
                 </div>
                 <div className={`min-w-0 ${viewMode === "list" ? "lg:w-[220px]" : ""}`}>
-                  <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">Serviços contratados</p>
+                  <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">
+                    Serviços contratados
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {svc.length === 0 ? (
-                      <span className="text-xs text-muted-foreground">Sem serviços cadastrados</span>
+                      <span className="text-xs text-muted-foreground">
+                        Sem serviços cadastrados
+                      </span>
                     ) : (
                       svc.slice(0, 3).map((s) => (
-                        <Badge key={s.service_key} variant="secondary" className="max-w-full truncate rounded-md text-[10px] font-medium">
+                        <Badge
+                          key={s.service_key}
+                          variant="secondary"
+                          className="max-w-full truncate rounded-md text-[10px] font-medium"
+                        >
                           {s.label || s.service_key}
                         </Badge>
                       ))
                     )}
                     {svc.length > 3 && (
-                      <Badge variant="outline" className="text-[10px]">+{svc.length - 3}</Badge>
+                      <Badge variant="outline" className="text-[10px]">
+                        +{svc.length - 3}
+                      </Badge>
                     )}
                   </div>
                 </div>
-                <div className={`grid grid-cols-2 gap-3 border-t border-border/60 pt-3 text-xs ${viewMode === "list" ? "lg:w-[345px] lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0" : ""}`}>
+                <div
+                  className={`grid grid-cols-2 gap-3 border-t border-border/60 pt-3 text-xs ${viewMode === "list" ? "lg:w-[345px] lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0" : ""}`}
+                >
                   <div className="min-w-0 space-y-1">
-                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><UserRound className="size-3" aria-hidden /> Responsável interno</p>
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <UserRound className="size-3" aria-hidden /> Responsável interno
+                    </p>
                     <p className="truncate font-medium">{nameOf(extra.account_manager_id)}</p>
-                    <p className="truncate text-[11px] text-muted-foreground" title={client.responsible ?? ""}>
+                    <p
+                      className="truncate text-[11px] text-muted-foreground"
+                      title={client.responsible ?? ""}
+                    >
                       {client.responsible || "Contato não informado"}
                     </p>
                   </div>
                   <div className="min-w-0 space-y-1">
-                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground"><CalendarDays className="size-3" aria-hidden /> Início</p>
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <CalendarDays className="size-3" aria-hidden /> Início
+                    </p>
                     <p className="font-medium">{formatDate(client.start_date)}</p>
-                    <p className="flex items-center gap-1 truncate text-[11px] text-muted-foreground" title={formatDateTime(client.updated_at)}>
+                    <p
+                      className="flex items-center gap-1 truncate text-[11px] text-muted-foreground"
+                      title={`Atualizado em ${formatDateTime(client.updated_at)}`}
+                    >
                       <Clock3 className="size-3 shrink-0" aria-hidden />
-                      {formatDateTime(client.updated_at)}
+                      Atualizado em {formatDateTime(client.updated_at)}
                     </p>
                   </div>
                 </div>

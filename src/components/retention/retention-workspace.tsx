@@ -155,12 +155,16 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
         </div>
       )}
       <Tabs defaultValue="accounts">
-        <TabsList className="h-auto flex-wrap">
+        <TabsList className={clientId ? "hidden" : "h-auto flex-wrap"}>
           <TabsTrigger value="accounts">Saúde das contas</TabsTrigger>
           <TabsTrigger value="actions">Acompanhamento ({open.length})</TabsTrigger>
-          <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="history">Histórico do acompanhamento</TabsTrigger>
         </TabsList>
-        <TabsContent value="accounts" className="mt-4 space-y-4">
+        <TabsContent
+          forceMount={clientId ? true : undefined}
+          value="accounts"
+          className="mt-4 space-y-4"
+        >
           {!clientId && (
             <div className="flex flex-col gap-3 sm:flex-row">
               <Input
@@ -286,9 +290,33 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                       <Plus className="mr-2 h-4 w-4" />
                       Nova ação
                     </Button>
-                    <Button size="sm" variant="outline" asChild><Link to="/management/clients/$clientId" params={{clientId:a.client_id}} search={{tab:"meetings"}}>Agendar reunião</Link></Button>
-                    <Button size="sm" variant="outline" asChild><Link to="/management/clients/$clientId" params={{clientId:a.client_id}} search={{tab:"demands"}}>Criar tarefa</Link></Button>
-                    <Button size="sm" variant="outline" asChild><Link to="/management/clients/$clientId" params={{clientId:a.client_id}} search={{tab:"contract"}}>Revisar renovação</Link></Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link
+                        to="/management/clients/$clientId"
+                        params={{ clientId: a.client_id }}
+                        search={{ tab: "meetings" }}
+                      >
+                        Agendar reunião
+                      </Link>
+                    </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link
+                        to="/management/clients/$clientId"
+                        params={{ clientId: a.client_id }}
+                        search={{ tab: "demands" }}
+                      >
+                        Criar tarefa
+                      </Link>
+                    </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link
+                        to="/management/clients/$clientId"
+                        params={{ clientId: a.client_id }}
+                        search={{ tab: "contract" }}
+                      >
+                        Revisar renovação
+                      </Link>
+                    </Button>
                     {!clientId && (
                       <Button size="sm" variant="ghost" asChild>
                         <Link to="/management/clients/$clientId" params={{ clientId: a.client_id }}>
@@ -334,7 +362,16 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
             A mesma pendência concluída só pode gerar novo lembrete após 7 dias.
           </p>
         </TabsContent>
-        <TabsContent value="actions" className="mt-4 space-y-3">
+        <TabsContent
+          forceMount={clientId ? true : undefined}
+          value="actions"
+          className="mt-4 space-y-3"
+        >
+          {clientId && (
+            <h3 className="border-t pt-4 text-base font-semibold">
+              Acompanhamento ({open.length})
+            </h3>
+          )}
           {open.length === 0 ? (
             <p className="rounded-xl border p-6 text-sm text-muted-foreground">
               Nenhuma ação aberta. Use “Atualizar alertas” ou crie uma ação no cartão da conta.
@@ -350,7 +387,14 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
             ))
           )}
         </TabsContent>
-        <TabsContent value="history" className="mt-4 space-y-4">
+        <TabsContent
+          forceMount={clientId ? true : undefined}
+          value="history"
+          className="mt-4 space-y-4"
+        >
+          {clientId && (
+            <h3 className="border-t pt-4 text-base font-semibold">Histórico do acompanhamento</h3>
+          )}
           <ContactHistory clientId={clientId} />
           <h3 className="font-medium">Ações encerradas</h3>
           {(actions.data ?? [])

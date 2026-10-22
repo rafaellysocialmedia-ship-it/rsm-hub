@@ -67,10 +67,10 @@ export function AccountHeaderFacts({
     .filter((x): x is string => !!x)
     .sort()[0];
   return (
-    <div className="mt-4 space-y-3">
+    <div className="space-y-2">
       <details className="rsm-account-details rounded-xl border bg-card">
         <summary className="flex cursor-pointer flex-wrap items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted/50">
-          <span className="flex-1">Dados e acompanhamento da conta</span>
+          <span className="flex-1">Detalhes da conta</span>
           {a && <HealthBadge account={a} />}
           <svg
             className="size-4 shrink-0 text-muted-foreground transition-transform"
@@ -121,12 +121,12 @@ export function AccountHeaderFacts({
             </div>
           ))}
         </dl>
+        {finance.canView && monthly.missingBillingDay && (
+          <Button size="sm" variant="outline" onClick={onConfigureBilling}>
+            Configurar vencimento dos serviços
+          </Button>
+        )}
       </details>
-      {finance.canView && monthly.missingBillingDay && (
-        <Button size="sm" variant="outline" onClick={onConfigureBilling}>
-          Configurar vencimento dos serviços
-        </Button>
-      )}
       {(q.error || services.error || retention.error || actions.error || team.error) && (
         <p role="alert" className="text-sm text-destructive">
           Parte do resumo não pôde ser carregada. Consulte a aba correspondente.

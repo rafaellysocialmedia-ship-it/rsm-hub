@@ -56,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await queryClient.cancelQueries();
         queryClient.clear();
       }
+      const sameUser = previousUser !== undefined && previousUser === sess?.user.id;
       previousUser = sess?.user.id ?? null;
       setSession(sess);
       setUser(sess?.user ?? null);
@@ -68,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setLoading(true);
+      if (!sameUser) setLoading(true);
       try {
         await loadUserData(sess.user.id);
       } catch (cause) {

@@ -53,14 +53,14 @@ export function PostCreativeThumb({
   const first = items[0];
   if (!items.length)
     return showEmpty ? (
-      <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed bg-muted/40 text-xs text-muted-foreground">
+      <div className="flex min-h-20 w-full flex-col py-3 items-center justify-center gap-2 rounded-md border border-dashed bg-muted/40 text-xs text-muted-foreground">
         <ImageIcon className="size-6" aria-hidden="true" />
         <span>
           {query.isPending
             ? "Carregando prévia…"
             : query.isError
               ? "Prévia indisponível"
-              : "Sem criativo anexado"}
+              : "Somente texto · mídia não anexada"}
         </span>
       </div>
     ) : null;

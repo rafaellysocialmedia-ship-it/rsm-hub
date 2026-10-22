@@ -18,7 +18,18 @@ import { ChurnCard } from "@/components/clients/churn-card";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Pencil, Video, MoreHorizontal, FilePlus2, CreditCard, CalendarClock, Send, Copy } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Pencil,
+  Video,
+  MoreHorizontal,
+  FilePlus2,
+  CreditCard,
+  CalendarClock,
+  Send,
+  Copy,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -158,105 +169,120 @@ function ClientMasterPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1600px] px-4 py-5 sm:px-6 sm:py-6">
-      <Link
-        to="/management/clients"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Clientes
-      </Link>
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          to="/management/clients"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Clientes
+        </Link>
 
-      <ClientSwitcher id={client.id} name={client.name} tab={tab} />
-      <div className="mt-3 flex items-center gap-3">
-        <ClientLogo path={client.logo_url} name={client.name} className="h-12 w-12 sm:h-14 sm:w-14" />
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight">{client.name}</h1>
-            <StatusBadge status={client.status} />
+        <ClientSwitcher id={client.id} name={client.name} tab={tab} />
+      </div>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <ClientLogo path={client.logo_url} name={client.name} className="h-10 w-10" />
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-semibold tracking-tight">{client.name}</h1>
+              <StatusBadge status={client.status} />
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {client.plan || "Plano a definir"} · {client.segment || "Sem segmento"}
+            </p>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {client.plan || "Plano a definir"} · {client.segment || "Sem segmento"}
-          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {!client.churned && (
+            <>
+              {tab !== "contents" && (
+                <Button size="sm" onClick={() => setPostOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar conteúdo
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setTaskOpen(true)}>
+                Nova demanda
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={openBillingSettings}>
+                <CalendarClock className="size-4" aria-hidden="true" />
+                Serviços e vencimentos
+              </Button>
+            </>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" aria-label="Abrir outras ações do cliente">
+                <MoreHorizontal className="mr-2 h-4 w-4" />
+                Mais ações
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              {!client.churned && (
+                <>
+                  {financeAccess.canEdit && (
+                    <DropdownMenuItem onSelect={() => setTab("finance")}>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Registrar pagamento
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onSelect={() => setTab("documents")}>
+                    <FilePlus2 className="mr-2 h-4 w-4" />
+                    Adicionar arquivo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setTab("contents")}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Enviar para aprovação
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setMeetingOpen(true)}>
+                    <Video className="mr-2 h-4 w-4" />
+                    Agendar reunião
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem
+                onSelect={() => {
+                  void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(
+                    () =>
+                      toast.success(
+                        "Link do portal copiado. O cliente deve entrar com seu próprio acesso.",
+                      ),
+                    () => toast.error("Não foi possível copiar o link."),
+                  );
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copiar acesso ao portal
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Editar cliente
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {!client.churned && (
-          <>
-            <Button size="sm" onClick={() => setPostOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar conteúdo
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setTaskOpen(true)}>
-              Nova demanda
-            </Button>
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={openBillingSettings}>
-              <CalendarClock className="size-4" aria-hidden="true" />
-              Serviços e vencimentos
-            </Button>
-          </>
-        )}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="outline" aria-label="Abrir outras ações do cliente">
-              <MoreHorizontal className="mr-2 h-4 w-4" />
-              Mais ações
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            {!client.churned && (
-              <>
-                {financeAccess.canEdit && (
-                  <DropdownMenuItem onSelect={() => setTab("finance")}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Registrar pagamento
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onSelect={() => setTab("documents")}>
-                  <FilePlus2 className="mr-2 h-4 w-4" />
-                  Adicionar arquivo
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setTab("contents")}>
-                  <Send className="mr-2 h-4 w-4" />
-                  Enviar para aprovação
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setMeetingOpen(true)}>
-                  <Video className="mr-2 h-4 w-4" />
-                  Agendar reunião
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem
-              onSelect={() => {
-                void navigator.clipboard.writeText(`${window.location.origin}/portal`).then(
-                  () => toast.success("Link do portal copiado. O cliente deve entrar com seu próprio acesso."),
-                  () => toast.error("Não foi possível copiar o link."),
-                );
-              }}
-            >
-              <Copy className="mr-2 h-4 w-4" />
-              Copiar acesso ao portal
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setEditOpen(true)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar cliente
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <AccountHeaderFacts client={client} onConfigureBilling={openBillingSettings} />
-      <Tabs value={tab} onValueChange={setTab} className="mt-4">
+      <Tabs value={tab} onValueChange={setTab} className="mt-3">
         <GroupedNavigation
           groups={profileGroups.map((group) => ({
             ...group,
-            items: group.items.filter(([value]) => financeAccess.canView || !["finance", "contract"].includes(value)),
+            items: group.items.filter(
+              ([value]) => financeAccess.canView || !["finance", "contract"].includes(value),
+            ),
           }))}
           tab={tab}
           onTab={setTab}
         />
-        <TabsContent value="overview" className="mt-5 space-y-4">
-          <AccountOverview client={client} onTab={setTab} onConfigureBilling={openBillingSettings} />
+        <TabsContent value="overview" className="mt-4 space-y-4">
+          <AccountHeaderFacts client={client} onConfigureBilling={openBillingSettings} />
+          <AccountOverview
+            client={client}
+            onTab={setTab}
+            onConfigureBilling={openBillingSettings}
+          />
           <Deliveries clientId={client.id} canEdit={canEdit && !client.churned} />
           <OverviewTab client={client} />
           <JourneyCard clientId={client.id} currentStage={journeyStage} />

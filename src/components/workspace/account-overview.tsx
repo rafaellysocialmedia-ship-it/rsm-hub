@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
-import { AlertCircle, AlertTriangle, ArrowUpRight, CalendarClock, CheckCircle2, Clock3, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowUpRight,
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  Sparkles,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountMeetings } from "@/hooks/use-account-workspace";
 import { useFinanceAccess, useCharges, useContracts, useClientServices } from "@/hooks/use-finance";
@@ -99,7 +107,9 @@ export function AccountOverview({
             </div>
             <div>
               <CardTitle className="text-base">Atenção e próximos passos</CardTitle>
-              <p className="mt-0.5 text-xs text-muted-foreground">Pendências deste cliente, organizadas por prioridade.</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Pendências deste cliente, organizadas por prioridade.
+              </p>
             </div>
           </div>
         </CardHeader>
@@ -150,19 +160,22 @@ export function AccountOverview({
               {!posts.isLoading && !posts.error && !summary.scheduled && (
                 <Attention
                   kind="pending"
-                  title="Calendário sem publicações"
+                  title="Nenhuma publicação agendada neste mês"
                   text="Nenhuma publicação programada para este mês."
                   action="Planejar conteúdo"
                   onClick={() => onTab("contents")}
                 />
               )}
-              {!summary.pending && !summary.changes && !summary.late && summary.scheduled > 0 &&
+              {!summary.pending &&
+                !summary.changes &&
+                !summary.late &&
+                summary.scheduled > 0 &&
                 !(finance.canView && nextCharge && effectiveStatus(nextCharge) === "overdue") && (
-                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-800 dark:text-emerald-200 md:col-span-2">
-                  <CheckCircle2 className="size-5 shrink-0" aria-hidden />
-                  Nenhuma pendência de conteúdo identificada.
-                </div>
-              )}
+                  <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-800 dark:text-emerald-200 md:col-span-2">
+                    <CheckCircle2 className="size-5 shrink-0" aria-hidden />
+                    Nenhuma pendência de conteúdo identificada.
+                  </div>
+                )}
             </div>
           )}
         </CardContent>
@@ -236,7 +249,7 @@ export function AccountOverview({
                   </div>
                 )}
                 <div>
-                  <p className="text-muted-foreground">Próxima cobrança pendente</p>
+                  <p className="text-muted-foreground">Cobrança pendente mais antiga</p>
                   <p className="mt-1">
                     {nextCharge
                       ? `${money(nextCharge.amount)} · ${new Date(nextCharge.due_date + "T00:00:00").toLocaleDateString("pt-BR")}`
@@ -289,7 +302,9 @@ function Attention({
   const style = attentionStyle[kind];
   const Icon = style.icon;
   return (
-    <div className={`flex min-w-0 flex-col justify-between gap-3 rounded-xl border p-3.5 ${style.border}`}>
+    <div
+      className={`flex min-w-0 flex-col justify-between gap-3 rounded-xl border p-3.5 ${style.border}`}
+    >
       <div className="flex items-start gap-2.5">
         <div className="rounded-lg bg-background/80 p-2 text-foreground" aria-hidden>
           <Icon className="size-4" />
@@ -299,7 +314,12 @@ function Attention({
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
         </div>
       </div>
-      <Button variant="outline" size="sm" className="h-8 self-start gap-1.5 bg-background text-xs" onClick={onClick}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 self-start gap-1.5 bg-background text-xs"
+        onClick={onClick}
+      >
         {action}
         <ArrowUpRight className="size-3.5" aria-hidden />
       </Button>

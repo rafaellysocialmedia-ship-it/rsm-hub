@@ -31,18 +31,22 @@ export function PostTextVersions({ postId }: { postId: string }) {
   if (!q.isLoading && !q.error && !q.data?.length) return null;
   return (
     <section className="space-y-3 rounded-xl border p-4">
-      <h3 className="text-base font-medium">Histórico de versões do texto</h3>
+      <h3 className="text-base font-medium">Registros anteriores do texto</h3>
+      <p className="text-xs text-muted-foreground">
+        Registros automáticos de alterações. Esta numeração é independente da revisão do conteúdo
+        enviada para aprovação.
+      </p>
       <QueryState loading={q.isLoading} error={q.error}>
         <select
-          aria-label="Selecionar versão anterior"
+          aria-label="Selecionar registro anterior"
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
         >
-          <option value="">Selecione uma versão anterior</option>
+          <option value="">Selecione um registro anterior</option>
           {q.data?.map((v) => (
             <option key={v.id} value={v.id}>
-              Versão {v.version_number} · {new Date(v.created_at).toLocaleString("pt-BR")}
+              Registro {v.version_number} · {new Date(v.created_at).toLocaleString("pt-BR")}
             </option>
           ))}
         </select>

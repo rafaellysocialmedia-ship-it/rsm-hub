@@ -1,4 +1,12 @@
-import { BarChart3, ClipboardList, FileText, HeartHandshake, Layers3, Settings2, type LucideIcon } from "lucide-react";
+import {
+  BarChart3,
+  ClipboardList,
+  FileText,
+  HeartHandshake,
+  Layers3,
+  Settings2,
+  type LucideIcon,
+} from "lucide-react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 type Group = { title: string; items: [string, string][] };
 export const profileGroups: Group[] = [
@@ -25,7 +33,7 @@ export const profileGroups: Group[] = [
       ["support", "Solicitações"],
       ["meetings", "Reuniões"],
       ["retention", "Saúde da conta"],
-      ["history", "Histórico"],
+      ["history", "Histórico da conta"],
     ],
   },
   { title: "Resultados", items: [["reports", "Relatórios"]] },
@@ -82,21 +90,24 @@ export function GroupedNavigation({
 }) {
   const active = groups.find((g) => g.items.some((i) => i[0] === tab)) ?? groups[0];
   const groupIcons: Record<string, LucideIcon> = {
-    "Resumo": ClipboardList,
-    "Início": ClipboardList,
-    "Conteúdo": Layers3,
-    "Conteúdos": Layers3,
-    "Relacionamento": HeartHandshake,
-    "Solicitações": HeartHandshake,
-    "Resultados": BarChart3,
-    "Gestão": Settings2,
-    "Documentos": FileText,
-    "Financeiro": FileText,
+    Resumo: ClipboardList,
+    Início: ClipboardList,
+    Conteúdo: Layers3,
+    Conteúdos: Layers3,
+    Relacionamento: HeartHandshake,
+    Solicitações: HeartHandshake,
+    Resultados: BarChart3,
+    Gestão: Settings2,
+    Documentos: FileText,
+    Financeiro: FileText,
   };
   return (
-    <div className="space-y-2.5 border-b border-border/60 pb-3">
+    <div className="space-y-1 border-b border-border/60 pb-2">
       {!hidePrimary && (
-        <nav aria-label="Áreas da conta" className="rsm-tabs flex w-full gap-1 overflow-x-auto rounded-xl border border-border/50 bg-muted/40 p-1.5">
+        <nav
+          aria-label="Áreas da conta"
+          className="rsm-tabs flex w-full gap-1 overflow-x-auto border-b border-border/50 bg-transparent py-1"
+        >
           {groups.map((group) => {
             const Icon = groupIcons[group.title] ?? FileText;
             const selected = group === active;
@@ -106,9 +117,11 @@ export function GroupedNavigation({
                 type="button"
                 aria-current={selected ? "page" : undefined}
                 onClick={() => onTab(group.items[0][0])}
-                className={`inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selected
-                  ? "border-border/70 bg-card text-primary shadow-sm"
-                  : "border-transparent text-muted-foreground hover:bg-card/75 hover:text-foreground"}`}
+                className={`inline-flex min-h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                  selected
+                    ? "border-transparent bg-primary/10 text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-card/75 hover:text-foreground"
+                }`}
               >
                 <Icon className="size-4 shrink-0" aria-hidden />
                 {group.title}

@@ -223,33 +223,72 @@ export function OperationalDashboard({ name }: { name: string }) {
       </header>
       <QueryState loading={q.isLoading} error={q.error}>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
-          {Object.entries(groups).map(([title, items]) => (
-            <button
-              key={title}
-              onClick={() => setSelection(title)}
-              className={`group rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring ${items.length > 0 && ["Aprovações atrasadas", "Tarefas vencidas", "Cobranças vencidas"].includes(title) ? "border-amber-300/70 dark:border-amber-700/60" : "border-border"}`}
-            >
-              <span className="block text-xs font-medium leading-5 text-muted-foreground">
-                {title}
-              </span>
-              <strong
-                className={`mt-2 block text-2xl font-semibold tabular-nums tracking-tight ${items.length ? "text-foreground" : "text-muted-foreground"}`}
+          {Object.entries(groups)
+            .sort(
+              ([a], [b]) =>
+                [
+                  "Cobranças vencidas",
+                  "Aprovações atrasadas",
+                  "Tarefas vencidas",
+                  "Publicações próximas",
+                  "Materiais aguardados",
+                  "Reuniões de hoje",
+                ].indexOf(a) -
+                [
+                  "Cobranças vencidas",
+                  "Aprovações atrasadas",
+                  "Tarefas vencidas",
+                  "Publicações próximas",
+                  "Materiais aguardados",
+                  "Reuniões de hoje",
+                ].indexOf(b),
+            )
+            .map(([title, items]) => (
+              <button
+                key={title}
+                onClick={() => setSelection(title)}
+                className={`group rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring ${items.length > 0 && ["Aprovações atrasadas", "Tarefas vencidas", "Cobranças vencidas"].includes(title) ? "border-amber-300/70 dark:border-amber-700/60" : "border-border"}`}
               >
-                {items.length}
-              </strong>
-              <span className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                {title === "Publicações próximas" ? "Hoje + próximos 7 dias" : "Ver detalhes"}
-                <span aria-hidden="true" className="text-primary">
-                  →
+                <span className="block text-xs font-medium leading-5 text-muted-foreground">
+                  {title}
                 </span>
-              </span>
-            </button>
-          ))}
+                <strong
+                  className={`mt-1 block text-xl font-semibold tabular-nums tracking-tight ${items.length ? "text-foreground" : "text-muted-foreground"}`}
+                >
+                  {items.length}
+                </strong>
+                <span className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                  {title === "Publicações próximas" ? "Hoje + próximos 7 dias" : "Ver detalhes"}
+                  <span aria-hidden="true" className="text-primary">
+                    →
+                  </span>
+                </span>
+              </button>
+            ))}
         </div>
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <section className="rounded-xl border bg-card p-5">
             <h2 className="text-lg font-semibold">Agenda da semana</h2>
-            {rows(agenda)}
+            {[
+              ["Passadas · verificar conclusão", agenda.filter((i) => i.date && i.date < today)],
+              ["Hoje", agenda.filter((i) => i.date === today)],
+              ["Próximas", agenda.filter((i) => i.date && i.date > today)],
+            ].map(
+              ([label, entries]) =>
+                (entries as Item[]).length > 0 && (
+                  <div key={label as string} className="mt-3">
+                    <h3 className="text-xs font-medium text-muted-foreground">{label as string}</h3>
+                    {rows(
+                      (entries as Item[]).sort((a, b) =>
+                        (a.date ?? "").localeCompare(b.date ?? ""),
+                      ),
+                    )}
+                  </div>
+                ),
+            )}
+            {!agenda.length && (
+              <p className="py-4 text-sm text-muted-foreground">Nenhuma reunião nesta semana.</p>
+            )}
           </section>
           <section className="rounded-xl border bg-card p-5">
             <h2 className="text-lg font-semibold">Andamento das contas</h2>
@@ -268,9 +307,20 @@ export function OperationalDashboard({ name }: { name: string }) {
                       search={{ tab: "overview" }}
                     >
                       {c.name}
+                      <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                        {c.overdue_payments > 0
+                          ? `${c.overdue_payments} cobrança(s) vencida(s)`
+                          : c.approvals_pending > 0
+                            ? `${c.approvals_pending} aprovação(ões) pendente(s)`
+                            : c.late_tasks > 0
+                              ? "Demandas atrasadas"
+                              : c.days_without_meeting >= c.checkin_days
+                                ? "Reunião de acompanhamento pendente"
+                                : "Rotina de acompanhamento"}
+                      </span>
                     </Link>
                     <span
-                      className={`text-sm ${c.health === "critical" ? "text-red-700" : c.health === "attention" ? "text-amber-800" : "text-emerald-800"}`}
+                      className={`text-sm ${c.health === "critical" ? "text-red-700 dark:text-red-300" : c.health === "attention" ? "text-amber-800 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300"}`}
                     >
                       {c.health === "critical"
                         ? "Precisa de ação"

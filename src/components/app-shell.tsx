@@ -52,7 +52,16 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Topbar />
               <main className="min-w-0 flex-1">
                 {permissions.loading ? (
-                  <p className="p-8">Carregando permissões…</p>
+                  <div
+                    role="status"
+                    aria-label="Carregando área de trabalho"
+                    className="space-y-4 p-6"
+                  >
+                    <div className="h-8 w-56 animate-pulse rounded bg-muted" />
+                    <div className="h-12 animate-pulse rounded bg-muted" />
+                    <div className="h-64 animate-pulse rounded bg-muted/50" />
+                    <span className="sr-only">Verificando acesso…</span>
+                  </div>
                 ) : permissions.error ? (
                   <p role="alert" className="p-8">
                     Não foi possível verificar seu acesso. Atualize a página para tentar novamente.

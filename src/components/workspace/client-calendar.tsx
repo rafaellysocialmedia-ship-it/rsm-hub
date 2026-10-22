@@ -50,6 +50,11 @@ export function ClientCalendarPage({
   const [status, setStatus] = useStickyState(`${scope}:status`, "");
   const [search, setSearch] = useStickyState(`${scope}:search`, "");
   const [dayList, setDayList] = useState<string | null>(null);
+  const [daySearch, setDaySearch] = useState("");
+  const [dayGrouping, setDayGrouping] = useState("time");
+  useEffect(() => {
+    setDaySearch("");
+  }, [dayList]);
   const [dragging, setDragging] = useState<Post | null>(null);
   const [destination, setDestination] = useState<string | null>(null);
   const [moving, setMoving] = useState(false);
@@ -57,7 +62,16 @@ export function ClientCalendarPage({
   const prefs = useNavigationPreferences();
   const density = prefs.data?.calendar_density ?? "compact";
   // The monthly grid always shows two cards; other views retain their existing density.
-  const limit = view === "month" ? (density === "expanded" ? 3 : 2) : density === "compact" ? 5 : density === "expanded" ? 2 : 3;
+  const limit =
+    view === "month"
+      ? density === "expanded"
+        ? 3
+        : 2
+      : density === "compact"
+        ? 5
+        : density === "expanded"
+          ? 2
+          : 3;
   const clients = useQuery({
     queryKey: ["calendar-client-labels", user?.id],
     queryFn: async () => {
@@ -155,86 +169,114 @@ export function ClientCalendarPage({
                   {p.scheduled_time.slice(0, 5)}
                 </span>
               )}
-              <span className="min-w-0 flex-1 truncate text-[11px] font-medium" title={p.title}>{p.title}</span>
-              <span className={`size-1.5 shrink-0 rounded-full ${statusMeta(p.status).dot}`} title={statusMeta(p.status).label} aria-label={statusMeta(p.status).label} />
+              <span className="min-w-0 flex-1 truncate text-[11px] font-medium" title={p.title}>
+                {p.title}
+              </span>
+              <span
+                className={`size-1.5 shrink-0 rounded-full ${statusMeta(p.status).dot}`}
+                title={statusMeta(p.status).label}
+                aria-label={statusMeta(p.status).label}
+              />
             </div>
             <div className="flex min-w-0 items-center gap-1">
               <PostNetworkBadges networks={postNetworks(p)} compact maxVisible={1} />
-              <span className="min-w-0 flex-1 truncate text-[9px] text-muted-foreground" title={p.client_id ? clientNames.get(p.client_id) ?? "Cliente indisponível" : "Sem cliente"}>
-                {p.client_id ? (clientNames.get(p.client_id) ?? "Cliente indisponível") : "Sem cliente"}
+              <span
+                className="min-w-0 flex-1 truncate text-[9px] text-muted-foreground"
+                title={
+                  p.client_id
+                    ? (clientNames.get(p.client_id) ?? "Cliente indisponível")
+                    : "Sem cliente"
+                }
+              >
+                {p.client_id
+                  ? (clientNames.get(p.client_id) ?? "Cliente indisponível")
+                  : "Sem cliente"}
               </span>
-              <span className="max-w-[75px] shrink-0 truncate rounded bg-muted px-1 text-[9px] text-muted-foreground" title={statusMeta(p.status).label}>
+              <span
+                className="max-w-[75px] shrink-0 truncate rounded bg-muted px-1 text-[9px] text-muted-foreground"
+                title={statusMeta(p.status).label}
+              >
                 {statusMeta(p.status).label}
               </span>
             </div>
           </div>
         ) : (
           <>
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
-          <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-lg bg-sky-50 px-1.5 py-1 text-[10px] font-medium text-sky-900 dark:bg-sky-950/40 dark:text-sky-100">
-            <UserRound className="size-3 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <ClientLabel
-              id={p.client_id ?? "none"}
-              color={p.client_id ? clientColors.get(p.client_id) : null}
-              name={
-                p.client_id
-                  ? (clientNames.get(p.client_id) ??
-                    (clients.isPending ? "Carregando cliente…" : "Cliente indisponível"))
-                  : "Sem cliente"
-              }
-            />
-          </span>
-          <span
-            className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-violet-50 px-1.5 py-1 text-[10px] font-semibold tabular-nums text-[#42145d] dark:bg-violet-950/40 dark:text-violet-200"
-            title={p.scheduled_time ? `Horário: ${p.scheduled_time.slice(0, 5)}` : "Horário a definir"}
-          >
-            <Clock3 className="size-3 shrink-0" aria-hidden="true" />
-            {p.scheduled_time?.slice(0, 5) || "—:—"}
-          </span>
-        </div>
-        {thumb && (
-          <div className="max-h-28 overflow-hidden rounded-lg">
-            <PostCreativeThumb postId={p.id} />
-          </div>
-        )}
-        <p
-          className={`min-w-0 text-xs font-semibold leading-snug text-foreground ${view === "month" && !modal ? "truncate" : "line-clamp-2"}`}
-          title={p.title}
-        >
-          {p.title}
-        </p>
-        <div className="flex min-w-0 flex-wrap items-center gap-1">
-          <PostNetworkBadges
-            networks={postNetworks(p)}
-            compact
-            maxVisible={view === "month" && !modal ? 2 : undefined}
-          />
-          <span className="mx-0.5 h-4 w-px shrink-0 bg-border" aria-hidden="true" />
-          {p.format && (
-            <span
-              className="inline-flex min-w-0 max-w-full truncate rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-200"
-              title={p.format}
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-1">
+              <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-lg bg-sky-50 px-1.5 py-1 text-[10px] font-medium text-sky-900 dark:bg-sky-950/40 dark:text-sky-100">
+                <UserRound
+                  className="size-3 shrink-0 text-sky-700 dark:text-sky-300"
+                  aria-hidden="true"
+                />
+                <ClientLabel
+                  id={p.client_id ?? "none"}
+                  color={p.client_id ? clientColors.get(p.client_id) : null}
+                  name={
+                    p.client_id
+                      ? (clientNames.get(p.client_id) ??
+                        (clients.isPending ? "Carregando cliente…" : "Cliente indisponível"))
+                      : "Sem cliente"
+                  }
+                />
+              </span>
+              <span
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-violet-50 px-1.5 py-1 text-[10px] font-semibold tabular-nums text-[#42145d] dark:bg-violet-950/40 dark:text-violet-200"
+                title={
+                  p.scheduled_time
+                    ? `Horário: ${p.scheduled_time.slice(0, 5)}`
+                    : "Horário a definir"
+                }
+              >
+                <Clock3 className="size-3 shrink-0" aria-hidden="true" />
+                {p.scheduled_time?.slice(0, 5) || "—:—"}
+              </span>
+            </div>
+            {thumb && (
+              <div className="max-h-28 overflow-hidden rounded-lg">
+                <PostCreativeThumb postId={p.id} />
+              </div>
+            )}
+            <p
+              className={`min-w-0 text-xs font-semibold leading-snug text-foreground ${view === "month" && !modal ? "truncate" : "line-clamp-2"}`}
+              title={p.title}
             >
-              {p.format}
-            </span>
-          )}
-          <span
-            className={`inline-flex min-w-0 max-w-full items-center truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusMeta(p.status).tone}`}
-            title={statusMeta(p.status).label}
-          >
-            {statusMeta(p.status).label}
-          </span>
-        </div>
-        {showDate && p.scheduled_date && (
-          <span className="block text-[10px] text-muted-foreground">
-            {p.scheduled_date.split("-").reverse().join("/")}
-          </span>
-        )}
+              {p.title}
+            </p>
+            <div className="flex min-w-0 flex-wrap items-center gap-1">
+              <PostNetworkBadges
+                networks={postNetworks(p)}
+                compact
+                maxVisible={view === "month" && !modal ? 2 : undefined}
+              />
+              <span className="mx-0.5 h-4 w-px shrink-0 bg-border" aria-hidden="true" />
+              {p.format && (
+                <span
+                  className="inline-flex min-w-0 max-w-full truncate rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-200"
+                  title={p.format}
+                >
+                  {p.format}
+                </span>
+              )}
+              <span
+                className={`inline-flex min-w-0 max-w-full items-center truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusMeta(p.status).tone}`}
+                title={statusMeta(p.status).label}
+              >
+                {statusMeta(p.status).label}
+              </span>
+            </div>
+            {showDate && p.scheduled_date && (
+              <span className="block text-[10px] text-muted-foreground">
+                {p.scheduled_date.split("-").reverse().join("/")}
+              </span>
+            )}
           </>
         )}
       </button>
       {!modal && workspace.canEdit && p.publication_source && p.publication_source !== "manual" && (
-        <p className="mt-1 text-[10px] text-muted-foreground" title="Reagendamento gerenciado no provedor externo">
+        <p
+          className="mt-1 text-[10px] text-muted-foreground"
+          title="Reagendamento gerenciado no provedor externo"
+        >
           Reagendamento no provedor externo
         </p>
       )}
@@ -360,7 +402,9 @@ export function ClientCalendarPage({
             variant="ghost"
             className="size-7 shrink-0"
             onClick={() => go(-1)}
-            title={dragging ? "Solte para mover ao mesmo dia do período anterior" : "Período anterior"}
+            title={
+              dragging ? "Solte para mover ao mesmo dia do período anterior" : "Período anterior"
+            }
             onDragOver={(e) => {
               if (dragging) {
                 e.preventDefault();
@@ -388,7 +432,9 @@ export function ClientCalendarPage({
             variant="ghost"
             className="size-8 shrink-0"
             onClick={() => go(1)}
-            title={dragging ? "Solte para mover ao mesmo dia do próximo período" : "Próximo período"}
+            title={
+              dragging ? "Solte para mover ao mesmo dia do próximo período" : "Próximo período"
+            }
             onDragOver={(e) => {
               if (dragging) {
                 e.preventDefault();
@@ -415,7 +461,11 @@ export function ClientCalendarPage({
             Hoje
           </Button>
         </div>
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5" role="group" aria-label="Visão do calendário">
+        <div
+          className="flex min-w-0 flex-wrap items-center gap-1.5"
+          role="group"
+          aria-label="Visão do calendário"
+        >
           {(providedPosts !== undefined
             ? [
                 { value: "month", label: "Mês" },
@@ -444,7 +494,9 @@ export function ClientCalendarPage({
           ))}
           {providedPosts !== undefined && (
             <>
-              <label htmlFor="calendar-more-views" className="sr-only">Outras visualizações do calendário</label>
+              <label htmlFor="calendar-more-views" className="sr-only">
+                Outras visualizações do calendário
+              </label>
               <select
                 id="calendar-more-views"
                 aria-label="Outras visualizações do calendário"
@@ -455,13 +507,15 @@ export function ClientCalendarPage({
                 }}
                 className="h-7 max-w-[94px] rounded-md border border-border/70 bg-background px-1 text-[11px]"
               >
-                <option value="other">Mais visões</option>
-                <option value="list">Lista por período</option>
+                <option value="other">Outras apresentações</option>
+                <option value="list">Agenda do período</option>
                 <option value="grid">Grade de prévias</option>
               </select>
             </>
           )}
-          <label htmlFor="calendar-date-jump" className="sr-only">Ir para data</label>
+          <label htmlFor="calendar-date-jump" className="sr-only">
+            Ir para data
+          </label>
           <input
             type="date"
             id="calendar-date-jump"
@@ -475,7 +529,9 @@ export function ClientCalendarPage({
               }
             }}
           />
-          <label htmlFor="calendar-density" className="sr-only">Tamanho dos cartões</label>
+          <label htmlFor="calendar-density" className="sr-only">
+            Tamanho dos cartões
+          </label>
           <select
             id="calendar-density"
             title="Tamanho dos cartões"
@@ -545,12 +601,12 @@ export function ClientCalendarPage({
       <QueryState loading={!providedPosts && q.isLoading} error={q.error}>
         {view === "month" || view === "week" || view === "day" ? (
           <div className="w-full overflow-x-auto rounded-lg">
-          <div
-            className={`grid gap-1 rounded-lg border border-border/60 bg-muted/20 p-1 ${view === "day" ? "grid-cols-1" : "grid-cols-7"}`}
-            style={view === "day" ? undefined : { minWidth: "620px" }}
-          >
-            {days.map(dayCell)}
-          </div>
+            <div
+              className={`grid gap-1 rounded-lg border border-border/60 bg-muted/20 p-1 ${view === "day" ? "grid-cols-1" : "grid-cols-7"}`}
+              style={view === "day" ? undefined : { minWidth: "620px" }}
+            >
+              {days.map(dayCell)}
+            </div>
           </div>
         ) : (
           <div
@@ -571,13 +627,70 @@ export function ClientCalendarPage({
           if (!v) setDayList(null);
         }}
       >
-        <DialogContent className="max-h-[85dvh] overflow-auto sm:max-w-2xl">
+        <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Publicações de {dayList?.split("-").reverse().join("/")}</DialogTitle>
-            <DialogDescription>Todos os {list.filter((p) => p.scheduled_date === dayList).length} conteúdos deste dia, com os filtros atuais. Selecione um card para editar.</DialogDescription>
+            <DialogDescription>
+              Todos os {list.filter((p) => p.scheduled_date === dayList).length} conteúdos deste
+              dia, com os filtros atuais. Selecione um card para editar.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            {list.filter((p) => p.scheduled_date === dayList).map((p) => item(p, false, false, true))}
+          <div className="flex flex-wrap gap-2 border-b pb-3">
+            <input
+              aria-label="Buscar nas publicações do dia"
+              placeholder="Buscar título ou cliente…"
+              value={daySearch}
+              onChange={(e) => setDaySearch(e.target.value)}
+              className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm"
+            />
+            <select
+              aria-label="Organizar publicações do dia"
+              value={dayGrouping}
+              onChange={(e) => setDayGrouping(e.target.value)}
+              className="rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              <option value="time">Por horário</option>
+              <option value="client">Agrupar por cliente</option>
+            </select>
+          </div>
+          <div className="min-h-0 space-y-2 overflow-y-auto pr-1">
+            {(() => {
+              const entries = list
+                .filter(
+                  (p) =>
+                    p.scheduled_date === dayList &&
+                    `${p.title} ${clientNames.get(p.client_id ?? "") ?? ""}`
+                      .toLocaleLowerCase()
+                      .includes(daySearch.toLocaleLowerCase()),
+                )
+                .sort(
+                  (a, b) =>
+                    (dayGrouping === "client"
+                      ? (clientNames.get(a.client_id ?? "") ?? "").localeCompare(
+                          clientNames.get(b.client_id ?? "") ?? "",
+                        )
+                      : 0) ||
+                    (a.scheduled_time || "99:99").localeCompare(b.scheduled_time || "99:99") ||
+                    a.title.localeCompare(b.title),
+                );
+              return entries.length ? (
+                entries.map((p, i) => (
+                  <div key={p.id}>
+                    {dayGrouping === "client" &&
+                      (i === 0 || entries[i - 1].client_id !== p.client_id) && (
+                        <h3 className="bg-card py-2 text-sm font-semibold">
+                          {clientNames.get(p.client_id ?? "") ?? "Sem cliente"}
+                        </h3>
+                      )}
+                    {item(p, true, false, true)}
+                  </div>
+                ))
+              ) : (
+                <p role="status" className="py-8 text-center text-sm text-muted-foreground">
+                  Nenhum conteúdo encontrado neste dia.
+                </p>
+              );
+            })()}
           </div>
         </DialogContent>
       </Dialog>

@@ -44,8 +44,11 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
       attributes: {
+        role: "textbox",
+        "aria-label": "Editor de texto",
+        "aria-multiline": "true",
         class:
-          "prose prose-sm dark:prose-invert max-w-none min-h-[140px] px-3 py-2 focus:outline-none [&_p]:my-1",
+          "prose prose-sm dark:prose-invert max-w-none min-h-[140px] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary [&_p]:my-1",
       },
     },
   });
@@ -63,6 +66,7 @@ export function RichTextEditor({
     <div className={cn("rounded-md border border-input bg-background", className)}>
       <div className="flex flex-wrap items-center gap-0.5 border-b border-border px-1.5 py-1">
         <Toggle
+          aria-label="Negrito"
           size="sm"
           pressed={editor.isActive("bold")}
           onPressedChange={() => editor.chain().focus().toggleBold().run()}
@@ -70,6 +74,7 @@ export function RichTextEditor({
           <Bold className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Itálico"
           size="sm"
           pressed={editor.isActive("italic")}
           onPressedChange={() => editor.chain().focus().toggleItalic().run()}
@@ -77,6 +82,7 @@ export function RichTextEditor({
           <Italic className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Tachado"
           size="sm"
           pressed={editor.isActive("strike")}
           onPressedChange={() => editor.chain().focus().toggleStrike().run()}
@@ -85,6 +91,7 @@ export function RichTextEditor({
         </Toggle>
         <Separator orientation="vertical" className="mx-1 h-5" />
         <Toggle
+          aria-label="Título"
           size="sm"
           pressed={editor.isActive("heading", { level: 2 })}
           onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -92,6 +99,7 @@ export function RichTextEditor({
           <Heading2 className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Lista com marcadores"
           size="sm"
           pressed={editor.isActive("bulletList")}
           onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
@@ -99,6 +107,7 @@ export function RichTextEditor({
           <List className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Lista numerada"
           size="sm"
           pressed={editor.isActive("orderedList")}
           onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
@@ -106,6 +115,7 @@ export function RichTextEditor({
           <ListOrdered className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Citação"
           size="sm"
           pressed={editor.isActive("blockquote")}
           onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
@@ -113,6 +123,7 @@ export function RichTextEditor({
           <Quote className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Inserir link"
           size="sm"
           pressed={editor.isActive("link")}
           onPressedChange={() => {
@@ -126,6 +137,7 @@ export function RichTextEditor({
         </Toggle>
         <Separator orientation="vertical" className="mx-1 h-5" />
         <Toggle
+          aria-label="Desfazer"
           size="sm"
           pressed={false}
           onPressedChange={() => editor.chain().focus().undo().run()}
@@ -133,6 +145,7 @@ export function RichTextEditor({
           <Undo2 className="h-3.5 w-3.5" />
         </Toggle>
         <Toggle
+          aria-label="Refazer"
           size="sm"
           pressed={false}
           onPressedChange={() => editor.chain().focus().redo().run()}

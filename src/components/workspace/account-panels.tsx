@@ -105,7 +105,7 @@ export function AccountContents({
   canEdit?: boolean;
 }) {
   const query = useInternalPosts(client.id);
-  const [month, setMonth] = useState(calendar ? format(new Date(), "yyyy-MM") : "");
+  const [month, setMonth] = useState(format(new Date(), "yyyy-MM"));
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
   const [contentFormat, setContentFormat] = useState("all");
