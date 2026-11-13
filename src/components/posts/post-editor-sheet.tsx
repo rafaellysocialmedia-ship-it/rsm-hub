@@ -59,6 +59,7 @@ import {
 } from "@/lib/posts";
 import type { Client } from "@/lib/clients";
 import { RichTextEditor } from "./rich-text-editor";
+import { PostCreativePreview, usePostCreatives } from "./post-creative-viewer";
 import { cn } from "@/lib/utils";
 import { sanitizeHtml } from "@/lib/sanitize";
 
@@ -208,6 +209,7 @@ export function PostEditorSheet({
   const update = <K extends keyof Post>(k: K, v: Post[K] | null | undefined) =>
     setForm((f) => ({ ...f, [k]: v as Post[K] }));
 
+  const creatives = usePostCreatives(post?.id);
   // ---- Files & comments queries (only when editing)
   const {
     data: files = [],
@@ -646,6 +648,11 @@ export function PostEditorSheet({
             )}
           </div>
         )}
+        {isEdit && post && files.length > 0 && (
+          <div className="px-6 pt-4">
+            <PostCreativePreview postId={post.id} />
+          </div>
+        )}
         <fieldset
           disabled={saveMutation.isPending || readOnly}
           className="min-w-0 space-y-6 px-6 py-5"
@@ -965,7 +972,10 @@ export function PostEditorSheet({
                         key={f.id}
                         className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5"
                       >
-                        <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+                        <FileThumb
+                          url={creatives.find((c) => c.file.id === f.id)?.url ?? null}
+                          mime={f.mime_type}
+                        />
                         <span className="flex-1 truncate text-xs">{f.file_name}</span>
                         <span className="text-[10px] text-muted-foreground">
                           {Math.round((f.size_bytes ?? 0) / 1024)} KB
@@ -1469,4 +1479,18 @@ function buildRecurrenceDates(start: string, r: RecurrenceRule): string[] {
     out.push(d.toISOString().slice(0, 10));
   }
   return out;
+}
+
+function FileThumb({ url, mime }: { url: string | null; mime: string | null }) {
+  const type = mime ?? "";
+  const frame = "h-9 w-9 shrink-0 overflow-hidden rounded border border-border bg-muted";
+  if (url && type.startsWith("image/"))
+    return <img src={url} alt="" loading="lazy" className={`${frame} object-cover`} />;
+  if (url && type.startsWith("video/"))
+    return <video src={url} muted preload="metadata" className={`${frame} object-cover`} />;
+  return (
+    <span className={`${frame} flex items-center justify-center`}>
+      <Paperclip className="h-3.5 w-3.5 text-muted-foreground" />
+    </span>
+  );
 }
