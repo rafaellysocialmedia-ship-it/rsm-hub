@@ -15,7 +15,9 @@ import { RetentionWorkspace } from "@/components/retention/retention-workspace";
 import { AccountActivity } from "@/components/workspace/account-activity";
 import { ContractsCard } from "@/components/clients/contracts-card";
 import { ChurnCard } from "@/components/clients/churn-card";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { ClientAlertChips } from "@/components/clients/client-alerts";
+import { useClientAlerts } from "@/hooks/use-client-alerts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -126,6 +128,7 @@ function ClientMasterPage() {
     setTab("settings");
   };
   useAccountSync(canEdit ? clientId : undefined);
+  const headerAlerts = useClientAlerts(clientId).byClient.get(clientId)?.alerts ?? [];
 
   const { data: client, isLoading } = useQuery({
     queryKey: ["clients", clientId],
@@ -191,6 +194,16 @@ function ClientMasterPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               {client.plan || "Plano a definir"} · {client.segment || "Sem segmento"}
             </p>
+            {tab !== "overview" && !client.churned && headerAlerts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setTab("overview")}
+                title="Ver todos os alertas na visão geral"
+                className="mt-1.5 block rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <ClientAlertChips alerts={headerAlerts} max={3} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -267,12 +280,14 @@ function ClientMasterPage() {
       </div>
       <Tabs value={tab} onValueChange={setTab} className="mt-3">
         <GroupedNavigation
-          groups={profileGroups.map((group) => ({
-            ...group,
-            items: group.items.filter(
-              ([value]) => financeAccess.canView || !["finance", "contract"].includes(value),
-            ),
-          }))}
+          groups={profileGroups
+            .map((group) => ({
+              ...group,
+              items: group.items.filter(
+                ([value]) => financeAccess.canView || !["finance", "contract"].includes(value),
+              ),
+            }))
+            .filter((group) => group.items.length > 0)}
           tab={tab}
           onTab={setTab}
         />
@@ -283,9 +298,21 @@ function ClientMasterPage() {
             onTab={setTab}
             onConfigureBilling={openBillingSettings}
           />
-          <Deliveries clientId={client.id} canEdit={canEdit && !client.churned} />
-          <OverviewTab client={client} />
-          <JourneyCard clientId={client.id} currentStage={journeyStage} />
+          <OverviewSection
+            title="Entregas por formato"
+            hint="Distribuição do plano por formato e o que já foi produzido no mês"
+          >
+            <Deliveries clientId={client.id} canEdit={canEdit && !client.churned} />
+          </OverviewSection>
+          <OverviewSection
+            title="Jornada do cliente"
+            hint={`Etapa atual: ${JOURNEY_LABELS[journeyStage]}`}
+          >
+            <JourneyCard clientId={client.id} currentStage={journeyStage} />
+          </OverviewSection>
+          <OverviewSection title="Cadastro e responsáveis" hint="Dados do cadastro e time interno">
+            <OverviewTab client={client} hideNextMeeting />
+          </OverviewSection>
         </TabsContent>
         <TabsContent value="support" className="mt-5">
           <ClientRequests clientId={client.id} canEdit={canEdit} />
@@ -420,6 +447,46 @@ function ClientMasterPage() {
         onOpenChange={setTaskOpen}
       />
     </div>
+  );
+}
+
+const JOURNEY_LABELS = {
+  closing: "Fechamento",
+  kickoff: "Kickoff",
+  onboarding: "Onboarding",
+  ongoing: "Acompanhamento",
+  renewal: "Renovação",
+  offboarded: "Encerrado",
+} as const;
+
+/** Bloco secundário da visão geral: fica recolhido para a página não virar uma lista longa. */
+function OverviewSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="rsm-account-details group rounded-xl border bg-card">
+      <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3 hover:bg-muted/50">
+        <span className="text-sm font-semibold">{title}</span>
+        {hint && <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{hint}</span>}
+        <svg
+          className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </summary>
+      <div className="border-t p-3 sm:p-4">{children}</div>
+    </details>
   );
 }
 

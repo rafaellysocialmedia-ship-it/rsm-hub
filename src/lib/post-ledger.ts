@@ -241,3 +241,44 @@ export function balanceTone(balance: number): string {
   if (balance === 0) return "text-muted-foreground";
   return "text-emerald-600 dark:text-emerald-400";
 }
+
+/** Post row with what is needed to decide which posts exceed the month. */
+export type OrderedUsagePost = UsagePost & { id: string; scheduled_time?: string | null };
+
+/**
+ * Publications above the amount to deliver in a month ("excedentes").
+ *
+ * Uses the same summary shown in the balance bar: everything registered beyond
+ * `available` (contratado + saldo anterior + ajustes) is an excess. The posts
+ * flagged as excess are the last ones of the month in chronological order.
+ */
+export function monthOverflow(args: {
+  clientId: string;
+  contracted: number;
+  ledger: PostLedgerRow[];
+  posts: OrderedUsagePost[];
+  ref?: Date;
+  since?: string | null;
+}): { summary: MonthSummary; extras: number; extraIds: string[] } {
+  const summary = openMonthSummary(args);
+  const available = Math.max(0, summary.available);
+  const extras = summary.contracted > 0 ? Math.max(0, summary.used - available) : 0;
+  if (extras === 0) return { summary, extras, extraIds: [] };
+
+  const { year, month } = ymOf(args.ref ?? new Date());
+  const inMonth = args.posts
+    .filter((p) => {
+      if (p.client_id !== args.clientId || !p.scheduled_date) return false;
+      const s = p.status ?? "";
+      if (s === "archived" || s === "rejected") return false;
+      const d = new Date(p.scheduled_date + "T00:00:00");
+      return d.getFullYear() === year && d.getMonth() + 1 === month;
+    })
+    .sort(
+      (a, b) =>
+        (a.scheduled_date ?? "").localeCompare(b.scheduled_date ?? "") ||
+        (a.scheduled_time ?? "99").localeCompare(b.scheduled_time ?? "99") ||
+        a.id.localeCompare(b.id),
+    );
+  return { summary, extras, extraIds: inMonth.slice(available).map((p) => p.id) };
+}

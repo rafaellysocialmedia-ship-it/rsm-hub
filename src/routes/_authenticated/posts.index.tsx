@@ -17,6 +17,7 @@ import {
   Download,
   Send,
   CheckSquare,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -49,6 +50,8 @@ import { PostEditorSheet } from "@/components/posts/post-editor-sheet";
 import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
 import { PostBalanceControlBar } from "@/components/posts/post-balance-control-bar";
 import { formatMonth } from "@/lib/post-quota";
+import { usePostLedger } from "@/hooks/use-post-ledger";
+import { monthOverflow, type PostLedgerRow } from "@/lib/post-ledger";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
 import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
@@ -155,7 +158,32 @@ function PostsPage() {
 
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
-  // Saldo mensal (inclui o que ficou faltando do mês anterior)
+  // Saldo mensal (inclui o que ficou faltando do mês anterior).
+  // Excedentes do mês exibido: clientes que passaram do total a entregar e
+  // quais publicações são as "extras" (as últimas do mês, em ordem de data).
+  const { data: ledgerRows = [] } = usePostLedger();
+  const overflow = useMemo(() => {
+    const ids = new Set<string>();
+    const byClient: { id: string; name: string; extras: number }[] = [];
+    for (const client of clients) {
+      const contracted = client.monthly_post_quota ?? 0;
+      if (contracted <= 0) continue;
+      const result = monthOverflow({
+        clientId: client.id,
+        contracted,
+        ledger: ledgerRows as PostLedgerRow[],
+        posts,
+        ref: calendarMonth,
+        since: client.start_date,
+      });
+      if (result.extras > 0) {
+        byClient.push({ id: client.id, name: client.name, extras: result.extras });
+        result.extraIds.forEach((id) => ids.add(id));
+      }
+    }
+    byClient.sort((a, b) => b.extras - a.extras || a.name.localeCompare(b.name));
+    return { ids, byClient };
+  }, [clients, ledgerRows, posts, calendarMonth]);
 
   // Realtime
   useEffect(() => {
@@ -361,6 +389,44 @@ function PostsPage() {
       {view === "calendar" && selectedClients(clientFilter).length === 1 && (
         <PostBalanceControlBar clientId={clientFilter} ref={calendarMonth} />
       )}
+      {view === "calendar" &&
+        selectedClients(clientFilter).length !== 1 &&
+        overflow.byClient.filter(
+          (c) => clientFilter === "all" || selectedClients(clientFilter).includes(c.id),
+        ).length > 0 && (
+          <div
+            role="status"
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-amber-500/40 bg-amber-500/[0.07] px-3 py-2.5"
+          >
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-900 dark:text-amber-200">
+              <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
+              Acima do plano em {formatMonth(calendarMonth)}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {overflow.byClient
+                .filter(
+                  (c) => clientFilter === "all" || selectedClients(clientFilter).includes(c.id),
+                )
+                .map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setClientFilter(c.id)}
+                    title={`Ver o calendário de ${c.name}`}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-background px-2 py-1 text-[11px] font-medium hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <span className="max-w-[180px] truncate">{c.name}</span>
+                    <span className="rounded bg-amber-500/20 px-1 font-semibold tabular-nums text-amber-900 dark:text-amber-200">
+                      +{c.extras}
+                    </span>
+                  </button>
+                ))}
+            </div>
+            <span className="text-[11px] text-muted-foreground">
+              As publicações excedentes aparecem com a etiqueta “Extra”.
+            </span>
+          </div>
+        )}
 
       <div className="space-y-2 rounded-xl border border-border/60 bg-card p-2.5 sm:p-3">
         <ContentFilters
@@ -492,6 +558,7 @@ function PostsPage() {
               <ClientCalendarPage
                 providedPosts={filtered}
                 onMonthChange={handleMonthChange}
+                extraPostIds={overflow.ids}
                 defaultClientId={
                   selectedClients(clientFilter).length === 1 ? clientFilter : undefined
                 }

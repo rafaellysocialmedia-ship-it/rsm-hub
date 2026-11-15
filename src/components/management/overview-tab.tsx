@@ -9,7 +9,14 @@ import { useStaffMembers } from "@/hooks/use-staff";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { InfoRow, SectionCard } from "./master-shared";
 
-export function OverviewTab({ client }: { client: Client }) {
+export function OverviewTab({
+  client,
+  hideNextMeeting = false,
+}: {
+  client: Client;
+  /** A próxima reunião já aparece no resumo da conta; evita repetir o bloco. */
+  hideNextMeeting?: boolean;
+}) {
   const { data: staff = [] } = useStaffMembers();
   const nameOf = (id: string | null | undefined) => {
     if (!id) return null;
@@ -19,6 +26,7 @@ export function OverviewTab({ client }: { client: Client }) {
 
   const { data: nextMeeting } = useQuery({
     queryKey: ["client-next-meeting", client.id],
+    enabled: !hideNextMeeting,
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
@@ -66,6 +74,7 @@ export function OverviewTab({ client }: { client: Client }) {
         </div>
       </SectionCard>
 
+      {!hideNextMeeting && (
       <SectionCard title="Próxima reunião" className="lg:col-span-2">
         {nextMeeting ? (
           <div className="flex items-center gap-3">
@@ -84,6 +93,7 @@ export function OverviewTab({ client }: { client: Client }) {
           <p className="text-sm text-muted-foreground">Nenhuma reunião agendada.</p>
         )}
       </SectionCard>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, Receipt } from "lucide-react";
+import { Handshake, Plus, Receipt, Undo2 } from "lucide-react";
 
 import {
   CHARGE_STATUS_META,
@@ -18,6 +18,7 @@ import {
 } from "@/hooks/use-finance";
 import { ChargeDialog } from "@/components/finance/charge-dialog";
 import { PaymentDialog } from "@/components/finance/payment-dialog";
+import { RenegotiateDialog, UndoPaymentDialog } from "@/components/finance/charge-actions";
 import { FinanceHistoryTimeline } from "@/components/finance/finance-history-timeline";
 
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,8 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
 
   const [chargeOpen, setChargeOpen] = useState(false);
   const [paying, setPaying] = useState<FinanceCharge | null>(null);
+  const [undoing, setUndoing] = useState<FinanceCharge | null>(null);
+  const [renegotiating, setRenegotiating] = useState<FinanceCharge | null>(null);
 
   const totals = useMemo(() => {
     let received = 0;
@@ -164,11 +167,23 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {st !== "paid" && st !== "cancelled" && access.canEdit && (
-                          <Button size="sm" variant="ghost" onClick={() => setPaying(c)}>
-                            <Receipt className="mr-1.5 h-4 w-4" /> Registrar
-                          </Button>
-                        )}
+                        <div className="flex flex-wrap justify-end gap-1">
+                          {st !== "paid" && st !== "cancelled" && access.canEdit && (
+                            <>
+                              <Button size="sm" variant="ghost" onClick={() => setPaying(c)}>
+                                <Receipt className="mr-1.5 h-4 w-4" /> Registrar
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => setRenegotiating(c)}>
+                                <Handshake className="mr-1.5 h-4 w-4" /> Renegociar
+                              </Button>
+                            </>
+                          )}
+                          {st === "paid" && access.canEdit && (
+                            <Button size="sm" variant="ghost" onClick={() => setUndoing(c)}>
+                              <Undo2 className="mr-1.5 h-4 w-4" /> Desfazer pagamento
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -190,6 +205,8 @@ export function ClientFinanceTab({ clientId }: { clientId: string }) {
 
       <ChargeDialog open={chargeOpen} onOpenChange={setChargeOpen} fixedClientId={clientId} />
       <PaymentDialog open={!!paying} onOpenChange={(o) => !o && setPaying(null)} charge={paying} />
+      <UndoPaymentDialog charge={undoing} onClose={() => setUndoing(null)} />
+      <RenegotiateDialog charge={renegotiating} onClose={() => setRenegotiating(null)} />
     </div>
   );
 }

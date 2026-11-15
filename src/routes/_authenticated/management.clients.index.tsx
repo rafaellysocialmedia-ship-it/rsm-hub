@@ -15,6 +15,7 @@ import {
   UserRound,
   BriefcaseBusiness,
   Clock3,
+  BellRing,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,8 @@ import { ClientLogo } from "@/components/clients/client-logo";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { StatusBadge } from "@/components/clients/status-badge";
 import { ListSkeleton } from "@/components/skeletons";
+import { ClientAlertChips } from "@/components/clients/client-alerts";
+import { useClientAlerts } from "@/hooks/use-client-alerts";
 
 export const Route = createFileRoute("/_authenticated/management/clients/")({
   head: () => ({
@@ -59,7 +62,8 @@ export const Route = createFileRoute("/_authenticated/management/clients/")({
   ),
 });
 
-type SortKey = "name" | "start_date" | "updated_at";
+type SortKey = "name" | "start_date" | "updated_at" | "alerts";
+const LEVEL_WEIGHT = { urgent: 100, warning: 10, info: 1 } as const;
 
 function ManagementClientsPage() {
   const { hasRole } = useAuth();
@@ -97,12 +101,25 @@ function ManagementClientsPage() {
     },
   });
 
+  const [onlyAlerts, setOnlyAlerts] = useStickyState("client-list-only-alerts", false);
+  const alerts = useClientAlerts();
+  const alertsByClient = alerts.byClient;
+  const withAlerts = (clients ?? []).filter(
+    (c) => isActiveClient(c) && (alertsByClient.get(c.id)?.alerts.length ?? 0) > 0,
+  ).length;
+
   const rows = useMemo(() => {
+    const alertWeight = (id: string) =>
+      (alertsByClient.get(id)?.alerts ?? []).reduce(
+        (sum, alert) => sum + LEVEL_WEIGHT[alert.level],
+        0,
+      );
     const q = search.trim().toLowerCase();
     return (clients ?? [])
       .filter((c) =>
         status === "active" ? isActiveClient(c) : status === "all" || c.status === status,
       )
+      .filter((c) => !onlyAlerts || (alertsByClient.get(c.id)?.alerts.length ?? 0) > 0)
       .filter((c) =>
         !q
           ? true
@@ -112,11 +129,13 @@ function ManagementClientsPage() {
       )
       .sort((a, b) => {
         if (sort === "name") return a.name.localeCompare(b.name);
+        if (sort === "alerts")
+          return alertWeight(b.id) - alertWeight(a.id) || a.name.localeCompare(b.name);
         const av = (a as unknown as Record<string, string | null>)[sort] ?? "";
         const bv = (b as unknown as Record<string, string | null>)[sort] ?? "";
         return bv.localeCompare(av);
       });
-  }, [clients, search, status, sort]);
+  }, [clients, search, status, sort, onlyAlerts, alertsByClient]);
 
   const nameOf = (id: string | null | undefined) => {
     if (!id) return "—";
@@ -146,7 +165,7 @@ function ManagementClientsPage() {
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {[
           { label: "Clientes cadastrados", value: clients?.length ?? 0, icon: Building2 },
           {
@@ -168,6 +187,32 @@ function ManagementClientsPage() {
             </div>
           </div>
         ))}
+        <button
+          type="button"
+          aria-pressed={onlyAlerts}
+          onClick={() => setOnlyAlerts(!onlyAlerts)}
+          title={onlyAlerts ? "Mostrar todos os clientes" : "Mostrar só clientes com alertas"}
+          className={`col-span-2 flex items-center gap-3 rounded-xl border p-3 text-left shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:col-span-1 ${
+            onlyAlerts
+              ? "border-amber-500/40 bg-amber-500/10"
+              : withAlerts > 0
+                ? "border-amber-500/30 bg-card hover:bg-amber-500/5"
+                : "bg-card hover:bg-muted/40"
+          }`}
+        >
+          <div className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 sm:flex">
+            <BellRing className="size-4" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs text-muted-foreground">Clientes com alertas</p>
+            <p className="text-xl font-semibold tabular-nums">
+              {isLoading || alerts.isLoading ? "…" : withAlerts}
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-medium text-primary">
+            {onlyAlerts ? "Ver todos" : "Filtrar"}
+          </span>
+        </button>
       </div>
       <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center">
         <div className="relative flex-1">
@@ -198,6 +243,7 @@ function ManagementClientsPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="alerts">Mais alertas primeiro</SelectItem>
             <SelectItem value="updated_at">Última atualização</SelectItem>
             <SelectItem value="name">Nome (A-Z)</SelectItem>
             <SelectItem value="start_date">Data de início</SelectItem>
@@ -253,6 +299,7 @@ function ManagementClientsPage() {
               account_manager_id?: string | null;
             };
             const svc = services.filter((s) => s.client_id === client.id);
+            const clientAlerts = alertsByClient.get(client.id)?.alerts ?? [];
             return (
               <Link
                 key={client.id}
@@ -286,6 +333,20 @@ function ManagementClientsPage() {
                     className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
                     aria-hidden
                   />
+                </div>
+                <div className={`min-w-0 ${viewMode === "list" ? "lg:w-[260px]" : ""}`}>
+                  <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">Alertas</p>
+                  {clientAlerts.length > 0 ? (
+                    <ClientAlertChips alerts={clientAlerts} max={viewMode === "list" ? 2 : 3} />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {alerts.isLoading
+                        ? "Carregando…"
+                        : isActiveClient(client)
+                          ? "Sem alertas"
+                          : "Conta inativa"}
+                    </span>
+                  )}
                 </div>
                 <div className={`min-w-0 ${viewMode === "list" ? "lg:w-[220px]" : ""}`}>
                   <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">

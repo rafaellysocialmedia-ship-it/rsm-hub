@@ -29,11 +29,14 @@ export function ClientCalendarPage({
   defaultClientId,
   providedPosts,
   onMonthChange,
+  extraPostIds,
 }: {
   clientId?: string;
   defaultClientId?: string;
   providedPosts?: Post[];
   onMonthChange?: (date: Date) => void;
+  /** Posts above the monthly plan; they get an "Extra" tag (team view only). */
+  extraPostIds?: ReadonlySet<string>;
 }) {
   const { user } = useAuth();
   const { today, zone } = useCalendarToday();
@@ -148,7 +151,7 @@ export function ClientCalendarPage({
         setDragging(null);
         setDestination(null);
       }}
-      className={`group min-w-0 select-none rounded-lg border border-border/70 bg-card ${view === "month" && !modal ? "p-1.5" : density === "compact" && !modal ? "p-2" : "p-2.5"} shadow-none transition-colors hover:border-[#b283f3]/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
+      className={`group min-w-0 select-none rounded-lg border bg-card ${extraPostIds?.has(p.id) ? "border-amber-500/60 bg-amber-500/[0.06]" : "border-border/70"} ${view === "month" && !modal ? "p-1.5" : density === "compact" && !modal ? "p-2" : "p-2.5"} shadow-none transition-colors hover:border-[#b283f3]/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
     >
       <button
         type="button"
@@ -172,6 +175,14 @@ export function ClientCalendarPage({
               <span className="min-w-0 flex-1 truncate text-[11px] font-medium" title={p.title}>
                 {p.title}
               </span>
+              {extraPostIds?.has(p.id) && (
+                <span
+                  className="shrink-0 rounded bg-amber-500/20 px-1 text-[9px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-200"
+                  title="Publicação acima do total a entregar no mês"
+                >
+                  Extra
+                </span>
+              )}
               <span
                 className={`size-1.5 shrink-0 rounded-full ${statusMeta(p.status).dot}`}
                 title={statusMeta(p.status).label}
@@ -263,6 +274,14 @@ export function ClientCalendarPage({
               >
                 {statusMeta(p.status).label}
               </span>
+              {extraPostIds?.has(p.id) && (
+                <span
+                  className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:text-amber-200"
+                  title="Publicação acima do total a entregar no mês"
+                >
+                  Extra do mês
+                </span>
+              )}
             </div>
             {showDate && p.scheduled_date && (
               <span className="block text-[10px] text-muted-foreground">

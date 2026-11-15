@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  CircleDollarSign,
   ClipboardList,
   FileText,
   HeartHandshake,
@@ -38,13 +39,18 @@ export const profileGroups: Group[] = [
   },
   { title: "Resultados", items: [["reports", "Relatórios"]] },
   {
-    title: "Gestão",
+    title: "Financeiro",
     items: [
-      ["strategy", "Estratégia e briefing"],
-      ["documents", "Identidade e arquivos"],
-      ["settings", "Dados, equipe e integrações"],
       ["finance", "Cobranças"],
       ["contract", "Contrato"],
+    ],
+  },
+  {
+    title: "Cadastro",
+    items: [
+      ["settings", "Dados, equipe e integrações"],
+      ["strategy", "Estratégia e briefing"],
+      ["documents", "Identidade e arquivos"],
     ],
   },
 ];
@@ -98,8 +104,9 @@ export function GroupedNavigation({
     Solicitações: HeartHandshake,
     Resultados: BarChart3,
     Gestão: Settings2,
+    Cadastro: Settings2,
     Documentos: FileText,
-    Financeiro: FileText,
+    Financeiro: CircleDollarSign,
   };
   return (
     <div className="space-y-1 border-b border-border/60 pb-2">

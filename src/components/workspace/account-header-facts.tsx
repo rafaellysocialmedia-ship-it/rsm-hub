@@ -66,67 +66,75 @@ export function AccountHeaderFacts({
     .map((c) => c.end_date)
     .filter((x): x is string => !!x)
     .sort()[0];
+  const fact = ([label, value]: string[]) => (
+    <div key={label} className="min-w-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 truncate font-medium" title={q.isLoading ? undefined : value}>
+        {q.isLoading ? "…" : value}
+      </dd>
+    </div>
+  );
+  // O essencial fica sempre visível; o restante do cadastro abre sob demanda.
+  const primary: string[][] = [
+    ...(finance.canView
+      ? [
+          [
+            "Mensalidade",
+            services.isLoading ? "…" : monthly.hasMonthly ? money(monthly.amount) : "Não cadastrada",
+          ],
+          ["Próxima cobrança", q.data?.due ? dateLabel(q.data.due) : "Sem cobrança pendente"],
+        ]
+      : []),
+    ["Responsável", owner || "Não atribuído"],
+    ["Próxima ação", next ? `${next.title} · ${dateLabel(next.due_date)}` : "Nenhuma ação aberta"],
+  ];
+  const secondary: string[][] = [
+    ["Empresa", client.trade_name || client.name],
+    ["Instagram", q.data?.instagram || "Não informado"],
+    ["Cliente desde", dateLabel(client.start_date || client.created_at)],
+    ["Último contato", a?.last_contact ? dateLabel(a.last_contact) : "Sem registro"],
+    ...(finance.canView
+      ? [
+          ...(monthly.missingBillingDay ? [["Vencimento", "Não configurado nos serviços"]] : []),
+          ["Término do contrato", end ? dateLabel(end) : "Não informado"],
+        ]
+      : []),
+  ];
   return (
     <div className="space-y-2">
-      <details className="rsm-account-details rounded-xl border bg-card">
-        <summary className="flex cursor-pointer flex-wrap items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium hover:bg-muted/50">
-          <span className="flex-1">Detalhes da conta</span>
+      <section aria-label="Resumo da conta" className="rounded-xl border bg-card">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 p-4 text-sm">
+          <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-6 gap-y-3 lg:grid-cols-4">
+            {primary.map(fact)}
+          </dl>
           {a && <HealthBadge account={a} />}
-          <svg
-            className="size-4 shrink-0 text-muted-foreground transition-transform"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </summary>
-        <dl className="grid gap-x-6 gap-y-4 border-t p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["Empresa", client.trade_name || client.name],
-            ["Instagram", q.data?.instagram || "Não informado"],
-            ["Entrada", dateLabel(client.start_date || client.created_at)],
-            ["Responsável", owner || "Não atribuído"],
-            ...(finance.canView
-              ? [
-                  [
-                    "Mensalidade",
-                    services.isLoading
-                      ? "…"
-                      : monthly.hasMonthly
-                        ? money(monthly.amount)
-                        : "Não cadastrada",
-                  ],
-                  ...(monthly.missingBillingDay
-                    ? [["Vencimento", "Não configurado nos serviços"]]
-                    : []),
-                  [
-                    "Próxima cobrança",
-                    q.data?.due ? dateLabel(q.data.due) : "Sem cobrança pendente",
-                  ],
-                  ["Término do contrato", end ? dateLabel(end) : "Não informado"],
-                ]
-              : []),
-            ["Último contato", a?.last_contact ? dateLabel(a.last_contact) : "Sem registro"],
-            [
-              "Próxima ação",
-              next ? `${next.title} · ${dateLabel(next.due_date)}` : "Nenhuma ação aberta",
-            ],
-          ].map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-muted-foreground">{label}</dt>
-              <dd className="mt-1 font-medium">{q.isLoading ? "…" : value}</dd>
-            </div>
-          ))}
-        </dl>
+        </div>
+        <details className="rsm-account-details border-t">
+          <summary className="flex cursor-pointer items-center gap-2 px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-muted/50">
+            <span className="flex-1">Mais detalhes da conta</span>
+            <svg
+              className="size-4 shrink-0 transition-transform"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </summary>
+          <dl className="grid gap-x-6 gap-y-3 border-t p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            {secondary.map(fact)}
+          </dl>
+        </details>
         {finance.canView && monthly.missingBillingDay && (
-          <Button size="sm" variant="outline" onClick={onConfigureBilling}>
-            Configurar vencimento dos serviços
-          </Button>
+          <div className="border-t px-4 py-2.5">
+            <Button size="sm" variant="outline" onClick={onConfigureBilling}>
+              Configurar vencimento dos serviços
+            </Button>
+          </div>
         )}
-      </details>
+      </section>
       {(q.error || services.error || retention.error || actions.error || team.error) && (
         <p role="alert" className="text-sm text-destructive">
           Parte do resumo não pôde ser carregada. Consulte a aba correspondente.

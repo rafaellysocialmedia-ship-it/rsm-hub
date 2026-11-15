@@ -1,14 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
-import {
-  AlertCircle,
-  AlertTriangle,
-  ArrowUpRight,
-  CalendarClock,
-  CheckCircle2,
-  Clock3,
-  Sparkles,
-} from "lucide-react";
+import { CheckCircle2, Clock3, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountMeetings } from "@/hooks/use-account-workspace";
 import { useFinanceAccess, useCharges, useContracts, useClientServices } from "@/hooks/use-finance";
@@ -19,6 +11,8 @@ import { type Client } from "@/lib/clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MetricCard, QueryState, useInternalPosts } from "./account-panels";
+import { ClientAlertList } from "@/components/clients/client-alerts";
+import { useClientAlerts } from "@/hooks/use-client-alerts";
 
 export function AccountOverview({
   client,
@@ -64,6 +58,8 @@ export function AccountOverview({
     },
   });
   const summary = accountContentSummary(posts.data ?? []);
+  const alerts = useClientAlerts(client.id);
+  const accountAlerts = alerts.byClient.get(client.id)?.alerts ?? [];
   const today = localDate();
   const nextMeeting = (meetings.data ?? [])
     .filter((m) => m.status === "scheduled" && m.meeting_date >= today)
@@ -75,6 +71,51 @@ export function AccountOverview({
   const monthly = monthlyServiceSummary(services.data ?? [], activeContracts);
   return (
     <div className="space-y-5">
+      <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
+        <CardHeader className="border-b border-border/60 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Sparkles className="size-4.5" aria-hidden />
+            </div>
+            <div>
+              <CardTitle className="text-base">
+                Alertas e próximos passos
+                {!client.churned && accountAlerts.length > 0 && (
+                  <span className="ml-2 rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
+                    {accountAlerts.length}
+                  </span>
+                )}
+              </CardTitle>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Tudo o que pede atenção nesta conta, do mais urgente ao menos urgente.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {client.churned ? (
+            <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
+              <Clock3 className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+              Conta encerrada. O histórico continua disponível.
+            </div>
+          ) : alerts.isLoading ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              Carregando alertas…
+            </p>
+          ) : alerts.error ? (
+            <p role="alert" className="text-sm text-destructive">
+              Não foi possível carregar os alertas desta conta.
+            </p>
+          ) : accountAlerts.length > 0 ? (
+            <ClientAlertList alerts={accountAlerts} onTab={onTab} />
+          ) : (
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-800 dark:text-emerald-200">
+              <CheckCircle2 className="size-5 shrink-0" aria-hidden />
+              Nenhuma pendência identificada nesta conta.
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <QueryState loading={posts.isLoading} error={posts.error}>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
@@ -99,87 +140,6 @@ export function AccountOverview({
           />
         </div>
       </QueryState>
-      <Card className="overflow-hidden border-border/70 bg-card shadow-sm">
-        <CardHeader className="border-b border-border/60 pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Sparkles className="size-4.5" aria-hidden />
-            </div>
-            <div>
-              <CardTitle className="text-base">Atenção e próximos passos</CardTitle>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Pendências deste cliente, organizadas por prioridade.
-              </p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-4">
-          {client.churned ? (
-            <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
-              <Clock3 className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-              Conta encerrada. O histórico continua disponível.
-            </div>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2">
-              {summary.late > 0 && (
-                <Attention
-                  kind="urgent"
-                  title="Publicações atrasadas"
-                  text={`${summary.late} conteúdo(s) passaram da data prevista.`}
-                  action="Ver calendário"
-                  onClick={() => onTab("calendar")}
-                />
-              )}
-              {finance.canView && nextCharge && effectiveStatus(nextCharge) === "overdue" && (
-                <Attention
-                  kind="urgent"
-                  title="Cobrança em atraso"
-                  text="Há cobrança vencida nesta conta."
-                  action="Ver financeiro"
-                  onClick={() => onTab("finance")}
-                />
-              )}
-              {summary.changes > 0 && (
-                <Attention
-                  kind="warning"
-                  title="Ajustes solicitados"
-                  text={`${summary.changes} conteúdo(s) precisam de ajustes.`}
-                  action="Ver ajustes"
-                  onClick={() => onTab("approvals")}
-                />
-              )}
-              {summary.pending > 0 && (
-                <Attention
-                  kind="pending"
-                  title="Aguardando aprovação"
-                  text={`${summary.pending} conteúdo(s) aguardam aprovação do cliente.`}
-                  action="Ver aprovações"
-                  onClick={() => onTab("approvals")}
-                />
-              )}
-              {!posts.isLoading && !posts.error && !summary.scheduled && (
-                <Attention
-                  kind="pending"
-                  title="Nenhuma publicação agendada neste mês"
-                  text="Nenhuma publicação programada para este mês."
-                  action="Planejar conteúdo"
-                  onClick={() => onTab("contents")}
-                />
-              )}
-              {!summary.pending &&
-                !summary.changes &&
-                !summary.late &&
-                summary.scheduled > 0 &&
-                !(finance.canView && nextCharge && effectiveStatus(nextCharge) === "overdue") && (
-                  <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 text-sm text-emerald-800 dark:text-emerald-200 md:col-span-2">
-                    <CheckCircle2 className="size-5 shrink-0" aria-hidden />
-                    Nenhuma pendência de conteúdo identificada.
-                  </div>
-                )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -268,61 +228,6 @@ export function AccountOverview({
           </Card>
         )}
       </div>
-    </div>
-  );
-}
-type AttentionKind = "urgent" | "warning" | "pending";
-const attentionStyle: Record<AttentionKind, { border: string; icon: typeof AlertTriangle }> = {
-  urgent: {
-    border: "border-rose-500/20 bg-rose-500/[0.04]",
-    icon: AlertTriangle,
-  },
-  warning: {
-    border: "border-amber-500/25 bg-amber-500/[0.05]",
-    icon: AlertCircle,
-  },
-  pending: {
-    border: "border-primary/15 bg-primary/[0.035]",
-    icon: CalendarClock,
-  },
-};
-function Attention({
-  title,
-  text,
-  action,
-  kind,
-  onClick,
-}: {
-  title: string;
-  text: string;
-  action: string;
-  kind: AttentionKind;
-  onClick: () => void;
-}) {
-  const style = attentionStyle[kind];
-  const Icon = style.icon;
-  return (
-    <div
-      className={`flex min-w-0 flex-col justify-between gap-3 rounded-xl border p-3.5 ${style.border}`}
-    >
-      <div className="flex items-start gap-2.5">
-        <div className="rounded-lg bg-background/80 p-2 text-foreground" aria-hidden>
-          <Icon className="size-4" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
-        </div>
-      </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-8 self-start gap-1.5 bg-background text-xs"
-        onClick={onClick}
-      >
-        {action}
-        <ArrowUpRight className="size-3.5" aria-hidden />
-      </Button>
     </div>
   );
 }

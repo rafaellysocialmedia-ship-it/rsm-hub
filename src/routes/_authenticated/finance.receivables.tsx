@@ -1,7 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CircleDollarSign, Pencil, Plus, Search, Ban, CheckCircle2 } from "lucide-react";
+import {
+  CircleDollarSign,
+  Pencil,
+  Plus,
+  Search,
+  Ban,
+  CheckCircle2,
+  Handshake,
+  Undo2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +31,7 @@ import {
 import { SERVICE_CATALOG } from "@/lib/client-master";
 import { ChargeDialog } from "@/components/finance/charge-dialog";
 import { PaymentDialog } from "@/components/finance/payment-dialog";
+import { RenegotiateDialog, UndoPaymentDialog } from "@/components/finance/charge-actions";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,6 +89,8 @@ function ReceivablesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<FinanceCharge | null>(null);
   const [paying, setPaying] = useState<FinanceCharge | null>(null);
+  const [undoing, setUndoing] = useState<FinanceCharge | null>(null);
+  const [renegotiating, setRenegotiating] = useState<FinanceCharge | null>(null);
 
   const clientName = useCallback(
     (id: string) => clients.find((client) => client.id === id)?.name ?? "—",
@@ -90,8 +102,12 @@ function ReceivablesPage() {
   const filtered = useMemo(
     () =>
       charges.filter((c) => {
-        if (c.due_date < month.from || c.due_date >= month.toExclusive) return false;
         const status = effectiveStatus(c);
+        // Mês atual + tudo que continua em atraso de meses anteriores: uma
+        // cobrança vencida só sai da lista quando é paga, renegociada ou cancelada.
+        const carriedOver = c.due_date < month.from && status === "overdue";
+        if (!carriedOver && (c.due_date < month.from || c.due_date >= month.toExclusive))
+          return false;
         if (clientFilter !== "all" && c.client_id !== clientFilter) return false;
         if (serviceFilter !== "all" && c.service_key !== serviceFilter) return false;
         if (statusFilter !== "all" && status !== statusFilter) return false;
@@ -134,6 +150,8 @@ function ReceivablesPage() {
   }
 
   const total = filtered.reduce((s, c) => s + Number(c.amount ?? 0), 0);
+  const carried = filtered.filter((c) => c.due_date < month.from);
+  const carriedTotal = carried.reduce((s, c) => s + Number(c.amount ?? 0), 0);
   const monthLabel = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
   return (
@@ -147,6 +165,12 @@ function ReceivablesPage() {
           <p className="text-sm text-muted-foreground">
             Mensalidades de {monthLabel} · {filtered.length} cobranças · {money(total)}
           </p>
+          {carried.length > 0 && (
+            <p className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+              Inclui {carried.length} cobrança{carried.length === 1 ? "" : "s"} em atraso de meses
+              anteriores · {money(carriedTotal)}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
@@ -167,7 +191,7 @@ function ReceivablesPage() {
 
       <Card className="shadow-soft">
         <CardHeader>
-          <CardTitle className="text-base">Filtros do mês atual</CardTitle>
+          <CardTitle className="text-base">Filtros</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <div className="relative">
@@ -244,7 +268,7 @@ function ReceivablesPage() {
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
-                    Nenhuma mensalidade encontrada para este mês.
+                    Nenhuma cobrança encontrada com os filtros atuais.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -252,7 +276,14 @@ function ReceivablesPage() {
                   const status = effectiveStatus(c);
                   return (
                     <TableRow key={c.id}>
-                      <TableCell className="font-medium">{clientName(c.client_id)}</TableCell>
+                      <TableCell className="font-medium">
+                        {clientName(c.client_id)}
+                        {c.due_date < month.from && (
+                          <span className="mt-0.5 block text-[11px] font-normal text-red-600 dark:text-red-400">
+                            Atraso de mês anterior
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell>{c.service_label ?? "—"}</TableCell>
                       <TableCell className="max-w-[220px] truncate">{c.description}</TableCell>
                       <TableCell>{money(c.amount)}</TableCell>
@@ -274,6 +305,28 @@ function ReceivablesPage() {
                               onClick={() => setPaying(c)}
                             >
                               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            </Button>
+                          )}
+                          {access.canEdit && c.status !== "paid" && c.status !== "cancelled" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              title="Renegociar"
+                              aria-label={`Renegociar cobrança de ${clientName(c.client_id)}`}
+                              onClick={() => setRenegotiating(c)}
+                            >
+                              <Handshake className="h-4 w-4 text-amber-600" />
+                            </Button>
+                          )}
+                          {access.canEdit && c.status === "paid" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              title="Desfazer pagamento"
+                              aria-label={`Desfazer pagamento de ${clientName(c.client_id)}`}
+                              onClick={() => setUndoing(c)}
+                            >
+                              <Undo2 className="h-4 w-4" />
                             </Button>
                           )}
                           {access.canEdit && (
@@ -312,6 +365,8 @@ function ReceivablesPage() {
 
       <ChargeDialog open={dialogOpen} onOpenChange={setDialogOpen} charge={editing} />
       <PaymentDialog open={!!paying} onOpenChange={(o) => !o && setPaying(null)} charge={paying} />
+      <UndoPaymentDialog charge={undoing} onClose={() => setUndoing(null)} />
+      <RenegotiateDialog charge={renegotiating} onClose={() => setRenegotiating(null)} />
     </div>
   );
 }

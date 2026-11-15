@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Gauge } from "lucide-react";
+import { AlertTriangle, Gauge } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePostLedger, usePostUsage } from "@/hooks/use-post-ledger";
@@ -94,14 +94,36 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
   });
   const published = inMonth.filter((post) => post.status === "published").length;
   const waitingApproval = inMonth.filter((post) => post.status === "review" || post.status === "changes_requested").length;
-  const metric = (title: string, value: number, explanation: string, attention = false) => (
-    <div key={title} title={explanation} className="min-w-[95px] flex-1 px-2 py-1.5 sm:min-w-[116px]">
-      <p className="truncate text-[10px] text-muted-foreground">{title}</p>
-      <p className={cn("text-lg font-semibold leading-snug tabular-nums", attention && "text-amber-600 dark:text-amber-400")}>{value}</p>
+  const metric = (
+    title: string,
+    value: number | string,
+    explanation: string,
+    attention = false,
+    excess = false,
+  ) => (
+    <div
+      key={title}
+      title={explanation}
+      className={cn(
+        "min-w-[95px] flex-1 px-2 py-1.5 sm:min-w-[116px]",
+        excess && "bg-amber-500/10",
+      )}
+    >
+      <p className={cn("truncate text-[10px] text-muted-foreground", excess && "font-semibold text-amber-800 dark:text-amber-200")}>{title}</p>
+      <p className={cn("text-lg font-semibold leading-snug tabular-nums", (attention || excess) && "text-amber-600 dark:text-amber-400")}>{value}</p>
     </div>
   );
+  // Parte da barra que representa o plano quando há excedente (o restante é o extra).
+  const planShare = overPlan && currentCount > 0
+    ? Math.round((totalToDeliver / currentCount) * 100)
+    : 100;
   return (
-    <div className="rounded-xl border border-border/70 bg-card px-3 py-2.5 shadow-sm">
+    <div
+      className={cn(
+        "rounded-xl border bg-card px-3 py-2.5 shadow-sm",
+        overPlan ? "border-amber-500/50" : "border-border/70",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
         <div className="flex min-w-0 items-center gap-2 text-xs">
           <Gauge className="size-3.5 shrink-0 text-primary" aria-hidden />
@@ -109,17 +131,32 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
           <span className="shrink-0 text-[11px] capitalize text-muted-foreground">{labelMonth(year, month)}</span>
           {summary.closed && <Badge variant="secondary" className="h-5 text-[10px]">Mês fechado</Badge>}
         </div>
-        <span className={cn("text-[11px] font-medium", oneLeft ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
-          {statusLabel}
-        </span>
+        {overPlan ? (
+          <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-900 dark:text-amber-200">
+            <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
+            +{extras} acima do plano
+          </span>
+        ) : (
+          <span className={cn("text-[11px] font-medium", oneLeft ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground")}>
+            {statusLabel}
+          </span>
+        )}
       </div>
+      {overPlan && (
+        <p role="status" className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/[0.08] px-2.5 py-1.5 text-xs text-amber-900 dark:text-amber-100">
+          <strong>{statusLabel}.</strong> O mês tem {currentCount} cadastradas para um total de{" "}
+          {totalToDeliver}. As excedentes aparecem no calendário com a etiqueta “Extra”.
+        </p>
+      )}
       <div className="mt-2 flex flex-wrap divide-x divide-border/60 rounded-lg border border-border/50 bg-muted/10">
         {metric("Cadastradas", currentCount, "Conteúdos registrados e elegíveis à cota deste mês. Não equivale a publicados.")}
         {metric("Meta contratada", contracted, "Quantidade contratada para o mês, sem saldo anterior.")}
         {metric("Total a entregar", totalToDeliver, "Meta contratada mais saldo anterior e ajustes.")}
         {metric("Publicadas¹", published, "Posts com status Publicado no calendário. Postagem externa requer confirmação da rede social.")}
         {metric("Em aprovação", waitingApproval, "Conteúdos em revisão pelo cliente ou com ajustes solicitados.")}
-        {metric("Faltam cadastrar", remaining, "Total a entregar menos conteúdos já cadastrados, não significa falta de publicação.", remaining > 0)}
+        {overPlan
+          ? metric("Excedentes", `+${extras}`, "Conteúdos cadastrados além do total a entregar neste mês.", false, true)
+          : metric("Faltam cadastrar", remaining, "Total a entregar menos conteúdos já cadastrados, não significa falta de publicação.", remaining > 0)}
       </div>
       <div
         className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
@@ -129,7 +166,14 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
         aria-valuemax={Math.max(totalToDeliver, 1)}
         aria-valuenow={Math.min(currentCount, Math.max(totalToDeliver, 1))}
       >
-        <div className="h-full rounded-full bg-[#69139b] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        {overPlan ? (
+          <div className="flex h-full w-full">
+            <div className="h-full bg-[#69139b]" style={{ width: `${planShare}%` }} />
+            <div className="h-full flex-1 bg-amber-500" title={`${extras} acima do plano`} />
+          </div>
+        ) : (
+          <div className="h-full rounded-full bg-[#69139b] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+        )}
       </div>
       <details className="group mt-1.5 text-[11px] text-muted-foreground">
         <summary className="cursor-pointer select-none hover:text-foreground">Entenda os números e ajustes ▾</summary>
