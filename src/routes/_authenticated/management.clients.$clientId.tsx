@@ -17,6 +17,7 @@ import { ContractsCard } from "@/components/clients/contracts-card";
 import { ChurnCard } from "@/components/clients/churn-card";
 import { useState, type ReactNode } from "react";
 import { ClientAlertChips } from "@/components/clients/client-alerts";
+import { ClientSetupChecklist } from "@/components/clients/client-setup-checklist";
 import { useClientAlerts } from "@/hooks/use-client-alerts";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -123,10 +124,11 @@ function ClientMasterPage() {
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState("info");
-  const openBillingSettings = () => {
-    setSettingsTab("services");
+  const openSettings = (section: string) => {
+    setSettingsTab(section);
     setTab("settings");
   };
+  const openBillingSettings = () => openSettings("services");
   useAccountSync(canEdit ? clientId : undefined);
   const headerAlerts = useClientAlerts(clientId).byClient.get(clientId)?.alerts ?? [];
 
@@ -293,6 +295,13 @@ function ClientMasterPage() {
         />
         <TabsContent value="overview" className="mt-4 space-y-4">
           <AccountHeaderFacts client={client} onConfigureBilling={openBillingSettings} />
+          <ClientSetupChecklist
+            client={client}
+            compact
+            onEdit={() => setEditOpen(true)}
+            onSection={openSettings}
+            onOpen={() => openSettings("info")}
+          />
           <AccountOverview
             client={client}
             onTab={setTab}
@@ -374,27 +383,39 @@ function ClientMasterPage() {
         </TabsContent>
         <TabsContent value="settings" className="mt-4">
           <Tabs value={settingsTab} onValueChange={setSettingsTab}>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-3">
-              <label htmlFor="rsm-client-settings" className="text-sm font-medium">
-                Configurações da conta
-              </label>
-              <select
-                id="rsm-client-settings"
-                aria-label="Selecione a configuração do cliente"
-                value={settingsTab}
-                onChange={(event) => setSettingsTab(event.target.value)}
-                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-64"
-              >
-                <option value="info">Informações</option>
-                <option value="services">Serviços e vencimentos</option>
-                <option value="team">Equipe</option>
-                <option value="accounts">Acessos</option>
-                <option value="assets">Ativos digitais</option>
-                <option value="integrations">Integrações</option>
-                <option value="portal">Painel do cliente</option>
-                <option value="chat">Chat interno</option>
-              </select>
-            </div>
+            <ClientSetupChecklist
+              client={client}
+              onEdit={() => setEditOpen(true)}
+              onSection={setSettingsTab}
+            />
+            <nav
+              aria-label="Seções do cadastro"
+              className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
+            >
+              {SETTINGS_SECTIONS.map((section) => {
+                const selected = settingsTab === section.value;
+                return (
+                  <button
+                    key={section.value}
+                    type="button"
+                    aria-current={selected ? "page" : undefined}
+                    onClick={() => setSettingsTab(section.value)}
+                    className={`rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                      selected
+                        ? "border-primary/40 bg-primary/10"
+                        : "bg-card hover:border-primary/25 hover:bg-muted/40"
+                    }`}
+                  >
+                    <span className={`block text-sm font-semibold ${selected ? "text-primary" : ""}`}>
+                      {section.label}
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {section.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
             <TabsContent value="info">
               <ChurnCard clientId={client.id} />
               <ExitDetails clientId={client.id} />
@@ -449,6 +470,18 @@ function ClientMasterPage() {
     </div>
   );
 }
+
+/** Seções da aba Cadastro, com uma linha dizendo o que se preenche em cada uma. */
+const SETTINGS_SECTIONS = [
+  { value: "info", label: "Informações", description: "Dados da empresa, contato, endereço e churn" },
+  { value: "services", label: "Serviços e vencimentos", description: "O que foi contratado, valores e dia de cobrança" },
+  { value: "team", label: "Equipe", description: "Quem da RSM trabalha nesta conta" },
+  { value: "accounts", label: "Acessos", description: "Redes sociais e contas do cliente (sem senhas)" },
+  { value: "assets", label: "Ativos digitais", description: "Landing pages, domínios, hospedagem e pixels" },
+  { value: "integrations", label: "Integrações", description: "Reservado para conexões futuras" },
+  { value: "portal", label: "Painel do cliente", description: "O que o cliente vê no portal" },
+  { value: "chat", label: "Chat interno", description: "Conversa da equipe sobre a conta" },
+] as const;
 
 const JOURNEY_LABELS = {
   closing: "Fechamento",

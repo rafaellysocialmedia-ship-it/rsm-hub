@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, CalendarClock, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarClock,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Trash2,
+  UserMinus,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +40,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  SERVICE_CHURN_REASONS,
+  parseServiceChurn,
+  stripServiceChurn,
+  withServiceChurn,
+} from "@/lib/service-churn";
 import { EmptyState, SectionCard } from "./master-shared";
 import { PostBalanceCard } from "./post-balance-card";
 import { monthsActive, monthsActiveLabel, deliveryState } from "@/lib/digital-assets";
@@ -47,6 +72,19 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
   const [amount, setAmount] = useState("");
   const [billingDay, setBillingDay] = useState("");
   const [focusBilling, setFocusBilling] = useState(false);
+  // Churn de um único serviço (o cliente continua ativo nos demais).
+  const [churning, setChurning] = useState<ClientService | null>(null);
+  const [churnDate, setChurnDate] = useState("");
+  const [churnReason, setChurnReason] = useState("");
+  const [churnDetails, setChurnDetails] = useState("");
+  const [removing, setRemoving] = useState<ClientService | null>(null);
+  const openChurn = (service: ClientService) => {
+    const previous = parseServiceChurn(service.notes);
+    setChurnDate(previous?.date ?? new Date().toLocaleDateString("en-CA"));
+    setChurnReason(previous?.reason ?? "");
+    setChurnDetails(previous?.details ?? "");
+    setChurning(service);
+  };
   const openNew = () => {
     setServiceKey(SERVICE_CATALOG[0].key);
     setSituation("active");
@@ -159,6 +197,51 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const churnService = useMutation({
+    mutationFn: async () => {
+      if (!churning) return;
+      if (!churnDate || !churnReason)
+        throw new Error("Informe a data e o motivo do encerramento.");
+      if (churnReason === "Outro" && !churnDetails.trim())
+        throw new Error("Para o motivo Outro, descreva o que aconteceu.");
+      const { error } = await supabase
+        .from("client_services")
+        .update({
+          situation: "cancelled",
+          notes: withServiceChurn(churning.notes, {
+            date: churnDate,
+            reason: churnReason,
+            details: churnDetails,
+          }),
+        } as never)
+        .eq("id", churning.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      for (const key of ["client-services", "client-timeline", "header-facts", "retention"])
+        qc.invalidateQueries({ queryKey: [key] });
+      toast.success("Serviço encerrado. As próximas mensalidades dele não serão geradas.");
+      setChurning(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reactivate = useMutation({
+    mutationFn: async (service: ClientService) => {
+      const { error } = await supabase
+        .from("client_services")
+        .update({ situation: "active", notes: stripServiceChurn(service.notes) || null } as never)
+        .eq("id", service.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      for (const key of ["client-services", "client-timeline", "header-facts", "retention"])
+        qc.invalidateQueries({ queryKey: [key] });
+      toast.success("Serviço reativado. A mensalidade volta a ser gerada no próximo ciclo.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("client_services").delete().eq("id", id);
@@ -167,6 +250,7 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-services", clientId] });
       toast.success("Serviço removido");
+      setRemoving(null);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -176,7 +260,7 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
     <SectionCard
       collapsible
       title="Serviços contratados"
-      description="Confira o valor e o vencimento de cada serviço. Use Alterar vencimento para editar diretamente."
+      description="Valor e vencimento de cada serviço. Para registrar o churn de um só serviço, use Encerrar serviço."
       actions={
         canEdit ? (
           <Button size="sm" onClick={openNew}>
@@ -194,7 +278,10 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
             const meta = situationMeta(s.situation);
             const months = monthsActive(s.start_date);
             const isPostService = s.service_key === "social_media";
-            const delivery = isPostService ? deliveryState(usedThisMonth, quota ?? 0) : null;
+            const ended = s.situation === "cancelled";
+            const churn = ended ? parseServiceChurn(s.notes) : null;
+            const delivery =
+              isPostService && !ended ? deliveryState(usedThisMonth, quota ?? 0) : null;
             return (
               <li key={s.id} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
@@ -212,7 +299,15 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                   <p className="mt-1 text-xs text-muted-foreground">
                     Início: {formatDate(s.start_date)} · Valor: {formatMoney(s.amount)}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {ended && (
+                    <p className="mt-1.5 rounded-lg border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs">
+                      <span className="font-medium text-destructive">Serviço encerrado</span>
+                      {churn
+                        ? ` em ${formatDate(churn.date)} · ${churn.reason}${churn.details ? ` · ${churn.details}` : ""}`
+                        : " · motivo não registrado"}
+                    </p>
+                  )}
+                  <div className={`mt-2 flex-wrap items-center gap-2 ${ended ? "hidden" : "flex"}`}>
                     <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium ${s.billing_day ? "border-border/70 bg-muted/40 text-foreground" : s.situation === "active" && s.auto_billing ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300" : "border-border/60 bg-muted/30 text-muted-foreground"}`}>
                       {s.situation === "active" && s.auto_billing && !s.billing_day
                         ? <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
@@ -241,7 +336,10 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                 {canEdit ? (
                   <Select
                     value={s.situation}
-                    onValueChange={(v) => changeSituation.mutate({ id: s.id, value: v })}
+                    onValueChange={(v) =>
+                      // "Cancelado" passa pelo registro de churn para guardar data e motivo.
+                      v === "cancelled" ? openChurn(s) : changeSituation.mutate({ id: s.id, value: v })
+                    }
                   >
                     <SelectTrigger className="h-8 w-[170px]">
                       <SelectValue />
@@ -259,6 +357,28 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                     {meta.label}
                   </Badge>
                 )}
+                {canEdit &&
+                  (ended ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 gap-1.5 text-xs"
+                      disabled={reactivate.isPending}
+                      onClick={() => reactivate.mutate(s)}
+                    >
+                      <RotateCcw className="size-3.5" aria-hidden="true" /> Reativar
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 gap-1.5 border-destructive/30 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      title="Registrar churn somente deste serviço"
+                      onClick={() => openChurn(s)}
+                    >
+                      <UserMinus className="size-3.5" aria-hidden="true" /> Encerrar serviço
+                    </Button>
+                  ))}
                 {canEdit && (
                    <Button size="icon" variant="ghost" className="h-8 w-8"
                      aria-label={`Editar ${s.label || s.service_key}`} title="Editar serviço e vencimento"
@@ -271,7 +391,9 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
                      size="icon"
                      variant="ghost"
                      className="h-8 w-8 text-destructive"
-                    onClick={() => remove.mutate(s.id)}
+                    aria-label={`Excluir ${s.label || s.service_key}`}
+                    title="Excluir o serviço do cadastro (não é churn)"
+                    onClick={() => setRemoving(s)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -369,6 +491,98 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={!!churning} onOpenChange={(o) => !o && !churnService.isPending && setChurning(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Encerrar {churning?.label || churning?.service_key}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            O churn vale só para este serviço. O cliente continua ativo e os outros serviços seguem
+            normalmente.
+          </p>
+          <div className="space-y-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="service-churn-date" className="text-xs text-muted-foreground">
+                Data do encerramento
+              </Label>
+              <Input
+                id="service-churn-date"
+                type="date"
+                value={churnDate}
+                onChange={(e) => setChurnDate(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label className="text-xs text-muted-foreground">Motivo</Label>
+              <Select value={churnReason} onValueChange={setChurnReason}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o motivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SERVICE_CHURN_REASONS.map((reason) => (
+                    <SelectItem key={reason} value={reason}>
+                      {reason}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="service-churn-details" className="text-xs text-muted-foreground">
+                Detalhes {churnReason === "Outro" ? "(obrigatório)" : "(opcional)"}
+              </Label>
+              <Textarea
+                id="service-churn-details"
+                rows={3}
+                maxLength={500}
+                value={churnDetails}
+                onChange={(e) => setChurnDetails(e.target.value)}
+              />
+            </div>
+            <ul className="list-disc space-y-1 rounded-lg border bg-muted/30 py-2.5 pl-7 pr-3 text-xs text-muted-foreground">
+              <li>As próximas mensalidades deste serviço deixam de ser geradas.</li>
+              <li>Cobranças já lançadas e pagamentos continuam no financeiro.</li>
+              <li>O serviço fica no histórico e pode ser reativado depois.</li>
+            </ul>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setChurning(null)} disabled={churnService.isPending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => churnService.mutate()}
+              disabled={churnService.isPending}
+            >
+              {churnService.isPending ? "Salvando…" : "Encerrar serviço"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!removing} onOpenChange={(o) => !o && !remove.isPending && setRemoving(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {removing?.label || removing?.service_key}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Excluir apaga o serviço do cadastro, sem deixar registro. Se o cliente parou de
+              contratar este serviço, use “Encerrar serviço” para guardar a data e o motivo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={remove.isPending}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={remove.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                if (removing) remove.mutate(removing.id);
+              }}
+            >
+              Excluir do cadastro
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SectionCard>
     <PostBalanceCard clientId={clientId} canEdit={canEdit} />
     </div>

@@ -220,7 +220,9 @@ export function ClientFormDialog({
         <DialogHeader>
           <DialogTitle>{client ? "Editar cliente" : "Novo cliente"}</DialogTitle>
           <DialogDescription>
-            Preencha as informações do cliente. A forma de pagamento escolhida será usada nas mensalidades automáticas.
+            {client
+              ? "Atualize os dados do cliente. Cada bloco explica para que serve a informação."
+              : "Para começar basta o nome. Depois de criar, a página do cliente mostra o que ainda falta preencher."}
           </DialogDescription>
         </DialogHeader>
 
@@ -246,86 +248,203 @@ export function ClientFormDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Nome *" error={form.formState.errors.name?.message}>
-              <Input {...form.register("name")} placeholder="Ex: Acme Co." />
+          <FormSection
+            title="1. Identificação"
+            description="Como o cliente aparece no sistema. Só o nome é obrigatório; o restante pode ser completado depois."
+          >
+            <Field
+              label="Nome *"
+              hint="Nome usado no dia a dia, no calendário e nas listas."
+              error={form.formState.errors.name?.message}
+            >
+              <Input {...form.register("name")} placeholder="Ex.: Dra. Ana Souza" />
             </Field>
-            <Field label="Razão Social"><Input {...form.register("legal_name")} /></Field>
+            <Field label="Segmento" hint="Área de atuação do cliente.">
+              <Input {...form.register("segment")} placeholder="Ex.: Advocacia" />
+            </Field>
+            <Field label="Razão social" hint="Nome da empresa no contrato e na nota fiscal.">
+              <Input {...form.register("legal_name")} />
+            </Field>
             <Field label="CNPJ">
-              <Input {...form.register("cnpj")} onChange={(e) => form.setValue("cnpj", formatCNPJ(e.target.value))} placeholder="00.000.000/0000-00" />
+              <Input
+                {...form.register("cnpj")}
+                onChange={(e) => form.setValue("cnpj", formatCNPJ(e.target.value))}
+                placeholder="00.000.000/0000-00"
+              />
             </Field>
-            <Field label="Responsável"><Input {...form.register("responsible")} /></Field>
-            <Field label="Telefone"><Input {...form.register("phone")} placeholder="(11) 0000-0000" /></Field>
-            <Field label="WhatsApp"><Input {...form.register("whatsapp")} placeholder="(11) 90000-0000" /></Field>
-            <Field label="Email" error={form.formState.errors.email?.message}><Input type="email" {...form.register("email")} /></Field>
-            <Field label="Segmento"><Input {...form.register("segment")} placeholder="Ex: E-commerce" /></Field>
-             <Field label="Cor da etiqueta do cliente no calendário" error={form.formState.errors.calendar_label_color?.message}>
-               <div className="flex flex-wrap items-center gap-3">
-                 <input type="color" aria-label="Escolher cor da etiqueta do cliente"
-                   className="h-10 w-12 cursor-pointer rounded border bg-background p-1"
-                   value={form.watch("calendar_label_color") || "#42145d"}
-                   onChange={(event) => form.setValue("calendar_label_color", event.target.value, { shouldValidate: true, shouldDirty: true })} />
-                 <ClientLabel id={client?.id ?? "new"} name={form.watch("name") || "Prévia do cliente"}
-                   color={form.watch("calendar_label_color")} />
-                 <Button type="button" variant="outline" size="sm"
-                   onClick={() => form.setValue("calendar_label_color", "", { shouldValidate: true, shouldDirty: true })}>
-                   Cor automática
-                 </Button>
-               </div>
-               <p className="text-xs text-muted-foreground">A cor aparece na identificação deste cliente no calendário. Sem escolha, a etiqueta mantém a cor automática.</p>
-             </Field>
-            <Field label="Plano contratado"><Input {...form.register("plan")} placeholder="Ex: Premium" /></Field>
-            <Field label="Data de início"><Input type="date" {...form.register("start_date")} /></Field>
-            <Field label="Forma de pagamento padrão">
+            <Field
+              label="Situação do cliente"
+              hint="Ativo = em atendimento. Prospect = ainda em negociação. Pausado e Inativo param as mensalidades automáticas."
+            >
               <Select
-                value={form.watch("default_payment_method_id") || "none"}
-                onValueChange={(v) => form.setValue("default_payment_method_id", v === "none" ? "" : v)}
+                value={form.watch("status")}
+                onValueChange={(v) => form.setValue("status", v as FormValues["status"])}
               >
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">— Não definida —</SelectItem>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.id} value={method.id}>{method.label}</SelectItem>
+                  {CLIENT_STATUS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Cota mensal de posts">
-              <Input type="number" min={0} placeholder="Ex: 12" {...form.register("monthly_post_quota")} />
+            <Field
+              label="Cor no calendário"
+              hint="Cor da etiqueta deste cliente no calendário. Sem escolha, o sistema define uma cor."
+              error={form.formState.errors.calendar_label_color?.message}
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="color"
+                  aria-label="Escolher cor da etiqueta do cliente"
+                  className="h-10 w-12 cursor-pointer rounded border bg-background p-1"
+                  value={form.watch("calendar_label_color") || "#42145d"}
+                  onChange={(event) =>
+                    form.setValue("calendar_label_color", event.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                />
+                <ClientLabel
+                  id={client?.id ?? "new"}
+                  name={form.watch("name") || "Prévia do cliente"}
+                  color={form.watch("calendar_label_color")}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    form.setValue("calendar_label_color", "", {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                >
+                  Cor automática
+                </Button>
+              </div>
             </Field>
-            <Field label="Prazo — Projeto de Perfil"><Input type="date" {...form.register("profile_project_deadline")} /></Field>
-            <Field label="Prazo — Editorial"><Input type="date" {...form.register("editorial_deadline")} /></Field>
-            <Field label="Status">
-              <Select value={form.watch("status")} onValueChange={(v) => form.setValue("status", v as FormValues["status"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+          </FormSection>
+
+          <FormSection
+            title="2. Contato"
+            description="Quem a equipe procura para aprovar conteúdos e resolver pendências."
+          >
+            <Field label="Pessoa de contato" hint="Nome de quem responde pelo cliente.">
+              <Input {...form.register("responsible")} placeholder="Ex.: Ana Souza" />
+            </Field>
+            <Field label="WhatsApp" hint="Canal principal para falar com o cliente.">
+              <Input {...form.register("whatsapp")} placeholder="(85) 90000-0000" />
+            </Field>
+            <Field label="Email" error={form.formState.errors.email?.message}>
+              <Input type="email" {...form.register("email")} placeholder="cliente@exemplo.com" />
+            </Field>
+            <Field label="Telefone fixo">
+              <Input {...form.register("phone")} placeholder="(85) 0000-0000" />
+            </Field>
+          </FormSection>
+
+          <FormSection
+            title="3. Plano e entregas"
+            description="O que foi contratado. Os serviços, valores e vencimentos são cadastrados depois, na página do cliente, em Cadastro."
+          >
+            <Field label="Plano contratado" hint="Nome do plano vendido.">
+              <Input {...form.register("plan")} placeholder="Ex.: Exclusive" />
+            </Field>
+            <Field label="Data de início" hint="Primeiro dia de atendimento.">
+              <Input type="date" {...form.register("start_date")} />
+            </Field>
+            <Field
+              label="Publicações por mês"
+              hint="Quantas publicações o plano inclui por mês. O calendário usa este número para avisar quando faltar ou passar."
+            >
+              <Input
+                type="number"
+                min={0}
+                placeholder="Ex.: 12"
+                {...form.register("monthly_post_quota")}
+              />
+            </Field>
+            <Field
+              label="Forma de pagamento padrão"
+              hint="Usada nas mensalidades geradas automaticamente."
+            >
+              <Select
+                value={form.watch("default_payment_method_id") || "none"}
+                onValueChange={(v) =>
+                  form.setValue("default_payment_method_id", v === "none" ? "" : v)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent>
-                  {CLIENT_STATUS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  <SelectItem value="none">— Não definida —</SelectItem>
+                  {paymentMethods.map((method) => (
+                    <SelectItem key={method.id} value={method.id}>
+                      {method.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
-          </div>
-
-          <Field label="Vincular login do cliente">
-            <Select
-              value={form.watch("user_id") || "none"}
-              onValueChange={(v) => form.setValue("user_id", v === "none" ? "" : v)}
+            <Field
+              label="Prazo do projeto de perfil"
+              hint="Data combinada para entregar o projeto do perfil. Deixe em branco se não houver."
             >
-              <SelectTrigger><SelectValue placeholder="Selecione uma conta" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— Nenhum —</SelectItem>
-                {clientUsers.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.name || u.email || u.id.slice(0, 8)} {u.email ? `· ${u.email}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground">
-              Ao vincular, este cliente poderá acessar o portal e aprovar publicações com o login selecionado.
-            </p>
-          </Field>
+              <Input type="date" {...form.register("profile_project_deadline")} />
+            </Field>
+            <Field
+              label="Prazo do editorial"
+              hint="Data combinada para entregar a linha editorial. Deixe em branco se não houver."
+            >
+              <Input type="date" {...form.register("editorial_deadline")} />
+            </Field>
+          </FormSection>
 
-          <Field label="Observações"><Textarea rows={4} {...form.register("notes")} /></Field>
+          <FormSection
+            title="4. Acesso do cliente ao portal"
+            description="Opcional. Com um login vinculado, o cliente entra no portal para ver o calendário e aprovar publicações."
+            columns={1}
+          >
+            <Field
+              label="Login do cliente"
+              hint="A conta precisa ter sido criada antes, com perfil de cliente."
+            >
+              <Select
+                value={form.watch("user_id") || "none"}
+                onValueChange={(v) => form.setValue("user_id", v === "none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma conta" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Nenhum —</SelectItem>
+                  {clientUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name || u.email || u.id.slice(0, 8)} {u.email ? `· ${u.email}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </FormSection>
+
+          <FormSection
+            title="5. Observações internas"
+            description="Anotações da equipe. O cliente não vê este campo."
+            columns={1}
+          >
+            <Field label="Observações">
+              <Textarea rows={3} {...form.register("notes")} />
+            </Field>
+          </FormSection>
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
@@ -340,11 +459,44 @@ export function ClientFormDialog({
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function FormSection({
+  title,
+  description,
+  columns = 2,
+  children,
+}: {
+  title: string;
+  description: string;
+  columns?: 1 | 2;
+  children: React.ReactNode;
+}) {
+  return (
+    <fieldset className="rounded-xl border border-border/70 p-4">
+      <legend className="px-1.5 text-sm font-semibold">{title}</legend>
+      <p className="mb-3 text-xs text-muted-foreground">{description}</p>
+      <div className={`grid grid-cols-1 gap-4 ${columns === 2 ? "sm:grid-cols-2" : ""}`}>
+        {children}
+      </div>
+    </fieldset>
+  );
+}
+
+function Field({
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      <Label className="text-xs font-medium text-foreground">{label}</Label>
       {children}
+      {hint && !error && <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
