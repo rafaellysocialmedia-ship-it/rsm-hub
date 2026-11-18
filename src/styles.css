@@ -88,6 +88,9 @@
   --chart-3: oklch(0.7 0.16 50);
   --chart-4: oklch(0.6 0.2 320);
   --chart-5: oklch(0.65 0.18 140);
+  /* Painel financeiro: receita x despesa (validado para daltonismo). */
+  --fin-income: #2a78d6;
+  --fin-expense: #eb6834;
 
   --sidebar: #f1f0f4;
   --sidebar-foreground: oklch(0.25 0.015 260);
@@ -141,6 +144,8 @@
   --chart-3: oklch(0.75 0.16 50);
   --chart-4: oklch(0.65 0.2 320);
   --chart-5: oklch(0.7 0.18 140);
+  --fin-income: #3987e5;
+  --fin-expense: #d95926;
 
   --sidebar: oklch(0.16 0.013 260);
   --sidebar-foreground: oklch(0.9 0.008 250);

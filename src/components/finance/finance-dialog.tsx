@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { FinanceStatus, FinanceTransaction, FinanceType } from "@/lib/finance";
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from "@/lib/finance-dashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,11 +61,14 @@ export function FinanceDialog({
   onOpenChange,
   transaction,
   clients,
+  defaultType = "income",
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   transaction: FinanceTransaction | null;
   clients: ClientLite[];
+  /** Tipo já escolhido ao criar (ex.: botão Nova despesa). */
+  defaultType?: FinanceType;
 }) {
   const qc = useQueryClient();
 
@@ -105,7 +109,7 @@ export function FinanceDialog({
       });
     } else {
       form.reset({
-        type: "income",
+        type: defaultType,
         status: "pending",
         description: "",
         amount: 0,
@@ -120,7 +124,8 @@ export function FinanceDialog({
 
       });
     }
-  }, [open, transaction, form]);
+  }, [open, transaction, form, defaultType]);
+  const watchedType = form.watch("type");
 
   const { data: sessionUserId } = useQuery({
     queryKey: ["session-uid"],
@@ -248,8 +253,18 @@ export function FinanceDialog({
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value ?? ""} placeholder="Assinatura, Anúncios, Design..." />
+                    <Input
+                      {...field}
+                      value={field.value ?? ""}
+                      list={`finance-categories-${watchedType}`}
+                      placeholder={watchedType === "expense" ? "Ex.: Ferramentas e softwares" : "Ex.: Social Media"}
+                    />
                   </FormControl>
+                  <datalist id={`finance-categories-${watchedType}`}>
+                    {(watchedType === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES).map((c) => (
+                      <option key={c} value={c} />
+                    ))}
+                  </datalist>
                 </FormItem>
               )}
             />
@@ -347,10 +362,12 @@ export function FinanceDialog({
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between gap-4">
                       <div>
-                        <FormLabel>Mensalidade recorrente</FormLabel>
+                        <FormLabel>
+                          {watchedType === "expense" ? "Despesa fixa (repete todo mês)" : "Receita fixa (repete todo mês)"}
+                        </FormLabel>
                         <p className="text-[11px] text-muted-foreground">
-                          O lançamento é recriado automaticamente todo mês, sempre com a mesma
-                          descrição (sem numeração de parcelas). Desative para encerrar.
+                          Aparece prevista nos próximos meses do Painel financeiro, com o botão
+                          para lançar no mês. Desative para encerrar.
                         </p>
                       </div>
                       <FormControl>

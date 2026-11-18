@@ -14,7 +14,10 @@ import { ALERT_ICONS, FinanceAlert, FinanceStat } from "./finance-alerts";
 export function FinanceAlertsPanel({
   onFilterOverdue,
   overdueActive,
+  showStats = true,
 }: {
+  /** Esconde os indicadores quando a tela já mostra os seus. */
+  showStats?: boolean;
   /** Quando informado, o indicador de vencidas vira um filtro da lista. */
   onFilterOverdue?: () => void;
   overdueActive?: boolean;
@@ -56,7 +59,7 @@ export function FinanceAlertsPanel({
 
   return (
     <section aria-label="Avisos financeiros" className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={showStats ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-4" : "hidden"}>
         <FinanceStat
           tone={summary.overdue.length ? "danger" : "neutral"}
           icon={ALERT_ICONS.overdue}
