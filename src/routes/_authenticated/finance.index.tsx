@@ -44,6 +44,8 @@ import {
   refDate,
   shiftMonth,
   summarizeMonth,
+  suspectDuplicates,
+  NOT_DUPLICATE_MARK,
   type MonthKey,
   type Projection,
 } from "@/lib/finance-dashboard";
@@ -100,7 +102,7 @@ export const Route = createFileRoute("/_authenticated/finance/")({
   component: FinancePage,
 });
 
-type Filter = "all" | "income" | "expense" | "overdue" | "open" | "paid";
+type Filter = "all" | "income" | "expense" | "overdue" | "open" | "paid" | "duplicates";
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "Todos" },
   { value: "income", label: "Receitas" },
@@ -182,6 +184,15 @@ function FinancePage() {
   const names = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
   const chargeById = useMemo(() => new Map(charges.map((c) => [c.id, c])), [charges]);
   const projections = useMemo(() => projectionsFor(month, txs, currentMonth), [month, txs, currentMonth]);
+  const duplicates = useMemo(() => suspectDuplicates(txs), [txs]);
+  const monthDuplicates = useMemo(
+    () => txs.filter((t) => duplicates.has(t.id) && monthOf(refDate(t)) === month),
+    [txs, duplicates, month],
+  );
+  const allDuplicatesTotal = useMemo(
+    () => txs.filter((t) => duplicates.has(t.id)).reduce((s, t) => s + Number(t.amount), 0),
+    [txs, duplicates],
+  );
   const summary = useMemo(
     () => summarizeMonth(month, txs, today, projections),
     [month, txs, today, projections],
@@ -221,6 +232,7 @@ function FinancePage() {
         if (filter === "overdue" && st !== "overdue") return false;
         if (filter === "open" && st !== "open") return false;
         if (filter === "paid" && st !== "paid") return false;
+        if (filter === "duplicates" && !(r.kind === "tx" && duplicates.has(r.t.id))) return false;
         if (clientFilter !== "all" && t.client_id !== clientFilter) return false;
         if (!q) return true;
         return [t.description, t.category, t.client_id ? names.get(t.client_id) : ""]
@@ -234,7 +246,7 @@ function FinancePage() {
         const db = b.kind === "tx" ? refDate(b.t) : (b.p.due_date ?? b.p.issue_date);
         return da.localeCompare(db);
       });
-  }, [txs, projections, month, filter, clientFilter, search, names, today]);
+  }, [txs, projections, month, filter, clientFilter, search, names, today, duplicates]);
 
   const refresh = () => {
     for (const key of ["finance", "finance-charges", "finance-history"])
@@ -282,6 +294,34 @@ function FinancePage() {
     onSuccess: (n) => {
       refresh();
       toast.success(n === 1 ? "Lançamento fixo lançado no mês" : `${n} lançamentos fixos lançados no mês`);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const confirmNotDuplicate = useMutation({
+    mutationFn: async (t: FinanceTransaction) => {
+      const { error } = await supabase
+        .from("finance_transactions")
+        .update({ notes: `${t.notes ? `${t.notes}\n` : ""}${NOT_DUPLICATE_MARK}` })
+        .eq("id", t.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refresh();
+      toast.success("Mantido como receita separada. Ela volta a contar nos totais.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const stopRepeating = useMutation({
+    mutationFn: async (t: FinanceTransaction) => {
+      const { error } = await supabase
+        .from("finance_transactions")
+        .update({ recurrence_active: false })
+        .eq("id", t.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      refresh();
+      toast.success("Repetição encerrada.");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -493,6 +533,33 @@ function FinancePage() {
         </div>
       )}
 
+      {monthDuplicates.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/[0.07] p-3.5">
+          <AlertTriangle className="size-4 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden />
+          <p className="min-w-0 flex-1 text-sm">
+            <strong className="font-semibold">
+              {monthDuplicates.length} receita{monthDuplicates.length === 1 ? "" : "s"} possivelmente
+              duplicada{monthDuplicates.length === 1 ? "" : "s"} ·{" "}
+              {brl(monthDuplicates.reduce((s, t) => s + Number(t.amount), 0))}
+            </strong>
+            <span className="text-muted-foreground">
+              {" "}
+              Foram lançadas à mão para clientes que já têm a mensalidade automática no mesmo mês.
+              Ficam fora dos totais até você revisar
+              {allDuplicatesTotal > 0 ? ` (no total, ${brl(allDuplicatesTotal)} nos últimos meses)` : ""}.
+            </span>
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-background"
+            onClick={() => setFilter(filter === "duplicates" ? "all" : "duplicates")}
+          >
+            {filter === "duplicates" ? "Ver todos" : "Revisar"}
+          </Button>
+        </div>
+      )}
+
       {month === currentMonth && <FinanceAlertsPanel showStats={false} />}
 
       <section className="grid gap-4 xl:grid-cols-5">
@@ -647,10 +714,25 @@ function FinancePage() {
                               <Repeat className="size-3.5" aria-hidden /> Fixo, não lançado
                             </span>
                           ) : (
-                            <ChargeStatusBadge charge={like} />
+                            <span className="flex flex-col items-start gap-1">
+                              <ChargeStatusBadge charge={like} />
+                              {duplicates.has(t.id) && (
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-800 dark:text-amber-300"
+                                  title="O cliente já tem a mensalidade automática neste mês. Fora dos totais até a revisão."
+                                >
+                                  <AlertTriangle className="size-3" aria-hidden /> Possível duplicado
+                                </span>
+                              )}
+                            </span>
                           )}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-right font-semibold tabular-nums">
+                        <TableCell
+                          className={cn(
+                            "whitespace-nowrap text-right font-semibold tabular-nums",
+                            r.kind === "tx" && duplicates.has(t.id) && "text-muted-foreground line-through",
+                          )}
+                        >
                           {t.type === "expense" ? "− " : ""}
                           {brl(Number(t.amount))}
                         </TableCell>
@@ -665,7 +747,10 @@ function FinancePage() {
                             onTogglePaid={(tx, paid) => setPaid.mutate({ t: tx, paid })}
                             onEdit={(tx) => setDialog({ tx, type: tx.type })}
                             onDelete={(tx) => setDeleting(tx)}
-                            busy={setPaid.isPending || launch.isPending}
+                            duplicate={r.kind === "tx" && duplicates.has(t.id)}
+                            onConfirmNotDuplicate={(tx) => confirmNotDuplicate.mutate(tx)}
+                            onStopRepeating={(tx) => stopRepeating.mutate(tx)}
+                            busy={setPaid.isPending || launch.isPending || confirmNotDuplicate.isPending}
                           />
                         </TableCell>
                       </TableRow>
@@ -695,7 +780,8 @@ function FinancePage() {
             <AlertDialogDescription>
               {deleting?.description} · {brl(Number(deleting?.amount ?? 0))}. Esta ação não pode ser
               desfeita.
-              {deleting?.recurrence === "monthly" && " Como é um lançamento fixo, ele deixa de aparecer nos próximos meses."}
+              {deleting?.recurrence === "monthly" &&
+                " Como é um lançamento fixo, ele deixa de aparecer nos próximos meses. As cobranças automáticas dos clientes não são afetadas."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -718,8 +804,14 @@ function RowActions({
   onTogglePaid,
   onEdit,
   onDelete,
+  duplicate = false,
+  onConfirmNotDuplicate,
+  onStopRepeating,
   busy,
 }: {
+  duplicate?: boolean;
+  onConfirmNotDuplicate: (t: FinanceTransaction) => void;
+  onStopRepeating: (t: FinanceTransaction) => void;
   row: Row;
   charge?: FinanceCharge;
   onLaunch: (p: Projection) => void;
@@ -777,6 +869,35 @@ function RowActions({
     );
   }
   const paid = t.status === "paid";
+  const repeats = t.recurrence === "monthly" && t.recurrence_active !== false;
+  if (duplicate)
+    return (
+      <div className="flex items-center justify-end gap-1">
+        <Button size="sm" variant="ghost" className="h-8 text-xs text-destructive" onClick={() => onDelete(t)}>
+          <Trash2 className="mr-1.5 h-4 w-4" /> Excluir duplicado
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Mais ações">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem disabled={busy} onClick={() => onConfirmNotDuplicate(t)}>
+              <CheckCircle2 className="mr-2 h-4 w-4" /> Não é duplicado (manter)
+            </DropdownMenuItem>
+            {repeats && (
+              <DropdownMenuItem onClick={() => onStopRepeating(t)}>
+                <Repeat className="mr-2 h-4 w-4" /> Parar de repetir todo mês
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => onEdit(t)}>
+              <Pencil className="mr-2 h-4 w-4" /> Editar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
   return (
     <div className="flex items-center justify-end gap-1">
       {!paid && (
@@ -798,6 +919,11 @@ function RowActions({
           {paid && (
             <DropdownMenuItem onClick={() => onTogglePaid(t, false)}>
               <Undo2 className="mr-2 h-4 w-4" /> Desfazer pagamento
+            </DropdownMenuItem>
+          )}
+          {repeats && (
+            <DropdownMenuItem onClick={() => onStopRepeating(t)}>
+              <Repeat className="mr-2 h-4 w-4" /> Parar de repetir todo mês
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />

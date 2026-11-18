@@ -56,8 +56,44 @@ const sameDay = (iso: string | null, month: MonthKey) => {
   return `${month}-${String(day).padStart(2, "0")}`;
 };
 
+/** Marca gravada nas observações quando a equipe confirma que não é duplicado. */
+export const NOT_DUPLICATE_MARK = "[não duplicado]";
+
 /**
- * Fixos ativos que ainda não têm lançamento no mês. Só projeta do mês atual em
+ * Receita lançada à mão para um cliente que já tem cobrança (mensalidade) no
+ * mesmo mês. Costuma ser sobra do livro antigo, de antes das cobranças
+ * automáticas. Fica fora dos totais até a equipe confirmar.
+ */
+export function suspectDuplicates(txs: FinanceTransaction[]): Set<string> {
+  const charged = new Set(
+    txs
+      .filter((x) => x.type === "income" && x.source_charge_id && x.client_id && x.status !== "cancelled")
+      .map((x) => `${x.client_id}:${monthOf(refDate(x))}`),
+  );
+  return new Set(
+    txs
+      .filter(
+        (t) =>
+          t.type === "income" &&
+          !t.source_charge_id &&
+          t.client_id &&
+          t.status !== "cancelled" &&
+          !(t.notes ?? "").includes(NOT_DUPLICATE_MARK) &&
+          charged.has(`${t.client_id}:${monthOf(refDate(t))}`),
+      )
+      .map((t) => t.id),
+  );
+}
+
+/** Lançamentos que contam nos totais (sem os possíveis duplicados). */
+export function countable(txs: FinanceTransaction[]): FinanceTransaction[] {
+  const dup = suspectDuplicates(txs);
+  return dup.size ? txs.filter((t) => !dup.has(t.id)) : txs;
+}
+
+/**
+ * Despesas fixas ativas que ainda não têm lançamento no mês. Receitas fixas não
+ * são projetadas: as mensalidades dos clientes já vêm das cobranças automáticas. Só projeta do mês atual em
  * diante e a partir do mês em que o fixo foi criado.
  */
 export function projectionsFor(
@@ -69,6 +105,7 @@ export function projectionsFor(
   return txs
     .filter(
       (t) =>
+        t.type === "expense" &&
         t.recurrence === "monthly" &&
         t.recurrence_active !== false &&
         !t.recurrence_parent_id &&
@@ -100,7 +137,7 @@ export function summarizeMonth(
   today: string,
   projections: Projection[] = [],
 ) {
-  const live = txs.filter((t) => t.status !== "cancelled");
+  const live = countable(txs).filter((t) => t.status !== "cancelled");
   const inMonth = live.filter((t) => monthOf(refDate(t)) === month);
   const income = inMonth.filter((t) => t.type === "income");
   const expense = inMonth.filter((t) => t.type === "expense");
@@ -161,7 +198,7 @@ export function byClient(
   top = 8,
 ) {
   const map = new Map<string, number>();
-  for (const t of txs) {
+  for (const t of countable(txs)) {
     if (t.type !== "income" || t.status === "cancelled" || monthOf(refDate(t)) !== month) continue;
     const key = t.client_id ? (names.get(t.client_id) ?? "Cliente") : "Sem cliente";
     map.set(key, (map.get(key) ?? 0) + Number(t.amount));
