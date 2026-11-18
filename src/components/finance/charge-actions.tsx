@@ -153,11 +153,21 @@ export function UndoPaymentDialog({
  */
 export function RenegotiateDialog({
   charge,
+  charges,
   onClose,
+  requestNote,
 }: {
-  charge: FinanceCharge | null;
+  charge?: FinanceCharge | null;
+  /** Várias cobranças renegociadas juntas num só acordo. */
+  charges?: FinanceCharge[] | null;
   onClose: () => void;
+  /** Pedido do cliente que originou a renegociação, mostrado como referência. */
+  requestNote?: string | null;
 }) {
+  const list = charges?.length ? charges : charge ? [charge] : [];
+  const open = list.length > 0;
+  const first = list[0] ?? null;
+  const originalTotal = list.reduce((s, c) => s + Number(c.amount ?? 0), 0);
   const { user } = useAuth();
   const refresh = useRefreshFinance();
   const [total, setTotal] = useState("");
@@ -165,13 +175,16 @@ export function RenegotiateDialog({
   const [firstDue, setFirstDue] = useState(todayISO());
   const [reason, setReason] = useState("");
 
+  const listKey = list.map((c) => c.id).join(",");
   useEffect(() => {
-    if (!charge) return;
-    setTotal(String(charge.amount ?? ""));
+    if (!first) return;
+    setTotal(String(Math.round(originalTotal * 100) / 100));
     setCount("1");
-    setFirstDue(charge.due_date > todayISO() ? charge.due_date : todayISO());
+    const latestDue = list.map((c) => c.due_date).sort().at(-1) ?? todayISO();
+    setFirstDue(latestDue > todayISO() ? latestDue : todayISO());
     setReason("");
-  }, [charge]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listKey]);
 
   const value = Number(total.replace(",", "."));
   const installments = Number(count);
@@ -185,54 +198,74 @@ export function RenegotiateDialog({
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!charge) return;
+      if (!first) return;
       if (!plan.length) throw new Error("Informe o novo valor e o vencimento.");
       if (firstDue < todayISO()) throw new Error("O novo vencimento não pode ser no passado.");
+      if (new Set(list.map((c) => c.client_id)).size > 1)
+        throw new Error("Renegocie as cobranças de um cliente por vez.");
       const stamp = dateBR(todayISO());
+      const from =
+        list.length === 1
+          ? `${money(first.amount)} (venc. ${dateBR(first.due_date)})`
+          : `${list.length} cobranças somando ${money(originalTotal)}`;
       const summary =
-        `Renegociada em ${stamp}: de ${money(charge.amount)} (venc. ${dateBR(charge.due_date)}) para ` +
+        `Renegociada em ${stamp}: de ${from} para ` +
         `${money(value)} em ${installments}x, 1º vencimento ${dateBR(firstDue)}.` +
         (reason.trim() ? ` Motivo: ${reason.trim()}` : "");
+      const label =
+        list.length === 1 ? first.description : `Acordo de ${list.length} mensalidades`;
 
       const rows = plan.map((item, index) => ({
-        client_id: charge.client_id,
+        client_id: first.client_id,
         // Sem service_key/contract_id de propósito: a cobrança do acordo não
         // conta como a mensalidade do mês na geração automática.
         service_key: null,
         contract_id: null,
-        service_label: charge.service_label,
+        service_label: list.length === 1 ? first.service_label : "Acordo de renegociação",
         description:
-          `${charge.description} · renegociada` +
-          (installments > 1 ? ` (${index + 1}/${installments})` : ""),
+          `${label} · renegociada` + (installments > 1 ? ` (${index + 1}/${installments})` : ""),
         amount: item.amount,
         due_date: item.due,
-        competence: charge.competence,
-        payment_method_id: charge.payment_method_id,
+        competence: first.competence,
+        payment_method_id: first.payment_method_id,
         payment_url: null,
         notes: summary,
         status: "pending" as const,
-        responsible_id: charge.responsible_id ?? user?.id ?? null,
+        responsible_id: first.responsible_id ?? user?.id ?? null,
         created_by: user?.id ?? null,
       }));
       const created = await supabase.from("finance_charges").insert(rows).select("id");
       if (created.error) throw created.error;
+      const createdIds = (created.data ?? []).map((row) => row.id);
 
-      const cancelled = await supabase
-        .from("finance_charges")
-        .update({ status: "cancelled", notes: appendNote(charge.notes, summary) })
-        .eq("id", charge.id)
-        .in("status", ["pending", "overdue"])
-        .select("id");
-      if (cancelled.error || !cancelled.data?.length) {
-        // Desfaz as cobranças novas para não deixar o valor em duplicidade.
-        await supabase
+      // Cancela as originais; se alguma tiver mudado de situação, desfaz tudo.
+      const cancelled: string[] = [];
+      let failure: Error | null = null;
+      for (const original of list) {
+        const result = await supabase
           .from("finance_charges")
-          .delete()
-          .in("id", (created.data ?? []).map((row) => row.id));
-        throw (
-          cancelled.error ??
-          new Error("A cobrança original mudou de situação. Atualize a página e tente de novo.")
-        );
+          .update({ status: "cancelled", notes: appendNote(original.notes, summary) })
+          .eq("id", original.id)
+          .in("status", ["pending", "overdue"])
+          .select("id");
+        if (result.error || !result.data?.length) {
+          failure =
+            result.error ??
+            new Error("Uma das cobranças mudou de situação. Atualize a página e tente de novo.");
+          break;
+        }
+        cancelled.push(original.id);
+      }
+      if (failure) {
+        for (const id of cancelled) {
+          const original = list.find((c) => c.id === id)!;
+          await supabase
+            .from("finance_charges")
+            .update({ status: original.status, notes: original.notes })
+            .eq("id", id);
+        }
+        await supabase.from("finance_charges").delete().in("id", createdIds);
+        throw failure;
       }
     },
     onSuccess: () => {
@@ -248,16 +281,37 @@ export function RenegotiateDialog({
   });
 
   return (
-    <Dialog open={!!charge} onOpenChange={(open) => !open && !save.isPending && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && !save.isPending && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Renegociar cobrança</DialogTitle>
+          <DialogTitle>
+            {list.length > 1 ? `Renegociar ${list.length} cobranças` : "Renegociar cobrança"}
+          </DialogTitle>
           <DialogDescription>
-            {charge
-              ? `${charge.description} · ${money(charge.amount)} · venceu em ${dateBR(charge.due_date)}`
-              : ""}
+            {list.length === 1 && first
+              ? `${first.description} · ${money(first.amount)} · vencimento ${dateBR(first.due_date)}`
+              : list.length > 1
+                ? `Total original ${money(originalTotal)}`
+                : ""}
           </DialogDescription>
         </DialogHeader>
+        {list.length > 1 && (
+          <ul className="max-h-32 space-y-1 overflow-y-auto rounded-lg border p-2 text-xs tabular-nums">
+            {list.map((c) => (
+              <li key={c.id} className="flex justify-between gap-3">
+                <span className="truncate">
+                  {c.description} · venc. {dateBR(c.due_date)}
+                </span>
+                <span className="font-medium">{money(c.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {requestNote && (
+          <p className="rounded-lg border border-violet-500/30 bg-violet-500/[0.06] p-2.5 text-xs">
+            <span className="font-medium">Pedido do cliente:</span> {requestNote}
+          </p>
+        )}
 
         <div className="grid gap-4">
           <div className="grid grid-cols-2 gap-3">
@@ -322,7 +376,8 @@ export function RenegotiateDialog({
                 ))}
               </ul>
               <p className="mt-2 text-muted-foreground">
-                A cobrança original fica como cancelada no histórico. As mensalidades dos próximos
+                {list.length > 1 ? "As cobranças originais ficam" : "A cobrança original fica"} como
+                cancelada{list.length > 1 ? "s" : ""} no histórico. As mensalidades dos próximos
                 meses continuam sendo geradas normalmente.
               </p>
             </div>

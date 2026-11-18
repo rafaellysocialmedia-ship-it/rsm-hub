@@ -32,6 +32,8 @@ import { SERVICE_CATALOG } from "@/lib/client-master";
 import { ChargeDialog } from "@/components/finance/charge-dialog";
 import { PaymentDialog } from "@/components/finance/payment-dialog";
 import { RenegotiateDialog, UndoPaymentDialog } from "@/components/finance/charge-actions";
+import { ChargeStatusBadge, chargeRowClass } from "@/components/finance/finance-status";
+import { FinanceAlertsPanel } from "@/components/finance/finance-alerts-panel";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -189,6 +191,11 @@ function ReceivablesPage() {
         </div>
       </header>
 
+      <FinanceAlertsPanel
+        overdueActive={statusFilter === "overdue"}
+        onFilterOverdue={() => setStatusFilter(statusFilter === "overdue" ? "all" : "overdue")}
+      />
+
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="text-base">Filtros</CardTitle>
@@ -275,7 +282,7 @@ function ReceivablesPage() {
                 filtered.map((c) => {
                   const status = effectiveStatus(c);
                   return (
-                    <TableRow key={c.id}>
+                    <TableRow key={c.id} className={chargeRowClass(c)}>
                       <TableCell className="font-medium">
                         {clientName(c.client_id)}
                         {c.due_date < month.from && (
@@ -290,9 +297,7 @@ function ReceivablesPage() {
                       <TableCell>{c.competence?.slice(0,7).split("-").reverse().join("/")||"A definir"}</TableCell><TableCell>{dateBR(c.due_date)}</TableCell>
                       <TableCell>{methodName(c.payment_method_id)}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={CHARGE_STATUS_META[status].className}>
-                          {CHARGE_STATUS_META[status].label}
-                        </Badge>
+                        <ChargeStatusBadge charge={c} />
                       </TableCell>
                       <TableCell>{dateBR(c.paid_date)}</TableCell>
                       <TableCell className="text-right">
@@ -315,7 +320,7 @@ function ReceivablesPage() {
                               aria-label={`Renegociar cobrança de ${clientName(c.client_id)}`}
                               onClick={() => setRenegotiating(c)}
                             >
-                              <Handshake className="h-4 w-4 text-amber-600" />
+                              <Handshake className="h-4 w-4 text-violet-600" />
                             </Button>
                           )}
                           {access.canEdit && c.status === "paid" && (

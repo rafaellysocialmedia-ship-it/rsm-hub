@@ -26,15 +26,15 @@ import {
   safeExternalUrl,
   type PortalAccount,
 } from "@/lib/account-workspace";
-import { money, dateBR } from "@/lib/finance-core";
+import { dateBR } from "@/lib/finance-core";
 import { ClientLogo } from "@/components/clients/client-logo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AccountFiles, AccountMeetings, MetricCard, QueryState } from "./account-panels";
 import { ClientCalendarPage } from "./client-calendar";
 import { ClientPortal } from "./client-approvals";
+import { PortalFinance, PortalFinanceNotice, ServiceCloseCard } from "./portal-finance";
 
 export function ClientWorkspace() {
   const { profile, user, loading } = useAuth();
@@ -129,11 +129,12 @@ export function ClientWorkspace() {
                 <MaterialUpload clientId={query.data.id} />
                 <AccountFiles clientId={query.data.id} />
               </TabsContent>
-              <TabsContent value="contract" className="mt-5">
+              <TabsContent value="contract" className="mt-5 space-y-5">
                 <ClientContracts account={query.data} />
+                <ServiceCloseCard account={query.data} />
               </TabsContent>
               <TabsContent value="finance" className="mt-5">
-                {query.data.can_view_finance && <ClientFinance account={query.data} />}
+                {query.data.can_view_finance && <PortalFinance account={query.data} />}
               </TabsContent>
             </Tabs>
           </>
@@ -206,6 +207,7 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
           Ver calendário
         </Button>
       </div>
+      <PortalFinanceNotice account={account} onOpen={() => onTab("finance")} />
       <ClientRequestAttention clientId={account.id} onOpen={() => onTab("support")} />
       <ClientOnboarding clientId={account.id} compact onOpen={() => onTab("onboarding")} />
       <QueryState loading={posts.isLoading} error={posts.error}>
@@ -341,81 +343,6 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
           </Card>
         )}
       </QueryState>
-    </div>
-  );
-}
-function ClientFinance({ account }: { account: PortalAccount }) {
-  const pending = account.charges
-    .filter((c) => c.status === "pending" || c.status === "overdue")
-    .sort((a, b) => a.due_date.localeCompare(b.due_date));
-  const monthly = account.contracts.filter(
-    (c) => c.status === "active" && c.periodicity === "monthly",
-  );
-  return (
-    <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <MetricCard label="Plano" value={account.plan || "A definir"} />
-        <MetricCard
-          label="Mensalidade"
-          value={
-            monthly.length
-              ? money(monthly.reduce((sum, c) => sum + Number(c.amount), 0))
-              : "A definir"
-          }
-        />
-        <MetricCard
-          label="Próximo vencimento pendente"
-          value={pending[0] ? dateBR(pending[0].due_date) : "Nenhum"}
-        />
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Histórico de pagamentos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <QueryState empty={!account.charges.length}>
-            <ul className="divide-y">
-              {account.charges.map((c) => (
-                <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
-                  <div>
-                    <p className="text-sm font-medium">{c.service_label || "Mensalidade"}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Vencimento: {dateBR(c.due_date)}
-                      {c.paid_date && ` · Pago em ${dateBR(c.paid_date)}`}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium">{money(c.amount)}</span>
-                    {safeExternalUrl(c.payment_url) &&
-                      c.status !== "paid" &&
-                      c.status !== "cancelled" && (
-                        <Button asChild size="sm">
-                          <a
-                            href={safeExternalUrl(c.payment_url)!}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Pagar
-                          </a>
-                        </Button>
-                      )}
-                    <Badge variant="outline">
-                      {(
-                        {
-                          paid: "Pago",
-                          pending: "Pendente",
-                          overdue: "Atrasado",
-                          cancelled: "Cancelado",
-                        } as Record<string, string>
-                      )[c.status] || c.status}
-                    </Badge>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </QueryState>
-        </CardContent>
-      </Card>
     </div>
   );
 }

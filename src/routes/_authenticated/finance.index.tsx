@@ -29,6 +29,7 @@ import {
 } from "@/lib/finance";
 import { FinanceDialog } from "@/components/finance/finance-dialog";
 import { ReceivablesKpis } from "@/components/finance/receivables-kpis";
+import { FinanceAlertsPanel } from "@/components/finance/finance-alerts-panel";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -319,6 +320,8 @@ function FinancePage() {
         </p>
         <ReceivablesKpis />
       </section>
+
+      <FinanceAlertsPanel />
 
       <Card className="shadow-soft">
         <CardHeader>

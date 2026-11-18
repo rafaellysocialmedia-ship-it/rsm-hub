@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useRetention } from "@/hooks/use-retention";
+import { useFinanceRequests } from "@/hooks/use-finance-requests";
 import { buildClientAlerts, type ClientAlert } from "@/lib/client-alerts";
 import { monthOverflow, type OrderedUsagePost, type PostLedgerRow } from "@/lib/post-ledger";
 import type { RetentionAccount } from "@/lib/retention";
@@ -56,22 +57,34 @@ export function useQuotaExtras(clientId?: string) {
 export function useClientAlerts(clientId?: string) {
   const retention = useRetention();
   const quota = useQuotaExtras(clientId);
+  const requests = useFinanceRequests(clientId);
   const byClient = useMemo(() => {
+    const count = (id: string, kind: "renegotiation" | "service_close") =>
+      (requests.data ?? []).filter((r) => r.client_id === id && r.kind === kind).length;
+    const options = (id: string) => ({
+      quotaExtras: quota.data?.get(id),
+      renegotiationRequests: count(id, "renegotiation"),
+      serviceCloseRequests: count(id, "service_close"),
+    });
     const accounts = (retention.data ?? []) as unknown as RetentionAccount[];
     const map = new Map<string, { account?: RetentionAccount; alerts: ClientAlert[] }>();
     for (const account of accounts) {
       if (clientId && account.client_id !== clientId) continue;
       map.set(account.client_id, {
         account,
-        alerts: buildClientAlerts(account, { quotaExtras: quota.data?.get(account.client_id) }),
+        alerts: buildClientAlerts(account, options(account.client_id)),
       });
     }
     for (const [id, extras] of quota.data ?? []) {
       if (!map.has(id) && (!clientId || id === clientId))
-        map.set(id, { alerts: buildClientAlerts(undefined, { quotaExtras: extras }) });
+        map.set(id, { alerts: buildClientAlerts(undefined, { ...options(id), quotaExtras: extras }) });
+    }
+    for (const r of requests.data ?? []) {
+      if (!map.has(r.client_id) && (!clientId || r.client_id === clientId))
+        map.set(r.client_id, { alerts: buildClientAlerts(undefined, options(r.client_id)) });
     }
     return map;
-  }, [retention.data, quota.data, clientId]);
+  }, [retention.data, quota.data, requests.data, clientId]);
   return {
     byClient,
     isLoading: retention.isLoading,

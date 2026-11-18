@@ -27,7 +27,7 @@ const n = (count: number, one: string, many: string) => `${count} ${count === 1 
  */
 export function buildClientAlerts(
   account: RetentionAccount | undefined,
-  options: { quotaExtras?: number } = {},
+  options: { quotaExtras?: number; renegotiationRequests?: number; serviceCloseRequests?: number } = {},
 ): ClientAlert[] {
   const alerts: ClientAlert[] = [];
   const add = (alert: ClientAlert) => alerts.push(alert);
@@ -169,6 +169,25 @@ export function buildClientAlerts(
         action: "Planejar conteúdo",
       });
   }
+
+  if (options.serviceCloseRequests)
+    add({
+      key: "service_close_request",
+      level: "urgent",
+      label: "Pediu para encerrar serviço",
+      detail: "O cliente pediu pelo portal para encerrar um serviço. Converse antes de registrar o encerramento.",
+      tab: "finance",
+      action: "Ver pedido",
+    });
+  if (options.renegotiationRequests)
+    add({
+      key: "renegotiation_request",
+      level: "warning",
+      label: "Pediu renegociação",
+      detail: "O cliente pediu pelo portal para renegociar uma mensalidade.",
+      tab: "finance",
+      action: "Ver pedido",
+    });
 
   const extras = options.quotaExtras ?? 0;
   if (extras > 0)

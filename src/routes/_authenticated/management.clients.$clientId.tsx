@@ -352,7 +352,7 @@ function ClientMasterPage() {
           <AccountDemands client={client} />
         </TabsContent>
         <TabsContent value="finance" className="mt-5">
-          <ClientFinanceTab clientId={client.id} />
+          <ClientFinanceTab clientId={client.id} onTab={setTab} />
         </TabsContent>
         <TabsContent value="contract" className="mt-5">
           <ContractsCard clientId={client.id} />
