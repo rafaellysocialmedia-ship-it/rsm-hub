@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MetricCard, QueryState, useInternalPosts } from "./account-panels";
 import { ClientAlertList } from "@/components/clients/client-alerts";
+import { noticeLabel, parseNotice } from "@/lib/notice-period";
 import { useClientAlerts } from "@/hooks/use-client-alerts";
 
 export function AccountOverview({
@@ -96,7 +97,14 @@ export function AccountOverview({
           {client.churned ? (
             <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
               <Clock3 className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-              Conta encerrada. O histórico continua disponível.
+              <span>
+                Conta encerrada. O histórico continua disponível.
+                {noticeLabel(parseNotice(client.churn_notes)) && (
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {noticeLabel(parseNotice(client.churn_notes))}
+                  </span>
+                )}
+              </span>
             </div>
           ) : alerts.isLoading ? (
             <p role="status" className="text-sm text-muted-foreground">
