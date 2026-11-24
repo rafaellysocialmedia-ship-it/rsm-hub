@@ -1,7 +1,9 @@
+import { EmptyState } from "@/components/empty-state";
+import { CardsSkeleton, GridSkeleton, ListSkeleton } from "@/components/skeletons";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, RefreshCw, Plus, MessageSquare, ShieldCheck } from "lucide-react";
+import { Activity, HeartPulse, ListChecks, MessageCircle, MessageSquare, Plus, RefreshCw, ShieldCheck, UserX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -58,7 +60,7 @@ export function HealthBadge({ account }: { account: RetentionAccount }) {
 export function RetentionDashboardCard() {
   const q = useRetention();
   if (q.isLoading)
-    return <p className="text-sm text-muted-foreground">Carregando saúde das contas…</p>;
+    return <CardsSkeleton count={1} className="lg:grid-cols-1" />;
   if (q.error) return <ErrorBox retry={q.refetch} />;
   const risk = (q.data ?? []).filter((a) => a.health === "critical").length,
     attention = (q.data ?? []).filter((a) => a.health === "attention").length;
@@ -100,7 +102,12 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
       <p className="p-8 text-sm text-muted-foreground">Esta área é exclusiva da equipe RSM.</p>
     );
   if (q.isLoading || actions.isLoading)
-    return <p className="p-5 text-sm text-muted-foreground">Carregando saúde e acompanhamento…</p>;
+    return (
+      <div role="status" aria-label="Carregando retenção" className="space-y-4">
+        <CardsSkeleton count={4} />
+        <GridSkeleton count={4} className="xl:grid-cols-2" />
+      </div>
+    );
   if (q.error || actions.error)
     return (
       <ErrorBox
@@ -188,15 +195,20 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
               </select>
             </div>
           )}
-          {accounts.length === 0 && (
-            <Card>
-              <CardContent className="p-6 text-sm text-muted-foreground">
-                {clientId
-                  ? "Esta conta está fora da operação ativa. O histórico de acompanhamento permanece disponível."
-                  : "Nenhuma conta encontrada para este filtro."}
-              </CardContent>
-            </Card>
-          )}
+          {accounts.length === 0 &&
+            (clientId ? (
+              <Card>
+                <CardContent className="p-6 text-sm text-muted-foreground">
+                  Esta conta está fora da operação ativa. O histórico de acompanhamento permanece disponível.
+                </CardContent>
+              </Card>
+            ) : (
+              <EmptyState
+                icon={HeartPulse}
+                title={filter === "all" && !search ? "Nenhuma conta em acompanhamento" : "Nenhuma conta neste filtro"}
+                description="Clientes com risco de cancelamento aparecem aqui."
+              />
+            ))}
           <div className={clientId ? "space-y-4" : "grid gap-4 xl:grid-cols-2"}>
             {accounts.map((a) => (
               <Card key={a.client_id} className="overflow-hidden">
@@ -373,9 +385,12 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
             </h3>
           )}
           {open.length === 0 ? (
-            <p className="rounded-xl border p-6 text-sm text-muted-foreground">
-              Nenhuma ação aberta. Use “Atualizar alertas” ou crie uma ação no cartão da conta.
-            </p>
+            <EmptyState
+              compact
+              icon={ListChecks}
+              title="Nenhuma ação aberta"
+              description="As ações de acompanhamento criadas nos cartões das contas aparecem aqui."
+            />
           ) : (
             open.map((a) => (
               <ActionRow
@@ -813,13 +828,16 @@ function ContactHistory({ clientId }: { clientId?: string }) {
     <div className="space-y-3">
       <h3 className="font-medium">Últimos contatos registrados</h3>
       {q.isLoading ? (
-        <p className="text-sm">Carregando contatos…</p>
+        <ListSkeleton rows={3} />
       ) : q.error ? (
         <ErrorBox retry={q.refetch} />
       ) : !q.data?.length ? (
-        <p className="text-sm text-muted-foreground">
-          Nenhum contato registrado aqui. Reuniões concluídas também entram no indicador.
-        </p>
+        <EmptyState
+          compact
+          icon={MessageCircle}
+          title="Nenhum contato registrado"
+          description="Contatos com o cliente e reuniões concluídas aparecem aqui."
+        />
       ) : (
         q.data.map((c) => (
           <Card key={c.id}>
@@ -856,7 +874,7 @@ function ChurnHistory() {
       {q.error ? (
         <ErrorBox retry={q.refetch} />
       ) : q.isLoading ? (
-        <p className="text-sm">Carregando…</p>
+        <ListSkeleton rows={2} />
       ) : q.data?.length ? (
         q.data.map((c) => (
           <div
@@ -879,7 +897,12 @@ function ChurnHistory() {
           </div>
         ))
       ) : (
-        <p className="text-sm text-muted-foreground">Nenhum churn registrado.</p>
+        <EmptyState
+          compact
+          icon={UserX}
+          title="Nenhuma conta encerrada"
+          description="Clientes que cancelaram o serviço aparecem aqui, com o motivo."
+        />
       )}
     </div>
   );

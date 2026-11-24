@@ -1,3 +1,4 @@
+import { MediaSkeleton } from "@/components/skeletons";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -250,7 +251,7 @@ export function CreativeStage({ postId }: { postId: string }) {
   const items = q.data ?? [];
   const [index, setIndex] = useState(0);
   const current = items[Math.min(index, items.length - 1)];
-  if (q.isLoading) return <p className="p-8 text-sm">Carregando mídias…</p>;
+  if (q.isLoading) return <MediaSkeleton className="h-80 w-full" />;
   if (q.error)
     return (
       <p role="alert" className="p-8 text-sm text-destructive">
@@ -285,7 +286,7 @@ export function CreativeStage({ postId }: { postId: string }) {
             </a>
           )
         ) : (
-          <p className="p-8 text-sm">Carregando prévia…</p>
+          <MediaSkeleton className="h-80 w-full" />
         )}
       </div>
       {items.length > 1 && (

@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { listCredentials, type VaultCredential } from "@/lib/vault";
 import type { Client } from "@/lib/clients";
+import { EmptyState } from "@/components/empty-state";
+import { ListSkeleton } from "@/components/skeletons";
 import { CredentialDialog } from "@/components/vault/credential-dialog";
 import { CredentialRow } from "@/components/vault/credential-row";
 import { HistorySheet } from "@/components/vault/history-sheet";
@@ -96,7 +98,7 @@ export function VaultPanel({ scope }: { scope: "agency" | { clientId: string } }
           </div>
         </div>
         <Button onClick={() => { setEditing(null); setDialogOpen(true); }} className="gap-1.5">
-          <Plus className="h-4 w-4" />Nova credencial
+          <Plus className="h-4 w-4" />Adicionar acesso
         </Button>
       </div>
 
@@ -118,18 +120,24 @@ export function VaultPanel({ scope }: { scope: "agency" | { clientId: string } }
       </div>
 
       <div className="space-y-1.5">
-        {isLoading && <p className="px-1 text-sm text-muted-foreground">Carregando…</p>}
+        {isLoading && <ListSkeleton rows={4} />}
         {!isLoading && filtered.length === 0 && (
-          <Card className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
-              <KeyRound className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <p className="text-sm font-medium">Nenhuma credencial encontrada</p>
-            <p className="max-w-xs text-xs text-muted-foreground">Adicione a primeira credencial e ela ficará criptografada no banco.</p>
-            <Button onClick={() => { setEditing(null); setDialogOpen(true); }} variant="outline" size="sm" className="mt-2 gap-1.5">
-              <Plus className="h-4 w-4" />Nova credencial
-            </Button>
-          </Card>
+          <EmptyState
+            icon={KeyRound}
+            title={search ? "Nenhum acesso encontrado" : "Nenhum acesso guardado"}
+            description={
+              search
+                ? "Nenhum login bate com a busca. Tente outro termo."
+                : scope === "agency"
+                  ? "Guarde aqui logins e senhas das contas da agência."
+                  : "Guarde aqui logins e senhas das contas do cliente."
+            }
+            actions={
+              search
+                ? [{ label: "Limpar busca", onClick: () => setSearch("") }]
+                : [{ label: "Adicionar primeiro acesso", onClick: () => { setEditing(null); setDialogOpen(true); } }]
+            }
+          />
         )}
         {filtered.map((c) => (
           <CredentialRow

@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { useFinanceHistory } from "@/hooks/use-finance";
 import { FINANCE_HISTORY_LABELS, dateTimeBR, money } from "@/lib/finance-core";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ export function FinanceHistoryTimeline({ clientId }: { clientId?: string }) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
+          <ListSkeleton rows={3} />
         ) : events.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Nenhum evento financeiro registrado.

@@ -53,7 +53,7 @@ import { formatMonth } from "@/lib/post-quota";
 import { usePostLedger } from "@/hooks/use-post-ledger";
 import { monthOverflow, type PostLedgerRow } from "@/lib/post-ledger";
 import { exportCalendarXlsx } from "@/lib/export-calendar";
-import { CalendarSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
+import { CalendarSkeleton, InlineSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { useStickyState } from "@/hooks/use-sticky-state";
 
 type ViewMode = "calendar" | "list" | "kanban" | "timeline" | "table";
@@ -521,7 +521,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
             </TabsList>
           </Tabs>
           <span className="text-[11px] tabular-nums text-muted-foreground">
-            {isLoading ? "Carregando…" : `${filtered.length} conteúdos`}
+            {isLoading ? <InlineSkeleton className="w-16" /> : `${filtered.length} conteúdos`}
           </span>
         </div>
       </div>

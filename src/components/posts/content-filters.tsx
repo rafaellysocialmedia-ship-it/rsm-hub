@@ -1,3 +1,4 @@
+import { InlineSkeleton } from "@/components/skeletons";
 import { useId, useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { MultiClientFilter } from "./multi-client-filter";
@@ -103,7 +104,7 @@ export function ContentFilters({
           </SelectContent>
         </Select>
       )}
-      {f.loading && <p className="text-[11px] text-muted-foreground">Carregando opções…</p>}
+      {f.loading && <InlineSkeleton className="w-24" />}
       {f.error && <p role="alert" className="text-[11px] text-destructive">Não foi possível carregar as opções.</p>}
     </div>
   );

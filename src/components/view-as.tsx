@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -181,7 +182,7 @@ export function ViewAsDialog({ open, onOpenChange }: { open: boolean; onOpenChan
           />
         </div>
         {targets.isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
+          <ListSkeleton rows={4} />
         ) : targets.error ? (
           <p role="alert" className="text-sm text-destructive">
             Não foi possível carregar a lista.

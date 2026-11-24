@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -120,9 +121,7 @@ function BriefingTemplateEditor() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
-      </div>
+      <PageSkeleton />
     );
   }
 

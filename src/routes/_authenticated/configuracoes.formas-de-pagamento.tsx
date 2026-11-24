@@ -1,3 +1,4 @@
+import { TableRowsSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -150,11 +151,7 @@ function PaymentMethodsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                    Carregando...
-                  </TableCell>
-                </TableRow>
+                <TableRowsSkeleton cols={6} />
               ) : (
                 methods.map((m) => (
                   <TableRow key={m.id}>

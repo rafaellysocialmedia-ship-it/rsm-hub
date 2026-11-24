@@ -1,3 +1,4 @@
+import { MediaSkeleton } from "@/components/skeletons";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -182,7 +183,7 @@ export function BaselineDialog({
                 {previewUrl ? (
                   <img src={previewUrl} alt="Print do perfil" className="max-h-56 w-full rounded object-contain" />
                 ) : (
-                  <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">Carregando…</div>
+                  <MediaSkeleton className="h-24 w-full" />
                 )}
                 <Button
                   type="button"

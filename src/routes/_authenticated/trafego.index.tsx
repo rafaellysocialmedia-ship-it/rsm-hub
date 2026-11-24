@@ -27,7 +27,7 @@ import { KpiGrid } from "@/components/traffic/kpi-grid";
 import { CampaignDialog } from "@/components/traffic/campaign-dialog";
 import { TrafficLocked } from "@/components/traffic/traffic-locked";
 import { GrowthAreaChart } from "@/components/dashboard/charts";
-import { ListSkeleton } from "@/components/skeletons";
+import { ListSkeleton, PageSkeleton } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/trafego/")({
   head: () => ({
@@ -114,7 +114,7 @@ function TrafficDashboard() {
       }));
   }, [rows]);
 
-  if (loading) return <div className="px-6 py-10 text-sm text-muted-foreground">Carregando…</div>;
+  if (loading) return <PageSkeleton />;
   if (!allowed) return <TrafficLocked />;
 
   return (

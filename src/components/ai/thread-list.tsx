@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,7 +29,7 @@ export function ThreadList({ threads, activeId, loading, onNew, onDelete }: Prop
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto p-2">
-        {loading && <p className="p-3 text-xs text-muted-foreground">Carregando...</p>}
+        {loading && <ListSkeleton rows={4} />}
         {!loading && threads.length === 0 && (
           <p className="p-3 text-xs text-muted-foreground">Nenhuma conversa ainda.</p>
         )}

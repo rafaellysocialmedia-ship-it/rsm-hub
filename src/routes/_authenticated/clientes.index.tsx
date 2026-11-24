@@ -39,7 +39,7 @@ import {
 import { ClientLogo } from "@/components/clients/client-logo";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import { StatusBadge } from "@/components/clients/status-badge";
-import { ListSkeleton } from "@/components/skeletons";
+import { InlineSkeleton, ListSkeleton } from "@/components/skeletons";
 import { ClientAlertChips } from "@/components/clients/client-alerts";
 import { useClientAlerts } from "@/hooks/use-client-alerts";
 
@@ -254,7 +254,7 @@ function ManagementClientsPage() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground" role="status">
           {isLoading
-            ? "Carregando clientes…"
+            ? <InlineSkeleton className="w-32" />
             : `${rows.length} cliente${rows.length === 1 ? "" : "s"} encontrado${rows.length === 1 ? "" : "s"}`}
         </p>
         <div
@@ -341,7 +341,7 @@ function ManagementClientsPage() {
                   ) : (
                     <span className="text-xs text-muted-foreground">
                       {alerts.isLoading
-                        ? "Carregando…"
+                        ? <InlineSkeleton className="w-24" />
                         : isActiveClient(client)
                           ? "Sem alertas"
                           : "Conta inativa"}

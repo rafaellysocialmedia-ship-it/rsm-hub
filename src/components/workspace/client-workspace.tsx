@@ -263,7 +263,15 @@ function ClientHome({ account, onTab }: { account: PortalAccount; onTab: (tab: s
             </Button>
           </CardHeader>
           <CardContent>
-            <QueryState loading={posts.isLoading} error={posts.error} empty={!nextPosts.length}>
+            <QueryState
+              loading={posts.isLoading}
+              error={posts.error}
+              empty={!nextPosts.length}
+              emptyState={{
+                title: "Nenhuma publicação agendada",
+                description: "As próximas publicações do seu calendário aparecem aqui.",
+              }}
+            >
               <ul className="divide-y">
                 {nextPosts.map((p) => (
                   <li key={p.id} className="py-3">
@@ -391,7 +399,13 @@ function ClientContracts({ account }: { account: PortalAccount }) {
           </CardContent>
         </Card>
       ))}
-      <QueryState empty={!account.signed_contracts.length}>
+      <QueryState
+        empty={!account.signed_contracts.length}
+        emptyState={{
+          title: "Nenhum contrato assinado",
+          description: "Os contratos assinados com a RSM aparecem aqui para consulta.",
+        }}
+      >
         {account.signed_contracts.map((c) => (
           <Card key={c.id}>
             <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">

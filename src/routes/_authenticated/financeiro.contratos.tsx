@@ -1,3 +1,4 @@
+import { TableRowsSkeleton } from "@/components/skeletons";
 import { useCallback, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -187,11 +188,7 @@ function ContractsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
-                    Carregando…
-                  </TableCell>
-                </TableRow>
+                <TableRowsSkeleton cols={9} />
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">

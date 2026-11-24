@@ -1,3 +1,4 @@
+import { MediaSkeleton } from "@/components/skeletons";
 import { reconcileCalendarDraft } from "@/lib/calendar-draft";
 import {
   Dialog,
@@ -964,9 +965,11 @@ export function PostEditorSheet({
                   o anterior. As versões anteriores são preservadas.
                 </p>
                 {filesLoading && (
-                  <p role="status" className="text-xs">
-                    Carregando mídias…
-                  </p>
+                  <div role="status" aria-label="Carregando mídias" className="grid grid-cols-3 gap-2">
+                    <MediaSkeleton className="aspect-square" />
+                    <MediaSkeleton className="aspect-square" />
+                    <MediaSkeleton className="aspect-square" />
+                  </div>
                 )}
                 {filesError && (
                   <p role="alert" className="text-sm text-destructive">

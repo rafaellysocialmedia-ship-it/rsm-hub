@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/skeletons";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -194,9 +195,7 @@ function BriefingDetail() {
 
   if (isLoading || !briefing) {
     return (
-      <div className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
-      </div>
+      <PageSkeleton />
     );
   }
 

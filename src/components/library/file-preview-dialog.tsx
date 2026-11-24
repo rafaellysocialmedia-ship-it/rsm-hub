@@ -1,3 +1,4 @@
+import { MediaSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -136,7 +137,7 @@ export function FilePreviewDialog({
               <p className="text-sm text-muted-foreground">Pré-visualização indisponível para este formato</p>
             </div>
           )}
-          {!url && <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">Carregando…</div>}
+          {!url && <MediaSkeleton />}
         </div>
 
         {editing && canManage ? (

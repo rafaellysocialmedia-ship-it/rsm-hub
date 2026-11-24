@@ -225,7 +225,7 @@ export function ClientCalendarPage({
                   name={
                     p.client_id
                       ? (clientNames.get(p.client_id) ??
-                        (clients.isPending ? "Carregando cliente…" : "Cliente indisponível"))
+                        (clients.isPending ? "…" : "Cliente indisponível"))
                       : "Sem cliente"
                   }
                 />

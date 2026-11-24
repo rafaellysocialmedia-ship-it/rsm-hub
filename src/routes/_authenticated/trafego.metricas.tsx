@@ -55,7 +55,7 @@ import {
   type SeriesPoint,
 } from "@/components/traffic/traffic-charts";
 import { GrowthAreaChart } from "@/components/dashboard/charts";
-import { ListSkeleton } from "@/components/skeletons";
+import { ListSkeleton, PageSkeleton } from "@/components/skeletons";
 
 export const Route = createFileRoute("/_authenticated/trafego/metricas")({
   head: () => ({
@@ -234,7 +234,7 @@ function TrafficAnalyticsPage() {
     [visibleCampaigns, healthById],
   );
 
-  if (loading) return <div className="px-6 py-10 text-sm text-muted-foreground">Carregando…</div>;
+  if (loading) return <PageSkeleton />;
   if (!allowed) return <TrafficLocked />;
 
   const header = (

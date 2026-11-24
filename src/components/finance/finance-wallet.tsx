@@ -1,3 +1,4 @@
+import { TableRowsSkeleton } from "@/components/skeletons";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Search, Users2 } from "lucide-react";
@@ -95,11 +96,7 @@ export function FinanceWallet() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                    Carregando...
-                  </TableCell>
-                </TableRow>
+                <TableRowsSkeleton cols={5} />
               ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">

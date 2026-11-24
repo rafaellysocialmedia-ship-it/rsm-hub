@@ -1,3 +1,4 @@
+import { InlineSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import {
@@ -187,7 +188,7 @@ export function AppSidebar() {
         {!staff && !collapsed && (
           <p className="truncate px-2 text-sm font-medium">
             {account.isLoading
-              ? "Carregando conta…"
+              ? <InlineSkeleton className="w-28" />
               : account.error
                 ? "Não foi possível carregar a conta"
                 : (account.data?.name ?? "Portal do cliente")}

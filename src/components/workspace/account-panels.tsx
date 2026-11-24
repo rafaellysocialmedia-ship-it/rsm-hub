@@ -1,9 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
+import { EmptyState } from "@/components/empty-state";
+import { CardsSkeleton, GridSkeleton, ListSkeleton, TableSkeleton } from "@/components/skeletons";
 import { MeetingRecap } from "./meeting-recap";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, Plus, ExternalLink, FileText, Video } from "lucide-react";
+import { Calendar, Plus, ExternalLink, FileText, Layers, Video } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccountFiles, useAccountMeetings } from "@/hooks/use-account-workspace";
@@ -25,26 +27,50 @@ export function QueryState({
   loading,
   error,
   empty,
+  skeleton = "list",
+  emptyState,
   children,
 }: {
   loading?: boolean;
   error?: unknown;
   empty?: boolean;
+  /** Formato do esqueleto enquanto carrega (igual ao da tela). */
+  skeleton?: "list" | "cards" | "table" | "grid" | "block";
+  /** O que mostrar quando não há itens; sem isso, um aviso genérico. */
+  emptyState?: Parameters<typeof EmptyState>[0];
   children: React.ReactNode;
 }) {
   if (loading)
-    return <p className="rounded-xl border p-6 text-sm text-muted-foreground">Carregando…</p>;
+    return (
+      <div role="status" aria-label="Carregando">
+        {skeleton === "cards" ? (
+          <CardsSkeleton count={3} />
+        ) : skeleton === "table" ? (
+          <TableSkeleton rows={5} />
+        ) : skeleton === "grid" ? (
+          <GridSkeleton count={6} />
+        ) : skeleton === "block" ? (
+          <div className="h-40 animate-pulse rounded-xl bg-muted/70" />
+        ) : (
+          <ListSkeleton rows={4} />
+        )}
+      </div>
+    );
   if (error)
     return (
       <p role="alert" className="rounded-xl border p-6 text-sm text-destructive">
-        Não foi possível carregar estas informações. Tente novamente.
+        Não foi possível carregar estas informações. Atualize a página para tentar de novo.
       </p>
     );
   if (empty)
     return (
-      <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-        Nenhum registro por aqui ainda.
-      </p>
+      <EmptyState
+        compact
+        {...(emptyState ?? {
+          title: "Nada por aqui ainda",
+          description: "Os itens aparecem aqui assim que forem cadastrados.",
+        })}
+      />
     );
   return <>{children}</>;
 }
@@ -205,7 +231,19 @@ export function AccountContents({
           </Button>
         )}
       </div>
-      <QueryState loading={query.isLoading} error={query.error} empty={!posts.length}>
+      <QueryState
+        loading={query.isLoading}
+        error={query.error}
+        empty={!posts.length}
+        emptyState={{
+          icon: Layers,
+          title: "Nenhum conteúdo nesta conta",
+          description: "As publicações planejadas para o cliente aparecem aqui.",
+          actions: canEdit
+            ? [{ label: "Adicionar conteúdo", onClick: () => { setEditing(null); setEditorOpen(true); } }]
+            : [],
+        }}
+      >
         <div className={calendar ? "space-y-2" : "grid gap-4 sm:grid-cols-2 xl:grid-cols-3"}>
           {posts.map((p) => (
             <button
@@ -302,7 +340,19 @@ export function AccountMeetings({
           </Button>
         )}
       </div>
-      <QueryState loading={query.isLoading} error={query.error} empty={!meetings.length}>
+      <QueryState
+        loading={query.isLoading}
+        error={query.error}
+        empty={!meetings.length}
+        emptyState={{
+          icon: Calendar,
+          title: "Nenhuma reunião registrada",
+          description: "Reuniões agendadas e as já feitas com o cliente aparecem aqui.",
+          actions: canEdit
+            ? [{ label: "Agendar reunião", onClick: () => { setEditing(null); setOpen(true); } }]
+            : [],
+        }}
+      >
         <div className="space-y-3">
           {meetings.map((m) => (
             <Card key={m.id}>
@@ -391,7 +441,18 @@ export function AccountFiles({
     }
   }
   return (
-    <QueryState loading={query.isLoading} error={query.error} empty={!files.length}>
+    <QueryState
+      loading={query.isLoading}
+      error={query.error}
+      empty={!files.length}
+      emptyState={{
+        icon: FileText,
+        title: reportsOnly ? "Nenhum arquivo de relatório" : "Nenhum arquivo enviado",
+        description: reportsOnly
+          ? "Relatórios em PDF enviados para o cliente aparecem aqui."
+          : "Contratos, logos e materiais do cliente aparecem aqui.",
+      }}
+    >
       <div className="grid gap-3 sm:grid-cols-2">
         {files.map((f) => (
           <Card key={f.id}>

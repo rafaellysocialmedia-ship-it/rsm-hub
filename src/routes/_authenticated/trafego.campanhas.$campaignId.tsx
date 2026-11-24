@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/skeletons";
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -85,7 +86,7 @@ function CampaignAnalyticsPage() {
     },
   });
 
-  if (loading) return <div className="px-6 py-10 text-sm text-muted-foreground">Carregando…</div>;
+  if (loading) return <PageSkeleton />;
   if (!allowed) return <TrafficLocked />;
   if (!campaign)
     return (

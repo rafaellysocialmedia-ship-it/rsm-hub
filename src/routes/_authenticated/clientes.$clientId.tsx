@@ -1,3 +1,4 @@
+import { PageSkeleton } from "@/components/skeletons";
 import { ClientSwitcher } from "@/components/navigation/client-switcher";
 import { Deliveries } from "@/components/workspace/deliveries";
 import { toast } from "sonner";
@@ -163,7 +164,7 @@ function ClientMasterPage() {
     );
 
   if (isLoading) {
-    return <div className="px-6 py-10 text-sm text-muted-foreground">Carregando…</div>;
+    return <PageSkeleton />;
   }
   if (!client) {
     return (
@@ -563,7 +564,16 @@ function AccountDemands({ client }: { client: Client }) {
   });
   return (
     <>
-      <QueryState loading={query.isLoading} error={query.error} empty={!query.data?.length}>
+      <QueryState
+        loading={query.isLoading}
+        error={query.error}
+        empty={!query.data?.length}
+        emptyState={{
+          title: "Nenhuma tarefa para este cliente",
+          description: "Tarefas da equipe ligadas a esta conta aparecem aqui.",
+          actions: [{ label: "Ver tarefas da equipe", render: <Link to="/tarefas" search={{ de: "equipe" }}>Ver tarefas da equipe</Link> }],
+        }}
+      >
         <div className="space-y-3">
           {query.data?.map((task) => (
             <Card key={task.id}>

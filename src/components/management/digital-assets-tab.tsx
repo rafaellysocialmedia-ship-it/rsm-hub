@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-react";
@@ -118,7 +119,7 @@ function LandingPagesSection({ clientId, canEdit }: { clientId: string; canEdit:
       }
     >
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando…</p>
+        <ListSkeleton rows={3} />
       ) : pages.length === 0 ? (
         <EmptyState>Nenhuma Landing Page cadastrada para este cliente.</EmptyState>
       ) : (
@@ -379,7 +380,7 @@ function AssetSection({
       }
     >
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando…</p>
+        <ListSkeleton rows={3} />
       ) : assets.length === 0 ? (
         <EmptyState>Nenhum registro nesta seção.</EmptyState>
       ) : (

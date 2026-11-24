@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Plus, FileCheck } from "lucide-react";
+import { Plus, FileCheck, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -66,7 +66,7 @@ export function CommercialWorkspace() {
         {access.canEdit && (
           <Button onClick={() => setEditing(null)}>
             <Plus className="mr-2 h-4 w-4" />
-            Nova oportunidade
+            Adicionar lead
           </Button>
         )}
       </header>
@@ -108,7 +108,18 @@ export function CommercialWorkspace() {
           ))}
         </select>
       </div>
-      <QueryState loading={q.isLoading} error={q.error} empty={!rows.length}>
+      <QueryState
+        loading={q.isLoading}
+        error={q.error}
+        empty={!rows.length}
+        skeleton="grid"
+        emptyState={{
+          icon: Handshake,
+          title: "Nenhum lead em andamento",
+          description: "Acompanhe leads e propostas até virarem clientes.",
+          actions: access.canEdit ? [{ label: "Adicionar lead", onClick: () => setEditing(null) }] : [],
+        }}
+      >
         <div className="grid gap-4 lg:grid-cols-2">
           {rows.map((p) => (
             <Card key={p.id}>

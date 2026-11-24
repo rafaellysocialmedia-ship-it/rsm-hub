@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -226,7 +227,7 @@ export function ChurnCard({ clientId }: { clientId: string }) {
         {error ? (
           <p className="text-sm text-destructive">Não foi possível carregar o churn.</p>
         ) : isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
+          <ListSkeleton rows={2} />
         ) : (
           <>
             <div className="flex items-center gap-3">

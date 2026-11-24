@@ -64,7 +64,7 @@ function MonthlyReportPage() {
           onValueChange={(v) => void navigate({ search: { cliente: v }, replace: true })}
         >
           <SelectTrigger className="w-full sm:w-72" aria-label="Cliente do relatório">
-            <SelectValue placeholder={clients.isLoading ? "Carregando clientes…" : "Escolha o cliente"} />
+            <SelectValue placeholder="Escolha o cliente" />
           </SelectTrigger>
           <SelectContent>
             {active.map((c) => (

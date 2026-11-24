@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -111,7 +112,7 @@ export function ClientBriefingsTab({ clientId }: { clientId: string }) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando…</p>
+          <ListSkeleton rows={3} />
         ) : briefings.length === 0 ? (
           <div className="rounded-lg border border-dashed p-8 text-center">
             <FileText className="mx-auto h-8 w-8 text-muted-foreground" />

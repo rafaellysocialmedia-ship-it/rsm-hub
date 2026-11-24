@@ -107,7 +107,15 @@ export function AccountActivity({ clientId }: { clientId: string }) {
         <CardTitle className="text-base">Atividades da operação</CardTitle>
       </CardHeader>
       <CardContent>
-        <QueryState loading={query.isLoading} error={query.error} empty={!query.data?.length}>
+        <QueryState
+          loading={query.isLoading}
+          error={query.error}
+          empty={!query.data?.length}
+          emptyState={{
+            title: "Nenhuma atividade registrada",
+            description: "Publicações, aprovações, tarefas e reuniões da conta aparecem aqui em ordem.",
+          }}
+        >
           <ol className="space-y-5 border-l pl-5">
             {query.data?.map((e) => (
               <li key={e.id}>

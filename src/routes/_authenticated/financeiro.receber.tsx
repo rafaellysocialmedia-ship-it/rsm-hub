@@ -1,3 +1,4 @@
+import { TableRowsSkeleton } from "@/components/skeletons";
 import { useCallback, useMemo, useState } from "react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { FinanceWallet } from "@/components/finance/finance-wallet";
@@ -347,14 +348,7 @@ function ReceivablesPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={10}
-                    className="py-10 text-center text-sm text-muted-foreground"
-                  >
-                    Carregando…
-                  </TableCell>
-                </TableRow>
+                <TableRowsSkeleton cols={10} />
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell

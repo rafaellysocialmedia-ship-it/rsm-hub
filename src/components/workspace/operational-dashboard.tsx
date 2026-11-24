@@ -14,12 +14,16 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { QueryState } from "./account-panels";
+import { MeetingDialog } from "@/components/meetings/meeting-dialog";
+import { isActiveClient } from "@/lib/active-clients";
+import { CalendarPlus } from "lucide-react";
 import { addDays, startOfWeek, format } from "date-fns";
 type Item = { id: string; client: string; title: string; date: string | null; tab: string };
 export function OperationalDashboard({ name }: { name: string }) {
   const access = useFinanceAccess();
   const retention = useRetention();
   const [selection, setSelection] = useState<string | null>(null);
+  const [meetingOpen, setMeetingOpen] = useState(false);
   const today = localDate(),
     soon = format(addDays(new Date(today + "T12:00:00"), 7), "yyyy-MM-dd");
   const weekStart = format(
@@ -267,7 +271,7 @@ export function OperationalDashboard({ name }: { name: string }) {
             ))}
         </div>
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <section className="rounded-xl border bg-card p-5">
+          <section className={`rounded-xl border bg-card p-5 ${agenda.length ? "" : "self-start"}`}>
             <h2 className="text-lg font-semibold">Agenda da semana</h2>
             {[
               ["Passadas · verificar conclusão", agenda.filter((i) => i.date && i.date < today)],
@@ -287,8 +291,15 @@ export function OperationalDashboard({ name }: { name: string }) {
                 ),
             )}
             {!agenda.length && (
-              <p className="py-4 text-sm text-muted-foreground">Nenhuma reunião nesta semana.</p>
+              // Semana sem reunião: card compacto com a ação de agendar.
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed p-3">
+                <p className="text-sm text-muted-foreground">Nenhuma reunião nesta semana.</p>
+                <Button size="sm" onClick={() => setMeetingOpen(true)}>
+                  <CalendarPlus className="mr-1.5 size-4" aria-hidden /> Agendar reunião
+                </Button>
+              </div>
             )}
+            <ScheduleMeeting open={meetingOpen} onOpenChange={setMeetingOpen} />
           </section>
           <section className="rounded-xl border bg-card p-5">
             <h2 className="text-lg font-semibold">Andamento das contas</h2>
@@ -364,5 +375,29 @@ export function OperationalDashboard({ name }: { name: string }) {
         </DialogContent>
       </Dialog>
     </main>
+  );
+}
+
+/** Abre o formulário de reunião com os clientes ativos (só carrega quando abre). */
+function ScheduleMeeting({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const clients = useQuery({
+    queryKey: ["meetings-clients"],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, name, status, churned")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  return (
+    <MeetingDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      meeting={null}
+      clients={(clients.data ?? []).filter(isActiveClient)}
+    />
   );
 }

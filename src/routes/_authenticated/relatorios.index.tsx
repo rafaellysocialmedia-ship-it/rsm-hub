@@ -1,20 +1,10 @@
 import { calendarDateLabel } from "@/lib/calendar-period";
+import { EmptyState } from "@/components/empty-state";
+import { CardsSkeleton } from "@/components/skeletons";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  BarChart3,
-  Eye,
-  Heart,
-  MessageCircle,
-  Plus,
-  Repeat,
-  Share2,
-  TrendingUp,
-  TrendingDown,
-  Users,
-  Target,
-} from "lucide-react";
+import { BarChart3, Eye, Heart, MessageCircle, Plus, Repeat, Share2, TrendingUp, TrendingDown, Users, Target, LayoutList, CheckCircle2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -55,6 +45,9 @@ function AnalyticsPage() {
   );
   const [baselineOpen, setBaselineOpen] = useState(false);
   const [period, setPeriod] = useState("");
+  const [showMore, setShowMore] = useState(false);
+  // "Registrar métricas da semana": mostra só as publicações dos últimos 7 dias sem métricas.
+  const [weekPending, setWeekPending] = useState(false);
 
   const { data: posts = [], isLoading: postsLoading } = useQuery({
     queryKey: ["analytics-posts"],
@@ -151,12 +144,30 @@ function AnalyticsPage() {
 
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.name])), [clients]);
 
+  const weekStart = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }, []);
+  const listedPosts = weekPending
+    ? filteredPosts.filter(
+        (p) => !metricByPost.has(p.id) && !!p.scheduled_date && p.scheduled_date >= weekStart,
+      )
+    : filteredPosts;
+  function startWeekRegistration() {
+    setPeriod("");
+    setWeekPending(true);
+    requestAnimationFrame(() =>
+      document.getElementById("publicacoes")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <header className="flex flex-col gap-1 md:flex-row md:items-end md:justify-between">
         <div>
           <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Analytics
+            Resultados
           </span>
           <h1 className="text-2xl font-semibold tracking-tight">Resultados</h1>
           <p className="text-sm text-muted-foreground">
@@ -201,83 +212,120 @@ function AnalyticsPage() {
           </Button>
         )}
         <p role="status" className="text-sm text-muted-foreground">
-          {metricsLoading ? "Carregando métricas…" : period || "Todos os períodos carregados"} ·{" "}
-          {totals.postsWithData} de {filteredPosts.length} publicações com métricas. Última coleta
-          de cada publicação; até 300 publicações mais recentes.
+          {metricsLoading ? (
+            <span className="inline-block h-3 w-64 animate-pulse rounded bg-muted align-middle" />
+          ) : (
+            <>
+              {period || "Todos os períodos"} · {totals.postsWithData} de {filteredPosts.length}{" "}
+              publicações com métricas. Última coleta de cada publicação; até 300 publicações mais
+              recentes.
+            </>
+          )}
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-5">
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={Eye}
-          label="Alcance"
-          value={totals.reach}
-          tone="text-sky-500"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
+      {metricsLoading || postsLoading ? (
+        <CardsSkeleton count={4} />
+      ) : totals.postsWithData === 0 ? (
+        // Sem métricas: um aviso com a ação, em vez de 10 cards com traço.
+        <EmptyState
           icon={BarChart3}
-          label="Impressões"
-          value={totals.impressions}
-          tone="text-blue-500"
+          title="Ainda não há métricas registradas para este período."
+          description="Registre alcance, curtidas e comentários das publicações para ver os resultados aqui."
+          actions={
+            isStaff ? [{ label: "Registrar métricas da semana", onClick: startWeekRegistration }] : []
+          }
         />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={Heart}
-          label="Curtidas"
-          value={totals.likes}
-          tone="text-rose-500"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={MessageCircle}
-          label="Comentários"
-          value={totals.comments}
-          tone="text-brand-accent"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={Share2}
-          label="Compart."
-          value={totals.shares}
-          tone="text-emerald-500"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={Users}
-          label="Seguidores"
-          value={totals.followers}
-          tone="text-amber-500"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={Repeat}
-          label="Salvamentos"
-          value={totals.saves}
-          tone="text-teal-500"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={Eye}
-          label="Views vídeo"
-          value={totals.videoViews}
-          tone="text-indigo-500"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={TrendingUp}
-          label="Engajamento"
-          value={totals.engagement}
-          tone="text-primary"
-        />
-        <MetricCard
-          hasData={totals.postsWithData > 0}
-          icon={TrendingUp}
-          label="Taxa eng."
-          value={`${totals.engagementRate.toFixed(1)}%`}
-          tone="text-primary"
-        />
-      </div>
+      ) : (
+        <div className="space-y-3">
+          {/* No topo, só os 4 números principais; o restante fica em "Ver mais métricas". */}
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <MetricCard
+            hasData={totals.postsWithData > 0}
+            icon={Eye}
+            label="Alcance"
+            value={totals.reach}
+            tone="text-sky-500"
+          />
+          <MetricCard
+            hasData={totals.postsWithData > 0}
+            icon={TrendingUp}
+            label="Engajamento"
+            value={totals.engagement}
+            tone="text-primary"
+          />
+          <MetricCard
+            hasData={totals.postsWithData > 0}
+            icon={Users}
+            label="Seguidores"
+            value={totals.followers}
+            tone="text-amber-500"
+          />
+          <MetricCard
+            hasData
+            icon={LayoutList}
+            label="Publicações"
+            value={filteredPosts.length}
+            tone="text-brand-accent"
+          />
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setShowMore((v) => !v)} aria-expanded={showMore}>
+            {showMore ? "Ver menos métricas" : "Ver mais métricas"}
+          </Button>
+          {showMore && (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={BarChart3}
+              label="Impressões"
+              value={totals.impressions}
+              tone="text-blue-500"
+            />
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={Heart}
+              label="Curtidas"
+              value={totals.likes}
+              tone="text-rose-500"
+            />
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={MessageCircle}
+              label="Comentários"
+              value={totals.comments}
+              tone="text-brand-accent"
+            />
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={Share2}
+              label="Compart."
+              value={totals.shares}
+              tone="text-emerald-500"
+            />
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={Repeat}
+              label="Salvamentos"
+              value={totals.saves}
+              tone="text-teal-500"
+            />
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={Eye}
+              label="Views vídeo"
+              value={totals.videoViews}
+              tone="text-indigo-500"
+            />
+            <MetricCard
+              hasData={totals.postsWithData > 0}
+              icon={TrendingUp}
+              label="Taxa eng."
+              value={`${totals.engagementRate.toFixed(1)}%`}
+              tone="text-primary"
+            />
+            </div>
+          )}
+        </div>
+      )}
 
       {clientFilter !== "all" && (
         <Card>
@@ -358,19 +406,42 @@ function AnalyticsPage() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Publicações ({filteredPosts.length})</CardTitle>
+      <Card id="publicacoes" className="scroll-mt-24">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
+          <CardTitle className="text-base">
+            {weekPending
+              ? `Publicações da semana sem métricas (${listedPosts.length})`
+              : `Publicações (${filteredPosts.length})`}
+          </CardTitle>
+          {weekPending && (
+            <Button size="sm" variant="ghost" onClick={() => setWeekPending(false)}>
+              Ver todas as publicações
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-2">
           {postsLoading ? (
             <ListSkeleton rows={6} />
-          ) : filteredPosts.length === 0 ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">
-              Nenhuma publicação publicada ainda.
-            </p>
+          ) : listedPosts.length === 0 ? (
+            <EmptyState
+              compact
+              icon={weekPending ? CheckCircle2 : LayoutList}
+              title={
+                weekPending
+                  ? "Todas as publicações da semana já têm métricas."
+                  : "Nenhuma publicação neste período."
+              }
+              description={
+                weekPending
+                  ? "Veja as outras publicações para registrar ou corrigir métricas."
+                  : "As publicações publicadas aparecem aqui para você registrar as métricas."
+              }
+              actions={
+                weekPending ? [{ label: "Ver todas as publicações", onClick: () => setWeekPending(false) }] : []
+              }
+            />
           ) : (
-            filteredPosts.map((p) => {
+            listedPosts.map((p) => {
               const m = metricByPost.get(p.id);
               const clientName = p.client_id ? clientMap.get(p.client_id) : null;
               const meta = statusMeta(p.status);

@@ -4,7 +4,7 @@ import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { KanbanSquare, Plus, Search } from "lucide-react";
+import { KanbanSquare, ListTodo, Plus, Search, SearchX } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { KanbanBoard } from "@/components/tasks/kanban-board";
+import { EmptyState } from "@/components/empty-state";
+import { BoardSkeleton } from "@/components/skeletons";
 import { TaskDialog } from "@/components/tasks/task-dialog";
 import { listTasks, updateTask, type Task, type TaskStatus, PRIORITY_META } from "@/lib/tasks";
 import type { Client } from "@/lib/clients";
@@ -49,7 +51,7 @@ function TasksPage() {
   const [editing, setEditing] = useState<Task | null>(null);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("todo");
 
-  const { data: tasks = [] } = useQuery({ queryKey: ["tasks"], queryFn: listTasks });
+  const { data: tasks = [], isLoading } = useQuery({ queryKey: ["tasks"], queryFn: listTasks });
   const { data: allClients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
@@ -180,20 +182,61 @@ function TasksPage() {
         </Select>
       </div>
 
-      <KanbanBoard
-        tasks={filtered}
-        clients={clients}
-        onMove={(id, status) => move.mutate({ id, status })}
-        onAdd={(status) => {
-          setEditing(null);
-          setDefaultStatus(status);
-          setDialogOpen(true);
-        }}
-        onOpen={(t) => {
-          setEditing(t);
-          setDialogOpen(true);
-        }}
-      />
+      {isLoading ? (
+        <BoardSkeleton />
+      ) : filtered.length === 0 ? (
+        // Sem tarefas: um único aviso no lugar das 4 colunas vazias.
+        search || clientFilter !== "all" || priorityFilter !== "all" || overdue ? (
+          <EmptyState
+            icon={SearchX}
+            title="Nenhuma tarefa com esses filtros"
+            description="Ajuste a busca ou os filtros para ver outras tarefas."
+            actions={[
+              {
+                label: "Limpar filtros",
+                onClick: () => {
+                  setSearch("");
+                  setClientFilter("all");
+                  setPriorityFilter("all");
+                  if (overdue) void navigate({ search: { de, overdue: undefined } });
+                },
+              },
+            ]}
+          />
+        ) : de === "equipe" ? (
+          <EmptyState
+            icon={ListTodo}
+            title="A equipe não tem tarefas abertas."
+            description="Tarefas criadas para os clientes ativos aparecem aqui."
+            actions={[{ label: "Nova tarefa", onClick: () => { setEditing(null); setDefaultStatus("todo"); setDialogOpen(true); } }]}
+          />
+        ) : (
+          <EmptyState
+            icon={ListTodo}
+            title="Você não tem tarefas atribuídas."
+            description="Quando alguém atribuir uma tarefa a você, ela aparece aqui."
+            actions={[
+              { label: "Nova tarefa", onClick: () => { setEditing(null); setDefaultStatus("todo"); setDialogOpen(true); } },
+              { label: "Ver tarefas da equipe", onClick: () => void navigate({ search: { de: "equipe", overdue } }) },
+            ]}
+          />
+        )
+      ) : (
+        <KanbanBoard
+          tasks={filtered}
+          clients={clients}
+          onMove={(id, status) => move.mutate({ id, status })}
+          onAdd={(status) => {
+            setEditing(null);
+            setDefaultStatus(status);
+            setDialogOpen(true);
+          }}
+          onOpen={(t) => {
+            setEditing(t);
+            setDialogOpen(true);
+          }}
+        />
+      )}
 
       <TaskDialog
         open={dialogOpen}

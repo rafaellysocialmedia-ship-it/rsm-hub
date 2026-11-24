@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -39,7 +40,7 @@ export function HistorySheet({
         </SheetHeader>
 
         <ScrollArea className="-mx-6 mt-4 h-[calc(100vh-9rem)] px-6">
-          {isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
+          {isLoading && <ListSkeleton rows={4} />}
           {!isLoading && history.length === 0 && (
             <p className="text-sm text-muted-foreground">Sem registros ainda.</p>
           )}

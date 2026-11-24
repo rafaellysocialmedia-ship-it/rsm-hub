@@ -169,3 +169,52 @@ export function AppFrameSkeleton() {
     </div>
   );
 }
+
+/** Quadro (kanban) carregando: colunas com cartões. */
+export function BoardSkeleton({ columns = 4 }: { columns?: number }) {
+  return (
+    <div role="status" aria-label="Carregando o quadro" className="flex gap-4 overflow-hidden">
+      {Array.from({ length: columns }).map((_, c) => (
+        <div key={c} className="w-72 shrink-0 space-y-3 rounded-xl border border-border bg-muted/30 p-3">
+          <Skeleton className="h-4 w-24" />
+          {Array.from({ length: 3 - (c % 2) }).map((_, i) => (
+            <div key={i} className="space-y-2 rounded-lg border border-border bg-card p-3">
+              <Skeleton className="h-3.5 w-4/5" />
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Linhas de tabela carregando, para usar dentro de <TableBody>. */
+export function TableRowsSkeleton({ cols, rows = 5 }: { cols: number; rows?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, r) => (
+        <tr key={r} aria-hidden="true" className="border-b border-border last:border-0">
+          {Array.from({ length: cols }).map((_, c) => (
+            <td key={c} className="px-4 py-3">
+              <Skeleton className="h-3.5 w-full max-w-40" />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
+
+/** Área de mídia (imagem, vídeo, prévia) carregando. */
+export function MediaSkeleton({ className }: { className?: string }) {
+  return (
+    <div role="status" aria-label="Carregando mídia" className={cn("animate-pulse rounded-lg bg-muted", className ?? "h-48 w-full")} />
+  );
+}
+
+/** Texto curto carregando (no lugar de "Carregando…" dentro de uma frase ou campo). */
+export function InlineSkeleton({ className }: { className?: string }) {
+  return <span aria-hidden="true" className={cn("inline-block h-3 animate-pulse rounded bg-muted align-middle", className ?? "w-20")} />;
+}

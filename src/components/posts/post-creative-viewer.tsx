@@ -1,3 +1,4 @@
+import { InlineSkeleton, MediaSkeleton } from "@/components/skeletons";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, FileIcon, ImageIcon, Loader2 } from "lucide-react";
@@ -59,7 +60,7 @@ export function PostCreativeThumb({
         <ImageIcon className="size-6" aria-hidden="true" />
         <span>
           {query.isPending
-            ? "Carregando prévia…"
+            ? <InlineSkeleton className="w-24" />
             : query.isError
               ? "Prévia indisponível"
               : "Somente texto · mídia não anexada"}
@@ -191,7 +192,7 @@ export function PostCreativePreview({ postId }: { postId: string }) {
         role="status"
         className="flex h-24 items-center justify-center gap-2 rounded-md border border-dashed border-border text-xs text-muted-foreground"
       >
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Carregando criativo…
+        <MediaSkeleton className="h-full w-full" />
       </div>
     );
   }

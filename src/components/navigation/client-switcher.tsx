@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
@@ -50,7 +51,7 @@ export function ClientSwitcher({ id, name, tab }: { id: string; name: string; ta
             <CommandInput placeholder="Buscar cliente…" aria-label="Buscar cliente" />
             <CommandList>
               <CommandEmpty>
-                {q.isLoading ? "Carregando clientes…" : "Nenhum cliente encontrado."}
+                {q.isLoading ? <ListSkeleton rows={3} className="p-2" /> : "Nenhum cliente encontrado."}
               </CommandEmpty>
               {q.data?.map((c) => (
                 <CommandItem

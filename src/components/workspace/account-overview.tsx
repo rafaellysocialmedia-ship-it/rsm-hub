@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { useQuery } from "@tanstack/react-query";
 import { differenceInCalendarDays, format } from "date-fns";
 import { CheckCircle2, Clock3, Sparkles } from "lucide-react";
@@ -107,9 +108,7 @@ export function AccountOverview({
               </span>
             </div>
           ) : alerts.isLoading ? (
-            <p role="status" className="text-sm text-muted-foreground">
-              Carregando alertas…
-            </p>
+            <ListSkeleton rows={2} />
           ) : alerts.error ? (
             <p role="alert" className="text-sm text-destructive">
               Não foi possível carregar os alertas desta conta.

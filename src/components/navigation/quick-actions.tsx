@@ -1,3 +1,4 @@
+import { InlineSkeleton } from "@/components/skeletons";
 import { useEffect, useState, useMemo, createContext, useContext, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useRouterState } from "@tanstack/react-router";
@@ -210,7 +211,7 @@ export function QuickActionsProvider({ children }: { children: ReactNode }) {
         </DialogContent>
       </Dialog>
       {post && <ReviewDialog post={post} onClose={() => setPost(null)} />}
-      {create && clients.isLoading && <p className="p-2 text-xs">Carregando contas…</p>}
+      {create && clients.isLoading && <InlineSkeleton className="m-2 w-32" />}
       {create && clients.error && (
         <p role="alert" className="p-2 text-xs">
           Falha ao carregar contas.{" "}

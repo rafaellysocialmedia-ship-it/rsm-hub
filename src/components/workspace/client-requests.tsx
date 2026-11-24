@@ -130,7 +130,15 @@ export function ClientRequests({
           </form>
         </CardContent>
       </Card>
-      <QueryState loading={q.isLoading} error={q.error} empty={!q.data?.length}>
+      <QueryState
+        loading={q.isLoading}
+        error={q.error}
+        empty={!q.data?.length}
+        emptyState={{
+          title: "Nenhuma solicitação ainda",
+          description: "Pedidos, dúvidas e ajustes registrados no formulário acima aparecem aqui.",
+        }}
+      >
         {q.data?.map((r) => (
           <RequestCard key={r.id} request={r} canEdit={canEdit} onSave={refresh} />
         ))}

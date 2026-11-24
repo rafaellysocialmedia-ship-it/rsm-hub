@@ -1,3 +1,4 @@
+import { ListSkeleton } from "@/components/skeletons";
 import { upgradeHref } from "@/lib/navigation";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -187,7 +188,7 @@ export function NotificationsMenu() {
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">
           {isLoading ? (
-            <p className="p-4 text-sm">Carregando…</p>
+            <ListSkeleton rows={3} className="p-2" />
           ) : error ? (
             <p role="alert" className="p-4 text-sm">
               Falha ao carregar. <button onClick={() => void refetch()}>Tentar novamente</button>
