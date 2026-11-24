@@ -119,8 +119,8 @@ export function CalendarView({ posts, clientMap, onOpen, onAddOn, onMove, onMont
   return (
     <div className="rounded-xl border border-border bg-card shadow-soft">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h3 className="text-sm font-semibold capitalize">
-          {format(cursor, "MMMM yyyy", { locale: ptBR })}
+        <h3 className="text-sm font-semibold">
+          {format(cursor, "MMMM 'de' yyyy", { locale: ptBR })}
         </h3>
         <div className="flex items-center gap-1">
           <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => setDatesOpen(true)}>

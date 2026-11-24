@@ -128,7 +128,7 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
         <div className="flex min-w-0 items-center gap-2 text-xs">
           <Gauge className="size-3.5 shrink-0 text-primary" aria-hidden />
           <span className="truncate font-semibold">{client.name}</span>
-          <span className="shrink-0 text-[11px] capitalize text-muted-foreground">{labelMonth(year, month)}</span>
+          <span className="shrink-0 text-[11px] text-muted-foreground">{labelMonth(year, month)}</span>
           {summary.closed && <Badge variant="secondary" className="h-5 text-[10px]">Mês fechado</Badge>}
         </div>
         {overPlan ? (

@@ -187,7 +187,7 @@ function PublishedReport({
     <Card className="overflow-hidden">
       <header className="border-b bg-primary/5 p-5 sm:p-7">
         <p className="text-sm font-medium text-primary">RSM · Relatório de resultados</p>
-        <h3 className="mt-2 text-2xl font-semibold capitalize">{monthLabel(r.report_month)}</h3>
+        <h3 className="mt-2 text-2xl font-semibold">{monthLabel(r.report_month)}</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           {clientName} · Compartilhado em {dateLabel(r.published_at)}
         </p>
@@ -286,7 +286,7 @@ function ReportEvolution({ reports }: { reports: MonthlyReport[] }) {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-b last:border-0">
-                  <td className="whitespace-nowrap py-3 pr-4 capitalize">
+                  <td className="whitespace-nowrap py-3 pr-4">
                     {monthLabel(r.report_month)}
                   </td>
                   <td className="py-3 pr-4">{r.metrics.published_posts}</td>
@@ -389,7 +389,7 @@ function ReportEditor({
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <CardTitle className="text-lg capitalize">{monthLabel(month)}</CardTitle>
+            <CardTitle className="text-lg">{monthLabel(month)}</CardTitle>
             <Badge variant="outline">Rascunho privado</Badge>
           </div>
           <p className="text-sm text-muted-foreground">

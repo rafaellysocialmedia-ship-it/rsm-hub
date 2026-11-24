@@ -415,7 +415,7 @@ function FinancePage() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="min-w-40 text-center text-sm font-semibold capitalize" aria-live="polite">
+            <span className="min-w-40 text-center text-sm font-semibold" aria-live="polite">
               {label}
             </span>
             <Button
@@ -471,7 +471,7 @@ function FinancePage() {
           />
           <Kpi
             icon={CalendarClock}
-            tone="info"
+            tone={summary.toReceive > 0 ? "info" : "neutral"}
             label="A receber"
             value={brl(summary.toReceive)}
             hint="Ainda dentro do prazo"
@@ -604,7 +604,7 @@ function FinancePage() {
 
       <Card>
         <CardHeader className="gap-3">
-          <CardTitle className="text-base capitalize">Lançamentos de {label}</CardTitle>
+          <CardTitle className="text-base">Lançamentos de {label}</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex flex-wrap gap-1 rounded-lg border bg-muted/30 p-1" role="group" aria-label="Filtrar lançamentos">
               {FILTERS.map((f) => (

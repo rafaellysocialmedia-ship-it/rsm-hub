@@ -437,12 +437,12 @@ export function ClientCalendarPage({
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
           </Button>
-          <h2 className="min-w-[105px] text-xs font-semibold capitalize sm:text-sm">
+          <h2 className="min-w-[105px] text-xs font-semibold sm:text-sm">
             {view === "day"
-              ? format(cursor, "dd 'de' MMMM yyyy", { locale: ptBR })
+              ? format(cursor, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
               : view === "week"
                 ? `${format(start, "dd/MM")} – ${format(end, "dd/MM/yyyy")}`
-                : format(cursor, "MMMM yyyy", { locale: ptBR })}
+                : format(cursor, "MMMM 'de' yyyy", { locale: ptBR })}
           </h2>
           <Button
             type="button"
@@ -524,7 +524,7 @@ export function ClientCalendarPage({
                 onChange={(e) => {
                   if (e.target.value !== "other") setView(e.target.value);
                 }}
-                className="h-7 max-w-[94px] rounded-md border border-border/70 bg-background px-1 text-[11px]"
+                className="h-7 w-auto shrink-0 rounded-md border border-border/70 bg-background pl-1.5 pr-6 text-[11px]"
               >
                 <option value="other">Outras apresentações</option>
                 <option value="list">Agenda do período</option>
@@ -556,7 +556,7 @@ export function ClientCalendarPage({
             title="Tamanho dos cartões"
             aria-label="Tamanho dos cartões"
             disabled={prefs.isPending || prefs.update.isPending}
-            className="h-7 w-[84px] rounded-md border border-border/70 bg-background px-1.5 text-xs shadow-none"
+            className="h-7 w-auto shrink-0 rounded-md border border-border/70 bg-background pl-1.5 pr-6 text-xs shadow-none"
             value={density}
             onChange={(e) => prefs.update.mutate({ calendar_density: e.target.value })}
           >
