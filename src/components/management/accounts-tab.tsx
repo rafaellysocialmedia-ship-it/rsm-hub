@@ -103,7 +103,7 @@ export function AccountsTab({ clientId, canEdit }: { clientId: string; canEdit: 
       actions={
         <div className="flex gap-2">
           <Button size="sm" variant="outline" asChild>
-            <Link to="/vault">
+            <Link to="/clientes/$clientId" params={{ clientId }} search={{ tab: "accesses" }}>
               <KeyRound className="mr-2 h-4 w-4" />
               Cofre
               <ExternalLink className="ml-2 h-3.5 w-3.5" />

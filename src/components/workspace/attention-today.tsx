@@ -150,7 +150,7 @@ export function AttentionToday() {
                   </div>
                   <Button asChild size="sm" variant="outline">
                     <Link
-                      to="/management/clients/$clientId"
+                      to="/clientes/$clientId"
                       params={{ clientId: a.id }}
                       search={{ tab: a.tab }}
                     >

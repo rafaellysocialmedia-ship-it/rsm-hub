@@ -51,7 +51,7 @@ export async function enterViewAs(args: {
     });
     throw new Error("Não foi possível entrar na conta escolhida. Tente de novo.");
   }
-  window.location.href = args.targetRole === "client" ? "/portal" : "/dashboard";
+  window.location.href = args.targetRole === "client" ? "/portal" : "/inicio";
 }
 
 /** Encerra a sessão da outra pessoa e volta para a conta do administrador. */
@@ -69,5 +69,5 @@ export async function leaveViewAs() {
     access_token: state.adminAccessToken,
     refresh_token: state.adminRefreshToken,
   });
-  window.location.href = error ? "/auth" : state.returnPath || "/dashboard";
+  window.location.href = error ? "/auth" : state.returnPath || "/inicio";
 }

@@ -1,126 +1,228 @@
+/**
+ * Mapa de navegação do RSM Hub.
+ *
+ * O menu tem 7 áreas fixas; cada área tem abas com endereço próprio.
+ * Configurações fica no menu da conta (avatar). As permissões são as mesmas
+ * de antes: cada aba usa o módulo que a tela já usava.
+ */
+export type AreaKey =
+  | "inicio"
+  | "clientes"
+  | "conteudo"
+  | "tarefas"
+  | "trafego"
+  | "financeiro"
+  | "relatorios"
+  | "configuracoes";
+
 export type NavItem = {
+  /** Nome da aba (igual ao título da tela). */
   label: string;
+  /** Endereço da aba (pode ter ?parâmetros). */
   href: string;
   module: string;
-  group: "Rotina" | "Operação" | "Gestão" | "Mais";
+  area: AreaKey;
   admin?: boolean;
+  /** Tela da área que não aparece como aba (ex.: detalhe, IA, reuniões). */
+  hidden?: boolean;
 };
+
+export type Area = { key: AreaKey; label: string; base: string };
+
+export const areas: Area[] = [
+  { key: "inicio", label: "Início", base: "/inicio" },
+  { key: "clientes", label: "Clientes", base: "/clientes" },
+  { key: "conteudo", label: "Conteúdo", base: "/conteudo" },
+  { key: "tarefas", label: "Tarefas", base: "/tarefas" },
+  { key: "trafego", label: "Tráfego", base: "/trafego" },
+  { key: "financeiro", label: "Financeiro", base: "/financeiro" },
+  { key: "relatorios", label: "Relatórios", base: "/relatorios" },
+];
+export const settingsArea: Area = {
+  key: "configuracoes",
+  label: "Configurações",
+  base: "/configuracoes",
+};
+
 export const navigation: NavItem[] = [
-  { label: "Início", href: "/dashboard", module: "workspace.dashboard", group: "Rotina" },
+  // Início
+  { label: "Início", href: "/inicio", module: "workspace.dashboard", area: "inicio" },
   {
-    label: "Minhas tarefas",
-    href: "/tasks?scope=mine",
-    module: "workspace.tasks",
-    group: "Rotina",
+    label: "Reuniões",
+    href: "/inicio/reunioes",
+    module: "workspace.meetings",
+    area: "inicio",
+    hidden: true,
   },
-  { label: "Calendário", href: "/posts?view=calendar", module: "social.calendar", group: "Rotina" },
-  { label: "Aprovações", href: "/portal", module: "social.approvals", group: "Rotina" },
+  // Clientes
+  { label: "Clientes", href: "/clientes", module: "workspace.clients", area: "clientes" },
   {
-    label: "Clientes",
-    href: "/management/clients",
+    label: "Comercial",
+    href: "/clientes/comercial",
+    module: "finance.dashboard",
+    area: "clientes",
+  },
+  {
+    label: "Retenção",
+    href: "/clientes/retencao",
     module: "workspace.clients",
-    group: "Operação",
+    area: "clientes",
   },
-  { label: "Conteúdos", href: "/posts?view=kanban", module: "social.calendar", group: "Operação" },
-  { label: "Financeiro", href: "/finance", module: "finance.dashboard", group: "Gestão" },
-  { label: "Resultados", href: "/analytics", module: "social.analytics", group: "Gestão" },
-  { label: "Todas as tarefas", href: "/tasks?scope=all", module: "workspace.tasks", group: "Mais" },
-  { label: "Reuniões", href: "/meetings", module: "workspace.meetings", group: "Mais" },
-  { label: "Comercial", href: "/commercial", module: "finance.dashboard", group: "Mais" },
-  { label: "Retenção", href: "/retention", module: "workspace.clients", group: "Mais" },
-  { label: "Biblioteca", href: "/library", module: "workspace.library", group: "Mais" },
-  { label: "Briefings", href: "/library/briefings", module: "social.briefings", group: "Mais" },
   {
-    label: "Modelos de briefing",
-    href: "/briefings/template",
+    label: "Briefing",
+    href: "/clientes/briefing",
     module: "social.briefings",
-    group: "Mais",
+    area: "clientes",
+    hidden: true,
   },
-  { label: "Acessos", href: "/vault", module: "workspace.vault", group: "Mais" },
-  { label: "Assistente de IA", href: "/ai", module: "social.ai", group: "Mais" },
-  { label: "Ferramentas de IA", href: "/ai/tools", module: "social.ai", group: "Mais" },
-  { label: "Tráfego pago", href: "/traffic", module: "traffic.dashboard", group: "Mais" },
+  // Conteúdo
   {
-    label: "Campanhas de tráfego",
-    href: "/traffic/campaigns",
-    module: "traffic.dashboard",
-    group: "Mais",
+    label: "Calendário",
+    href: "/conteudo/calendario",
+    module: "social.calendar",
+    area: "conteudo",
   },
-  { label: "CRM de tráfego", href: "/traffic/crm", module: "traffic.crm", group: "Mais" },
+  { label: "Quadro", href: "/conteudo/quadro", module: "social.calendar", area: "conteudo" },
   {
-    label: "Métricas de tráfego",
-    href: "/traffic/analytics",
-    module: "traffic.analytics",
-    group: "Mais",
+    label: "Aprovações",
+    href: "/conteudo/aprovacoes",
+    module: "social.approvals",
+    area: "conteudo",
   },
   {
-    label: "Landing pages",
-    href: "/traffic/landing-pages",
-    module: "traffic.dashboard",
-    group: "Mais",
+    label: "Biblioteca",
+    href: "/conteudo/biblioteca",
+    module: "workspace.library",
+    area: "conteudo",
   },
   {
-    label: "Contas a receber",
-    href: "/finance/receivables",
-    module: "finance.receivables",
-    group: "Mais",
-  },
-  {
-    label: "Carteira financeira",
-    href: "/finance/clients",
-    module: "finance.clients",
-    group: "Mais",
-  },
-  {
-    label: "Contratos financeiros",
-    href: "/finance/contracts",
-    module: "finance.contracts",
-    group: "Mais",
-  },
-  {
-    label: "Formas de pagamento",
-    href: "/finance/payment-methods",
-    module: "finance.payment_methods",
-    group: "Mais",
-  },
-  {
-    label: "Configuração financeira",
-    href: "/finance/settings",
-    module: "finance.settings",
-    group: "Mais",
-  },
-  { label: "Cursos", href: "/courses", module: "academy.courses", group: "Mais" },
-  { label: "Marketplace", href: "/marketplace", module: "marketplace.services", group: "Mais" },
-  { label: "Equipe", href: "/team", module: "management.team", group: "Mais", admin: true },
-  {
-    label: "Permissões",
-    href: "/admin/permissions",
+    label: "Controle de posts",
+    href: "/conteudo/controle-de-posts",
     module: "management.permissions",
-    group: "Mais",
+    area: "conteudo",
     admin: true,
   },
   {
-    label: "Gerenciar cursos",
-    href: "/admin/courses",
-    module: "management.courses",
-    group: "Mais",
+    label: "Assistente de IA",
+    href: "/conteudo/ia",
+    module: "social.ai",
+    area: "conteudo",
+    hidden: true,
+  },
+  // Tarefas
+  { label: "Tarefas", href: "/tarefas", module: "workspace.tasks", area: "tarefas" },
+  // Tráfego
+  { label: "Visão geral", href: "/trafego", module: "traffic.dashboard", area: "trafego" },
+  {
+    label: "Campanhas",
+    href: "/trafego/campanhas",
+    module: "traffic.dashboard",
+    area: "trafego",
+  },
+  { label: "CRM", href: "/trafego/crm", module: "traffic.crm", area: "trafego" },
+  {
+    label: "Landing pages",
+    href: "/trafego/landing-pages",
+    module: "traffic.dashboard",
+    area: "trafego",
+  },
+  { label: "Métricas", href: "/trafego/metricas", module: "traffic.analytics", area: "trafego" },
+  // Financeiro
+  { label: "Painel", href: "/financeiro", module: "finance.dashboard", area: "financeiro" },
+  {
+    label: "Receber",
+    href: "/financeiro/receber",
+    module: "finance.receivables",
+    area: "financeiro",
+  },
+  {
+    label: "Contratos",
+    href: "/financeiro/contratos",
+    module: "finance.contracts",
+    area: "financeiro",
+  },
+  // Relatórios
+  { label: "Resultados", href: "/relatorios", module: "social.analytics", area: "relatorios" },
+  {
+    label: "Relatório mensal",
+    href: "/relatorios/mensal",
+    module: "social.analytics",
+    area: "relatorios",
+  },
+  // Configurações (menu da conta)
+  {
+    label: "Perfil",
+    href: "/configuracoes/perfil",
+    module: "management.settings",
+    area: "configuracoes",
+  },
+  {
+    label: "Equipe",
+    href: "/configuracoes/equipe",
+    module: "management.team",
+    area: "configuracoes",
+    admin: true,
+  },
+  {
+    label: "Permissões",
+    href: "/configuracoes/permissoes",
+    module: "management.permissions",
+    area: "configuracoes",
     admin: true,
   },
   {
     label: "Gerenciar visualizações",
-    href: "/admin/visibility",
+    href: "/configuracoes/visualizacoes",
     module: "management.permissions",
-    group: "Mais",
+    area: "configuracoes",
     admin: true,
   },
   {
-    label: "Controle de posts",
-    href: "/admin/posts-control",
+    label: "Formas de pagamento",
+    href: "/configuracoes/formas-de-pagamento",
+    module: "finance.payment_methods",
+    area: "configuracoes",
+  },
+  {
+    label: "Configuração financeira",
+    href: "/configuracoes/financeiro",
+    module: "finance.settings",
+    area: "configuracoes",
+  },
+  {
+    label: "Acessos da agência",
+    href: "/configuracoes/acessos",
+    module: "workspace.vault",
+    area: "configuracoes",
+  },
+  {
+    label: "Cursos",
+    href: "/configuracoes/cursos",
+    module: "academy.courses",
+    area: "configuracoes",
+  },
+  {
+    label: "Gerenciar cursos",
+    href: "/configuracoes/cursos/gerenciar",
+    module: "management.courses",
+    area: "configuracoes",
+    admin: true,
+  },
+  {
+    label: "Marketplace",
+    href: "/configuracoes/marketplace",
+    module: "marketplace.services",
+    area: "configuracoes",
+  },
+  {
+    label: "Ver como cliente ou equipe",
+    href: "/configuracoes/ver-como",
     module: "management.permissions",
-    group: "Mais",
+    area: "configuracoes",
     admin: true,
   },
 ];
+
 export const portalNavigation = [
   ["Início", "home"],
   ["Conteúdos", "contents"],
@@ -129,49 +231,128 @@ export const portalNavigation = [
   ["Documentos", "files"],
   ["Financeiro", "finance"],
 ] as const;
-export function activeNavigation(href: string, path: string, search: Record<string, unknown>) {
-  if (path === "/clients" || path.startsWith("/clients/"))
-    path = path.replace("/clients", "/management/clients");
-  if ((path === "/briefings" || path.startsWith("/briefings/")) && path !== "/briefings/template")
-    path = "/library/briefings";
+
+const pathOf = (href: string) => href.split("?")[0];
+const clean = (path: string) => path.replace(/\/$/, "") || "/";
+
+export function areaForPath(path: string): Area | undefined {
+  const p = clean(path);
+  return [...areas, settingsArea].find((a) => p === a.base || p.startsWith(a.base + "/"));
+}
+
+/** Abas visíveis de uma área (sem as telas escondidas). */
+export function tabsOf(area: AreaKey) {
+  return navigation.filter((n) => n.area === area && !n.hidden);
+}
+
+/** A aba é a tela atual? (endereço exato, sem contar parâmetros). */
+export function isTabActive(href: string, path: string) {
+  return clean(path) === pathOf(href);
+}
+
+/** Item de navegação dono de um endereço (o de prefixo mais longo). */
+export function navForPath(path: string): NavItem | undefined {
+  const p = clean(path);
+  return navigation
+    .filter((n) => p === pathOf(n.href) || p.startsWith(pathOf(n.href) + "/"))
+    .sort((a, b) => pathOf(b.href).length - pathOf(a.href).length)[0];
+}
+
+/* ------------------------------------------------------------------ */
+/* Endereços antigos → novos (links salvos, favoritos e notificações). */
+/* ------------------------------------------------------------------ */
+
+type Search = Record<string, unknown>;
+const STATIC: Record<string, string> = {
+  "/dashboard": "/inicio",
+  "/meetings": "/inicio/reunioes",
+  "/management/clients": "/clientes",
+  "/clients": "/clientes",
+  "/commercial": "/clientes/comercial",
+  "/retention": "/clientes/retencao",
+  "/briefings/template": "/clientes/briefing/modelo",
+  "/vault": "/configuracoes/acessos",
+  "/library": "/conteudo/biblioteca",
+  "/admin/posts-control": "/conteudo/controle-de-posts",
+  "/ai": "/conteudo/ia",
+  "/ai/tools": "/conteudo/ia/ferramentas",
+  "/traffic": "/trafego",
+  "/traffic/campaigns": "/trafego/campanhas",
+  "/traffic/crm": "/trafego/crm",
+  "/traffic/landing-pages": "/trafego/landing-pages",
+  "/traffic/analytics": "/trafego/metricas",
+  "/finance": "/financeiro",
+  "/finance/receivables": "/financeiro/receber",
+  "/finance/contracts": "/financeiro/contratos",
+  "/finance/payment-methods": "/configuracoes/formas-de-pagamento",
+  "/finance/settings": "/configuracoes/financeiro",
+  "/analytics": "/relatorios",
+  "/settings": "/configuracoes/perfil",
+  "/configuracoes": "/configuracoes/perfil",
+  "/team": "/configuracoes/equipe",
+  "/admin/permissions": "/configuracoes/permissoes",
+  "/admin/visibility": "/configuracoes/visualizacoes",
+  "/admin/courses": "/configuracoes/cursos/gerenciar",
+  "/courses": "/configuracoes/cursos",
+  "/marketplace": "/configuracoes/marketplace",
+};
+
+function withSearch(path: string, search: Search) {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(search)) {
+    if (v === undefined || v === null || v === "") continue;
+    qs.set(k, typeof v === "string" ? v : JSON.stringify(v));
+  }
+  const s = qs.toString();
+  return s ? `${path}?${s}` : path;
+}
+
+/**
+ * Endereço novo para um endereço antigo, mantendo os parâmetros
+ * (?open=, ?comment=, ?tab=, ?mes=…). Devolve null se não for um endereço antigo.
+ */
+export function legacyTarget(pathname: string, search: Search = {}): string | null {
+  const p = clean(pathname);
+  const s: Search = { ...search };
+  let m: RegExpMatchArray | null;
+
+  if (p === "/posts") {
+    const view = String(s.view ?? "");
+    if (view === "kanban" || view === "table") return withSearch("/conteudo/quadro", s);
+    if (!["calendar", "list", "timeline"].includes(view)) delete s.view;
+    return withSearch("/conteudo/calendario", s);
+  }
+  if (p === "/tasks") {
+    const de = s.scope === "mine" ? "minhas" : "equipe";
+    delete s.scope;
+    return withSearch("/tarefas", { de, ...s });
+  }
+  if (p === "/finance/clients") return withSearch("/financeiro/receber", { ...s, visao: "por-cliente" });
+  if (p === "/briefings" || p === "/library/briefings") {
+    const client = typeof s.client === "string" ? s.client : undefined;
+    return client ? withSearch(`/clientes/${client}`, { tab: "strategy" }) : "/clientes";
+  }
+  if ((m = p.match(/^\/(?:management\/clients|clients)\/([^/]+)$/)))
+    return withSearch(`/clientes/${m[1]}`, s);
+  if (STATIC[p]) return withSearch(STATIC[p], s);
+  if ((m = p.match(/^\/briefings\/([^/]+)$/))) return withSearch(`/clientes/briefing/${m[1]}`, s);
+  if ((m = p.match(/^\/traffic\/campaigns\/([^/]+)$/)))
+    return withSearch(`/trafego/campanhas/${m[1]}`, s);
+  if ((m = p.match(/^\/ai\/([^/]+)$/)) && m[1] !== "tools")
+    return withSearch(`/conteudo/ia/${m[1]}`, s);
+  if ((m = p.match(/^\/courses\/([^/]+)$/))) return withSearch(`/configuracoes/cursos/${m[1]}`, s);
+  // Rotas de despesas/fornecedores que só existem no cadastro de módulos.
+  if (p.startsWith("/finance/")) return withSearch("/financeiro", s);
+  return null;
+}
+
+/** Converte um link salvo (favorito) para o endereço novo, se for antigo. */
+export function upgradeHref(href: string): string {
   const u = new URL(href, "https://rsm.local");
-  const p = path.replace(/\/$/, "") || "/";
-  if (u.pathname === "/posts")
-    return (
-      p === "/posts" &&
-      (u.searchParams.get("view") === "calendar"
-        ? (search.view ?? "calendar") === "calendar"
-        : search.view != null && search.view !== "calendar")
-    );
-  if (u.pathname === "/tasks")
-    return p === "/tasks" && (search.scope ?? "all") === u.searchParams.get("scope");
-  if (u.pathname === "/finance") return p === "/finance";
-  if (u.pathname === "/traffic") return p === "/traffic";
-  if (u.pathname === "/ai") return p === "/ai" || (p.startsWith("/ai/") && p !== "/ai/tools");
-  if (u.pathname === "/library") return p === "/library";
-  return p === u.pathname || p.startsWith(u.pathname + "/");
+  const target = legacyTarget(u.pathname, Object.fromEntries(u.searchParams));
+  return target ? target + u.hash : href;
 }
-export function navForPath(path: string) {
-  if (path === "/clients" || path.startsWith("/clients/"))
-    path = path.replace("/clients", "/management/clients");
-  if (path === "/briefings" || (path.startsWith("/briefings/") && path !== "/briefings/template"))
-    path = "/library/briefings";
-  return [
-    ...navigation,
-    {
-      label: "Configurações",
-      href: "/settings",
-      module: "management.settings",
-      group: "Mais" as const,
-    },
-  ]
-    .filter(
-      (n) =>
-        path.replace(/\/$/, "") === n.href.split("?")[0] ||
-        path.startsWith(n.href.split("?")[0] + "/"),
-    )
-    .sort((a, b) => b.href.split("?")[0].length - a.href.split("?")[0].length)[0];
-}
+
 export function isTyping(target: EventTarget | null) {
   return (
     target instanceof HTMLElement &&

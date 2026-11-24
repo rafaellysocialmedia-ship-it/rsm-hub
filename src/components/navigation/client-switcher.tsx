@@ -29,7 +29,7 @@ export function ClientSwitcher({ id, name, tab }: { id: string; name: string; ta
       return data;
     },
   });
-  const href = `/management/clients/${id}?tab=${encodeURIComponent(tab)}`;
+  const href = `/clientes/${id}?tab=${encodeURIComponent(tab)}`;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Popover open={open} onOpenChange={setOpen}>
@@ -59,7 +59,7 @@ export function ClientSwitcher({ id, name, tab }: { id: string; name: string; ta
                   onSelect={() => {
                     setOpen(false);
                     void router.navigate({
-                      to: "/management/clients/$clientId",
+                      to: "/clientes/$clientId",
                       params: { clientId: c.id },
                       search: { tab },
                     });

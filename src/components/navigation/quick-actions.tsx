@@ -45,7 +45,7 @@ export function QuickActionsProvider({ children }: { children: ReactNode }) {
     [debounced, setDebounced] = useState(""),
     [create, setCreate] = useState(""),
     [post, setPost] = useState<Post | null>(null);
-  const clientId = path.match(/^\/management\/clients\/([^/]+)/)?.[1];
+  const clientId = path.match(/^\/clientes\/([0-9a-f-]{36})/)?.[1];
   useEffect(() => {
     const t = setTimeout(() => setDebounced(term.trim()), 250);
     return () => clearTimeout(t);
@@ -173,7 +173,7 @@ export function QuickActionsProvider({ children }: { children: ReactNode }) {
                         onSelect={() => {
                           setSearchOpen(false);
                           void router.navigate({
-                            to: "/management/clients/$clientId",
+                            to: "/clientes/$clientId",
                             params: { clientId: c.id },
                             search: { tab: "overview" },
                           });

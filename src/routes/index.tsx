@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
         /* Sem sessão: o destino abaixo leva para a tela de login. */
       }
     }
-    throw redirect({ to: "/dashboard" });
+    throw redirect({ to: "/inicio" });
   },
   component: () => null,
 });

@@ -3,8 +3,6 @@ import { useRouter, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   CheckSquare,
-  Calendar,
-  CheckCircle2,
   Users,
   Layers,
   CircleDollarSign,
@@ -12,14 +10,10 @@ import {
   MoreHorizontal,
   Star,
   X,
-  Settings,
   PanelLeftClose,
   PanelLeftOpen,
   FolderOpen,
-  BriefcaseBusiness,
-  Grid2X2,
-  ShieldCheck,
-  ChevronDown,
+  Megaphone,
 } from "lucide-react";
 import {
   Sidebar,
@@ -38,19 +32,25 @@ import { useNavigationPreferences, useNavigationCounts } from "@/hooks/use-navig
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAccount } from "@/hooks/use-account-workspace";
-import { navigation, portalNavigation, activeNavigation, navForPath } from "@/lib/navigation";
+import {
+  areas,
+  areaForPath,
+  navForPath,
+  navigation,
+  portalNavigation,
+  upgradeHref,
+} from "@/lib/navigation";
 import { QuickActions } from "./navigation/quick-actions";
 import { AccountMenu } from "./topbar";
-const icons = [
-  LayoutDashboard,
-  CheckSquare,
-  Calendar,
-  CheckCircle2,
-  Users,
-  Layers,
-  CircleDollarSign,
-  BarChart3,
-];
+const AREA_ICONS: Record<string, typeof LayoutDashboard> = {
+  inicio: LayoutDashboard,
+  clientes: Users,
+  conteudo: Layers,
+  tarefas: CheckSquare,
+  trafego: Megaphone,
+  financeiro: CircleDollarSign,
+  relatorios: BarChart3,
+};
 export function AppSidebar() {
   const { user, hasRole } = useAuth();
   const staff = hasRole("administrator") || hasRole("team");
@@ -79,8 +79,6 @@ export function AppSidebar() {
     ) ?? [];
   const [more, setMore] = useState(false),
     [all, setAll] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  const [favoritesOpen, setFavoritesOpen] = useState(false);
   const collapsed = state === "collapsed" && !isMobile;
   useEffect(() => {
     setOpenMobile(false);
@@ -96,71 +94,23 @@ export function AppSidebar() {
   const allowed = navigation.filter(
     (n) => !loading && can(n.module) && (!n.admin || hasRole("administrator")),
   );
-  // Keep every permitted destination in exactly one group; no routes are removed.
-  const primaryOrder = [
-    "Início",
-    "Calendário",
-    "Conteúdos",
-    "Clientes",
-    "Minhas tarefas",
-    "Aprovações",
-    "Resultados",
-  ];
-  const primaryItems = primaryOrder.flatMap((label) => allowed.filter((n) => n.label === label));
-  const managementItems = allowed.filter(
-    (n) =>
-      !n.admin &&
-      (n.href.startsWith("/finance") ||
-        n.href.startsWith("/traffic") ||
-        n.href === "/commercial" ||
-        n.href === "/retention"),
-  );
-  const administrationItems = allowed.filter((n) => n.admin);
-  const toolsItems = allowed.filter(
-    (n) => !primaryItems.includes(n) && !managementItems.includes(n) && !n.admin,
-  );
-  const sections = [
-    {
-      key: "finance",
-      label: "Financeiro",
-      icon: CircleDollarSign,
-      items: managementItems.filter((n) => n.href.startsWith("/finance")),
-    },
-    {
-      key: "traffic",
-      label: "Tráfego",
-      icon: BarChart3,
-      items: managementItems.filter((n) => n.href.startsWith("/traffic")),
-    },
-    {
-      key: "management",
-      label: "Comercial e retenção",
-      icon: BriefcaseBusiness,
-      items: managementItems.filter(
-        (n) => !n.href.startsWith("/finance") && !n.href.startsWith("/traffic"),
-      ),
-    },
-    { key: "tools", label: "Ferramentas", icon: Grid2X2, items: toolsItems },
-    { key: "admin", label: "Administração", icon: ShieldCheck, items: administrationItems },
-  ];
-  const sectionIsActive = (items: typeof navigation) =>
-    items.some((n) =>
-      activeNavigation(n.href, location.pathname, location.search as Record<string, unknown>),
-    );
-  const current = navForPath(location.pathname);
-  const favorites = prefs.favorites.filter((f) => {
-    const n = navForPath(f.href.split("?")[0]);
-    return n && can(n.module) && (!n.admin || hasRole("administrator"));
+  // As 7 áreas; cada uma aparece se a pessoa puder ver ao menos uma tela dela
+  // e abre na primeira aba permitida.
+  const areaItems = areas.flatMap((a) => {
+    const first = allowed.find((n) => n.area === a.key && !n.hidden);
+    return first ? [{ ...a, href: a.key === "tarefas" ? "/tarefas?de=minhas" : first.href }] : [];
   });
-  const item = (n: (typeof navigation)[number]) => {
-    const idx = navigation.indexOf(n),
-      Icon = icons[idx] ?? FolderOpen;
-    const count =
-      n.label === "Minhas tarefas"
-        ? counts.data?.tasks
-        : n.label === "Aprovações" && !staff
-          ? counts.data?.approvals
-          : undefined;
+  const currentArea = areaForPath(location.pathname);
+  const current = navForPath(location.pathname);
+  const favorites = prefs.favorites
+    .map((f) => ({ ...f, go: upgradeHref(f.href) }))
+    .filter((f) => {
+      const n = navForPath(f.go.split("?")[0]);
+      return n && can(n.module) && (!n.admin || hasRole("administrator"));
+    });
+  const item = (n: { label: string; href: string; key?: string }) => {
+    const Icon = (n.key && AREA_ICONS[n.key]) || FolderOpen;
+    const count = n.key === "tarefas" ? counts.data?.tasks : undefined;
     return (
       <SidebarMenuItem key={n.href}>
         <SidebarMenuButton
@@ -173,11 +123,7 @@ export function AppSidebar() {
                 ? ` · ${count} pendências`
                 : "")
           }
-          isActive={activeNavigation(
-            n.href,
-            location.pathname,
-            location.search as Record<string, unknown>,
-          )}
+          isActive={n.key ? currentArea?.key === n.key : location.pathname === n.href.split("?")[0]}
           onClick={() => go(n.href)}
         >
           <Icon />
@@ -190,7 +136,7 @@ export function AppSidebar() {
                 <span
                   className="rounded bg-primary/10 px-1.5 text-xs"
                   title={
-                    n.label === "Minhas tarefas"
+                    n.key === "tarefas"
                       ? "Tarefas vencidas atribuídas a você"
                       : "Itens aguardando decisão"
                   }
@@ -212,7 +158,7 @@ export function AppSidebar() {
         >
           <button
             type="button"
-            onClick={() => go(staff ? "/dashboard" : "/portal?tab=home")}
+            onClick={() => go(staff ? "/inicio" : "/portal?tab=home")}
             aria-label="Ir ao início do RSM Marketing"
             title="RSM Marketing"
             className={`flex min-w-0 items-center justify-center rounded-lg p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${collapsed ? "w-full" : "flex-1"}`}
@@ -252,130 +198,75 @@ export function AppSidebar() {
       <SidebarContent className="overflow-x-hidden">
         {staff ? (
           <>
-            <SidebarGroup className="pb-1">
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-wider">
-                Principal
-              </SidebarGroupLabel>
-              <SidebarMenu>{primaryItems.map(item)}</SidebarMenu>
-            </SidebarGroup>
-            <SidebarGroup className="pt-1">
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-wider">
-                Outras áreas
-              </SidebarGroupLabel>
-              <SidebarMenu>
-                {sections
-                  .filter(({ items }) => items.length > 0)
-                  .map(({ key, label, icon: Icon, items }) => {
-                    const open =
-                      expandedSection === key ||
-                      (expandedSection === null && sectionIsActive(items));
-                    return (
-                      <SidebarMenuItem key={key}>
-                        <SidebarMenuButton
-                          tooltip={label}
-                          className="min-h-10 rounded-lg"
-                          isActive={sectionIsActive(items)}
-                          aria-expanded={open}
-                          onClick={() => {
-                            if (collapsed) toggleSidebar();
-                            setExpandedSection(open ? "none" : key);
-                          }}
-                        >
-                          <Icon />
-                          <span className="flex-1 text-sm">{label}</span>
-                          {!collapsed && (
-                            <ChevronDown
-                              className={`size-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-                            />
-                          )}
-                        </SidebarMenuButton>
-                        {open && !collapsed && (
-                          <SidebarMenu className="w-auto min-w-0 border-l border-border/60 pl-2">
-                            {items.map(item)}
-                          </SidebarMenu>
-                        )}
-                      </SidebarMenuItem>
-                    );
-                  })}
-              </SidebarMenu>
-            </SidebarGroup>
-            <SidebarGroup className="pt-1">
-              <SidebarMenuButton
-                tooltip="Favoritos e atalhos"
-                className="min-h-10 rounded-lg"
-                aria-expanded={favoritesOpen}
-                onClick={() => {
-                  if (collapsed) toggleSidebar();
-                  setFavoritesOpen((value) => !value);
-                }}
-              >
-                <Star />
-                <span className="flex-1 text-sm">Favoritos</span>
-                {!collapsed && (
-                  <ChevronDown
-                    className={`size-4 shrink-0 transition-transform ${favoritesOpen ? "rotate-180" : ""}`}
-                  />
-                )}
-              </SidebarMenuButton>
-              {favoritesOpen && !collapsed && (
-                <div className="pt-1">
-                  <SidebarMenuButton
-                    tooltip="Fixar ou remover esta visualização"
-                    disabled={
-                      !current || prefs.isLoading || !!prefs.error || prefs.update.isPending
+            {/* Favoritos: uma linha de atalhos acima das áreas. */}
+            {!collapsed && (
+              <div className="px-2 pt-1" aria-label="Favoritos">
+                <div className="flex flex-wrap items-center gap-1">
+                  <button
+                    type="button"
+                    title={
+                      prefs.favorites.some((f) => f.href === location.href)
+                        ? "Remover esta tela dos favoritos"
+                        : "Fixar esta tela nos favoritos"
                     }
+                    aria-label={
+                      prefs.favorites.some((f) => f.href === location.href)
+                        ? "Remover esta tela dos favoritos"
+                        : "Fixar esta tela nos favoritos"
+                    }
+                    aria-pressed={prefs.favorites.some((f) => f.href === location.href)}
+                    disabled={!current || prefs.isLoading || !!prefs.error || prefs.update.isPending}
                     onClick={() =>
                       current &&
-                      prefs.toggle({
-                        href: location.href,
-                        label: current.label,
-                        module: current.module,
-                      })
+                      prefs.toggle({ href: location.href, label: current.label, module: current.module })
                     }
+                    className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
                   >
-                    <Star />
-                    <span>
-                      {prefs.favorites.some((f) => f.href === location.href)
-                        ? "Remover favorito"
-                        : "Fixar esta visualização"}
-                    </span>
-                  </SidebarMenuButton>
+                    <Star
+                      className={`size-3.5 ${prefs.favorites.some((f) => f.href === location.href) ? "fill-brand-accent text-brand-accent" : ""}`}
+                    />
+                  </button>
                   {prefs.error ? (
-                    <p role="alert" className="p-2 text-xs">
-                      Falha nos favoritos.{" "}
-                      <button onClick={() => void prefs.refetch()}>Tentar novamente</button>
-                    </p>
+                    <button className="text-xs underline" onClick={() => void prefs.refetch()}>
+                      Falha nos favoritos · tentar de novo
+                    </button>
+                  ) : favorites.length === 0 ? (
+                    <span className="text-[11px] text-muted-foreground">Fixe telas na estrela</span>
                   ) : (
-                    <SidebarMenu>
-                      {(all ? favorites : favorites.slice(0, 5)).map((f) => (
-                        <SidebarMenuItem key={f.href} className="flex items-center">
-                          <SidebarMenuButton tooltip={f.label} onClick={() => go(f.href)}>
-                            <Star />
-                            <span>{f.label}</span>
-                          </SidebarMenuButton>
-                          {!collapsed && (
-                            <button
-                              aria-label={`Remover ${f.label} dos favoritos`}
-                              className="rounded p-2 focus-visible:ring-2"
-                              onClick={() => prefs.toggle(f)}
-                            >
-                              <X className="size-3" />
-                            </button>
-                          )}
-                        </SidebarMenuItem>
-                      ))}
-                    </SidebarMenu>
+                    (all ? favorites : favorites.slice(0, 4)).map((f) => (
+                      <span
+                        key={f.href}
+                        className="group inline-flex max-w-full items-center rounded-md border border-border/70 bg-background text-[11px]"
+                      >
+                        <button
+                          type="button"
+                          className="max-w-[8.5rem] truncate px-2 py-1 hover:text-brand"
+                          title={f.label}
+                          onClick={() => go(f.go)}
+                        >
+                          {f.label}
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Remover ${f.label} dos favoritos`}
+                          className="hidden rounded-r-md px-1 py-1 text-muted-foreground hover:text-foreground group-hover:inline-flex focus-visible:inline-flex"
+                          onClick={() => prefs.toggle(f)}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    ))
                   )}
-                  {favorites.length > 5 && !collapsed && (
-                    <button
-                      className="p-2 text-left text-xs underline"
-                      onClick={() => setAll(!all)}
-                    >
-                      {all ? "Ver menos" : "Ver todos"}
+                  {favorites.length > 4 && (
+                    <button className="px-1 text-[11px] underline" onClick={() => setAll(!all)}>
+                      {all ? "menos" : `+${favorites.length - 4}`}
                     </button>
                   )}
                 </div>
-              )}
+              </div>
+            )}
+            <SidebarGroup className="pt-1">
+              <SidebarMenu>{areaItems.map(item)}</SidebarMenu>
             </SidebarGroup>
           </>
         ) : (
@@ -418,7 +309,7 @@ export function AppSidebar() {
                         tooltip={label}
                         isActive={
                           active &&
-                          ["/portal", "/dashboard", "/portal/calendar"].includes(location.pathname)
+                          ["/portal", "/inicio", "/portal/calendar"].includes(location.pathname)
                         }
                         onClick={() =>
                           go(
@@ -460,7 +351,7 @@ export function AppSidebar() {
             )}
             <SidebarMenuButton
               tooltip="Outros recursos"
-              isActive={!["/portal", "/dashboard", "/portal/calendar"].includes(location.pathname)}
+              isActive={!["/portal", "/inicio", "/portal/calendar"].includes(location.pathname)}
               aria-expanded={more}
               onClick={() => {
                 if (collapsed) toggleSidebar();
@@ -474,9 +365,13 @@ export function AppSidebar() {
               <SidebarMenu>
                 {allowed
                   .filter((n) =>
-                    ["/courses", "/marketplace", "/meetings", "/library", "/analytics"].includes(
-                      n.href,
-                    ),
+                    [
+                      "/configuracoes/cursos",
+                      "/configuracoes/marketplace",
+                      "/inicio/reunioes",
+                      "/conteudo/biblioteca",
+                      "/relatorios",
+                    ].includes(n.href),
                   )
                   .map(item)}
               </SidebarMenu>
@@ -484,16 +379,6 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
         <div className="mt-auto border-t p-2">
-          {can("management.settings") && (
-            <SidebarMenuButton
-              tooltip="Configurações"
-              isActive={location.pathname === "/settings"}
-              onClick={() => go("/settings")}
-            >
-              <Settings />
-              <span>Configurações</span>
-            </SidebarMenuButton>
-          )}
           <AccountMenu compact={collapsed} />
         </div>
       </SidebarContent>

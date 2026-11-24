@@ -51,6 +51,7 @@ export const profileGroups: Group[] = [
       ["settings", "Dados, equipe e integrações"],
       ["strategy", "Estratégia e briefing"],
       ["documents", "Identidade e arquivos"],
+      ["accesses", "Acessos"],
     ],
   },
 ];

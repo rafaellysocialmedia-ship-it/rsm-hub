@@ -58,7 +58,7 @@ export function CommercialWorkspace() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Comercial da RSM</h1>
+          <h1 className="text-2xl font-semibold">Comercial</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Da primeira conversa ao início da operação.
           </p>
@@ -142,7 +142,7 @@ export function CommercialWorkspace() {
                   )}
                   {p.client_id && (
                     <Button asChild variant="outline">
-                      <Link to="/management/clients/$clientId" params={{ clientId: p.client_id }}>
+                      <Link to="/clientes/$clientId" params={{ clientId: p.client_id }}>
                         Abrir cliente
                       </Link>
                     </Button>

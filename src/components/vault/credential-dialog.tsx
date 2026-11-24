@@ -37,9 +37,11 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   clients: Client[];
   credential?: VaultCredential | null;
+  /** Cliente pré-selecionado ao criar (aba Acessos do cliente). */
+  defaultClientId?: string;
 };
 
-export function CredentialDialog({ open, onOpenChange, clients, credential }: Props) {
+export function CredentialDialog({ open, onOpenChange, clients, credential, defaultClientId }: Props) {
   const qc = useQueryClient();
   const editing = !!credential;
   const [platform, setPlatform] = useState("");
@@ -66,11 +68,11 @@ export function CredentialDialog({ open, onOpenChange, clients, credential }: Pr
       setBackupLoaded(false);
     } else {
       setPlatform(""); setUsername(""); setPassword("");
-      setNotes(""); setClientId("none");
+      setNotes(""); setClientId(defaultClientId ?? "none");
       setHas2fa(false); setBackupCodes(""); setBackupLoaded(false);
     }
     setShow(false);
-  }, [credential, open]);
+  }, [credential, open, defaultClientId]);
 
   const loadBackup = async () => {
     if (!credential) return;

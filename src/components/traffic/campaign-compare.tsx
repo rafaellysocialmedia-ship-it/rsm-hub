@@ -125,7 +125,7 @@ export function CampaignCompare({ campaigns, metrics }: Props) {
                 {chosen.map((c) => (
                   <th key={c.id} className="pb-2 pr-4 font-medium">
                     <Link
-                      to="/traffic/campaigns/$campaignId"
+                      to="/trafego/campanhas/$campaignId"
                       params={{ campaignId: c.id }}
                       className="hover:underline"
                     >

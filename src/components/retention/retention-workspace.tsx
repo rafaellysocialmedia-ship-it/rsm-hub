@@ -75,7 +75,7 @@ export function RetentionDashboardCard() {
           </div>
         </div>
         <Button asChild variant="outline">
-          <Link to="/retention">Abrir Central de Retenção</Link>
+          <Link to="/clientes/retencao">Abrir Central de Retenção</Link>
         </Button>
       </CardContent>
     </Card>
@@ -126,7 +126,7 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
           <h2
             className={clientId ? "text-xl font-semibold" : "text-2xl font-semibold tracking-tight"}
           >
-            {clientId ? "Saúde e acompanhamento" : "Central de Retenção"}
+            {clientId ? "Saúde e acompanhamento" : "Retenção"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Sinais da operação, contatos e próximos passos. Uso interno da RSM.
@@ -292,7 +292,7 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                     </Button>
                     <Button size="sm" variant="outline" asChild>
                       <Link
-                        to="/management/clients/$clientId"
+                        to="/clientes/$clientId"
                         params={{ clientId: a.client_id }}
                         search={{ tab: "meetings" }}
                       >
@@ -301,7 +301,7 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                     </Button>
                     <Button size="sm" variant="outline" asChild>
                       <Link
-                        to="/management/clients/$clientId"
+                        to="/clientes/$clientId"
                         params={{ clientId: a.client_id }}
                         search={{ tab: "demands" }}
                       >
@@ -310,7 +310,7 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                     </Button>
                     <Button size="sm" variant="outline" asChild>
                       <Link
-                        to="/management/clients/$clientId"
+                        to="/clientes/$clientId"
                         params={{ clientId: a.client_id }}
                         search={{ tab: "contract" }}
                       >
@@ -319,7 +319,7 @@ export function RetentionWorkspace({ clientId }: { clientId?: string }) {
                     </Button>
                     {!clientId && (
                       <Button size="sm" variant="ghost" asChild>
-                        <Link to="/management/clients/$clientId" params={{ clientId: a.client_id }}>
+                        <Link to="/clientes/$clientId" params={{ clientId: a.client_id }}>
                           Ver cliente
                         </Link>
                       </Button>
@@ -871,7 +871,7 @@ function ChurnHistory() {
             </div>
             <Link
               className="text-primary underline"
-              to="/management/clients/$clientId"
+              to="/clientes/$clientId"
               params={{ clientId: c.id }}
             >
               Ver histórico da conta

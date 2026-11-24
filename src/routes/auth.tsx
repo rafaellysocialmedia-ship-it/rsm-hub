@@ -59,7 +59,7 @@ function AuthPage() {
         return;
       }
       const isStaff = hasRole("administrator") || hasRole("team");
-      navigate({ to: isStaff ? "/dashboard" : "/portal" });
+      navigate({ to: isStaff ? "/inicio" : "/portal" });
     }
   }, [user, loading, hasRole, navigate, next]);
 

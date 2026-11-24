@@ -34,7 +34,7 @@ export function TrafficLocked() {
         </div>
 
         <Button asChild className="mt-8">
-          <Link to="/marketplace">Contratar Tráfego Pago</Link>
+          <Link to="/configuracoes/marketplace">Contratar Tráfego Pago</Link>
         </Button>
       </Card>
     </div>

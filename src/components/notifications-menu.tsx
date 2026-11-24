@@ -1,3 +1,4 @@
+import { upgradeHref } from "@/lib/navigation";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -116,7 +117,8 @@ export function NotificationsMenu() {
       // Links may include ?search and #hash — TanStack Router's `to` expects a
       // plain pathname, so parse them out and pass separately.
       try {
-        const [pathAndSearch, hash] = n.link.split("#");
+        // Avisos antigos ainda apontam para endereços antigos (/posts, /portal…).
+        const [pathAndSearch, hash] = upgradeHref(n.link).split("#");
         const [pathname, searchStr] = pathAndSearch.split("?");
         const search: Record<string, string> = {};
         if (searchStr) {

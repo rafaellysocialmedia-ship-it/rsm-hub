@@ -14,51 +14,51 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedRetentionRouteImport } from './routes/_authenticated/retention'
-import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedCommercialRouteImport } from './routes/_authenticated/commercial'
-import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
-import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
-import { Route as AuthenticatedVaultIndexRouteImport } from './routes/_authenticated/vault.index'
-import { Route as AuthenticatedTrafficIndexRouteImport } from './routes/_authenticated/traffic.index'
-import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
-import { Route as AuthenticatedPostsIndexRouteImport } from './routes/_authenticated/posts.index'
+import { Route as AuthenticatedSplatRouteImport } from './routes/_authenticated/$'
+import { Route as AuthenticatedTrafegoIndexRouteImport } from './routes/_authenticated/trafego.index'
+import { Route as AuthenticatedTarefasIndexRouteImport } from './routes/_authenticated/tarefas.index'
+import { Route as AuthenticatedRelatoriosIndexRouteImport } from './routes/_authenticated/relatorios.index'
 import { Route as AuthenticatedPortalIndexRouteImport } from './routes/_authenticated/portal.index'
-import { Route as AuthenticatedMarketplaceIndexRouteImport } from './routes/_authenticated/marketplace.index'
-import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
-import { Route as AuthenticatedFinanceIndexRouteImport } from './routes/_authenticated/finance.index'
-import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
-import { Route as AuthenticatedClientsIndexRouteImport } from './routes/_authenticated/clients.index'
-import { Route as AuthenticatedBriefingsIndexRouteImport } from './routes/_authenticated/briefings.index'
-import { Route as AuthenticatedAiIndexRouteImport } from './routes/_authenticated/ai.index'
-import { Route as AuthenticatedTrafficLandingPagesRouteImport } from './routes/_authenticated/traffic.landing-pages'
-import { Route as AuthenticatedTrafficCrmRouteImport } from './routes/_authenticated/traffic.crm'
-import { Route as AuthenticatedTrafficAnalyticsRouteImport } from './routes/_authenticated/traffic.analytics'
+import { Route as AuthenticatedInicioIndexRouteImport } from './routes/_authenticated/inicio.index'
+import { Route as AuthenticatedFinanceiroIndexRouteImport } from './routes/_authenticated/financeiro.index'
+import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
+import { Route as AuthenticatedTrafegoMetricasRouteImport } from './routes/_authenticated/trafego.metricas'
+import { Route as AuthenticatedTrafegoLandingPagesRouteImport } from './routes/_authenticated/trafego.landing-pages'
+import { Route as AuthenticatedTrafegoCrmRouteImport } from './routes/_authenticated/trafego.crm'
 import { Route as AuthenticatedReviewTokenRouteImport } from './routes/_authenticated/review.$token'
+import { Route as AuthenticatedRelatoriosMensalRouteImport } from './routes/_authenticated/relatorios.mensal'
 import { Route as AuthenticatedPortalCalendarRouteImport } from './routes/_authenticated/portal.calendar'
-import { Route as AuthenticatedLibraryBriefingsRouteImport } from './routes/_authenticated/library.briefings'
-import { Route as AuthenticatedFinanceSettingsRouteImport } from './routes/_authenticated/finance.settings'
-import { Route as AuthenticatedFinanceReceivablesRouteImport } from './routes/_authenticated/finance.receivables'
-import { Route as AuthenticatedFinancePaymentMethodsRouteImport } from './routes/_authenticated/finance.payment-methods'
-import { Route as AuthenticatedFinanceContractsRouteImport } from './routes/_authenticated/finance.contracts'
-import { Route as AuthenticatedFinanceClientsRouteImport } from './routes/_authenticated/finance.clients'
-import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
-import { Route as AuthenticatedClientsClientIdRouteImport } from './routes/_authenticated/clients.$clientId'
-import { Route as AuthenticatedBriefingsTemplateRouteImport } from './routes/_authenticated/briefings.template'
-import { Route as AuthenticatedBriefingsBriefingIdRouteImport } from './routes/_authenticated/briefings.$briefingId'
-import { Route as AuthenticatedAiToolsRouteImport } from './routes/_authenticated/ai.tools'
-import { Route as AuthenticatedAiThreadIdRouteImport } from './routes/_authenticated/ai.$threadId'
-import { Route as AuthenticatedAdminVisibilityRouteImport } from './routes/_authenticated/admin.visibility'
-import { Route as AuthenticatedAdminPostsControlRouteImport } from './routes/_authenticated/admin.posts-control'
-import { Route as AuthenticatedAdminPermissionsRouteImport } from './routes/_authenticated/admin.permissions'
-import { Route as AuthenticatedTrafficCampaignsIndexRouteImport } from './routes/_authenticated/traffic.campaigns.index'
-import { Route as AuthenticatedManagementClientsIndexRouteImport } from './routes/_authenticated/management.clients.index'
-import { Route as AuthenticatedAdminCoursesIndexRouteImport } from './routes/_authenticated/admin.courses.index'
-import { Route as AuthenticatedTrafficCampaignsCampaignIdRouteImport } from './routes/_authenticated/traffic.campaigns.$campaignId'
-import { Route as AuthenticatedManagementClientsClientIdRouteImport } from './routes/_authenticated/management.clients.$clientId'
+import { Route as AuthenticatedInicioReunioesRouteImport } from './routes/_authenticated/inicio.reunioes'
+import { Route as AuthenticatedFinanceiroReceberRouteImport } from './routes/_authenticated/financeiro.receber'
+import { Route as AuthenticatedFinanceiroContratosRouteImport } from './routes/_authenticated/financeiro.contratos'
+import { Route as AuthenticatedConteudoQuadroRouteImport } from './routes/_authenticated/conteudo.quadro'
+import { Route as AuthenticatedConteudoIaRouteImport } from './routes/_authenticated/conteudo.ia'
+import { Route as AuthenticatedConteudoControleDePostsRouteImport } from './routes/_authenticated/conteudo.controle-de-posts'
+import { Route as AuthenticatedConteudoCalendarioRouteImport } from './routes/_authenticated/conteudo.calendario'
+import { Route as AuthenticatedConteudoBibliotecaRouteImport } from './routes/_authenticated/conteudo.biblioteca'
+import { Route as AuthenticatedConteudoAprovacoesRouteImport } from './routes/_authenticated/conteudo.aprovacoes'
+import { Route as AuthenticatedConfiguracoesVisualizacoesRouteImport } from './routes/_authenticated/configuracoes.visualizacoes'
+import { Route as AuthenticatedConfiguracoesVerComoRouteImport } from './routes/_authenticated/configuracoes.ver-como'
+import { Route as AuthenticatedConfiguracoesPermissoesRouteImport } from './routes/_authenticated/configuracoes.permissoes'
+import { Route as AuthenticatedConfiguracoesPerfilRouteImport } from './routes/_authenticated/configuracoes.perfil'
+import { Route as AuthenticatedConfiguracoesMarketplaceRouteImport } from './routes/_authenticated/configuracoes.marketplace'
+import { Route as AuthenticatedConfiguracoesFormasDePagamentoRouteImport } from './routes/_authenticated/configuracoes.formas-de-pagamento'
+import { Route as AuthenticatedConfiguracoesFinanceiroRouteImport } from './routes/_authenticated/configuracoes.financeiro'
+import { Route as AuthenticatedConfiguracoesEquipeRouteImport } from './routes/_authenticated/configuracoes.equipe'
+import { Route as AuthenticatedConfiguracoesAcessosRouteImport } from './routes/_authenticated/configuracoes.acessos'
+import { Route as AuthenticatedClientesRetencaoRouteImport } from './routes/_authenticated/clientes.retencao'
+import { Route as AuthenticatedClientesComercialRouteImport } from './routes/_authenticated/clientes.comercial'
+import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
+import { Route as AuthenticatedTrafegoCampanhasIndexRouteImport } from './routes/_authenticated/trafego.campanhas.index'
+import { Route as AuthenticatedConteudoIaIndexRouteImport } from './routes/_authenticated/conteudo.ia.index'
+import { Route as AuthenticatedConfiguracoesCursosIndexRouteImport } from './routes/_authenticated/configuracoes.cursos.index'
+import { Route as AuthenticatedTrafegoCampanhasCampaignIdRouteImport } from './routes/_authenticated/trafego.campanhas.$campaignId'
+import { Route as AuthenticatedConteudoIaFerramentasRouteImport } from './routes/_authenticated/conteudo.ia.ferramentas'
+import { Route as AuthenticatedConteudoIaThreadIdRouteImport } from './routes/_authenticated/conteudo.ia.$threadId'
+import { Route as AuthenticatedConfiguracoesCursosGerenciarRouteImport } from './routes/_authenticated/configuracoes.cursos.gerenciar'
+import { Route as AuthenticatedConfiguracoesCursosCourseIdRouteImport } from './routes/_authenticated/configuracoes.cursos.$courseId'
+import { Route as AuthenticatedClientesBriefingModeloRouteImport } from './routes/_authenticated/clientes.briefing.modelo'
+import { Route as AuthenticatedClientesBriefingBriefingIdRouteImport } from './routes/_authenticated/clientes.briefing.$briefingId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -84,135 +84,80 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
+const AuthenticatedSplatRoute = AuthenticatedSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedRetentionRoute = AuthenticatedRetentionRouteImport.update({
-  id: '/retention',
-  path: '/retention',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
-  id: '/meetings',
-  path: '/meetings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCommercialRoute = AuthenticatedCommercialRouteImport.update({
-  id: '/commercial',
-  path: '/commercial',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedAiRoute = AuthenticatedAiRouteImport.update({
-  id: '/ai',
-  path: '/ai',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedVaultIndexRoute = AuthenticatedVaultIndexRouteImport.update({
-  id: '/vault/',
-  path: '/vault/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedTrafficIndexRoute =
-  AuthenticatedTrafficIndexRouteImport.update({
-    id: '/traffic/',
-    path: '/traffic/',
+const AuthenticatedTrafegoIndexRoute =
+  AuthenticatedTrafegoIndexRouteImport.update({
+    id: '/trafego/',
+    path: '/trafego/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPostsIndexRoute = AuthenticatedPostsIndexRouteImport.update({
-  id: '/posts/',
-  path: '/posts/',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedTarefasIndexRoute =
+  AuthenticatedTarefasIndexRouteImport.update({
+    id: '/tarefas/',
+    path: '/tarefas/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRelatoriosIndexRoute =
+  AuthenticatedRelatoriosIndexRouteImport.update({
+    id: '/relatorios/',
+    path: '/relatorios/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPortalIndexRoute =
   AuthenticatedPortalIndexRouteImport.update({
     id: '/portal/',
     path: '/portal/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedMarketplaceIndexRoute =
-  AuthenticatedMarketplaceIndexRouteImport.update({
-    id: '/marketplace/',
-    path: '/marketplace/',
+const AuthenticatedInicioIndexRoute =
+  AuthenticatedInicioIndexRouteImport.update({
+    id: '/inicio/',
+    path: '/inicio/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedLibraryIndexRoute =
-  AuthenticatedLibraryIndexRouteImport.update({
-    id: '/library/',
-    path: '/library/',
+const AuthenticatedFinanceiroIndexRoute =
+  AuthenticatedFinanceiroIndexRouteImport.update({
+    id: '/financeiro/',
+    path: '/financeiro/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedFinanceIndexRoute =
-  AuthenticatedFinanceIndexRouteImport.update({
-    id: '/finance/',
-    path: '/finance/',
+const AuthenticatedClientesIndexRoute =
+  AuthenticatedClientesIndexRouteImport.update({
+    id: '/clientes/',
+    path: '/clientes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCoursesIndexRoute =
-  AuthenticatedCoursesIndexRouteImport.update({
-    id: '/courses/',
-    path: '/courses/',
+const AuthenticatedTrafegoMetricasRoute =
+  AuthenticatedTrafegoMetricasRouteImport.update({
+    id: '/trafego/metricas',
+    path: '/trafego/metricas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedClientsIndexRoute =
-  AuthenticatedClientsIndexRouteImport.update({
-    id: '/clients/',
-    path: '/clients/',
+const AuthenticatedTrafegoLandingPagesRoute =
+  AuthenticatedTrafegoLandingPagesRouteImport.update({
+    id: '/trafego/landing-pages',
+    path: '/trafego/landing-pages',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBriefingsIndexRoute =
-  AuthenticatedBriefingsIndexRouteImport.update({
-    id: '/briefings/',
-    path: '/briefings/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAiIndexRoute = AuthenticatedAiIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedAiRoute,
-} as any)
-const AuthenticatedTrafficLandingPagesRoute =
-  AuthenticatedTrafficLandingPagesRouteImport.update({
-    id: '/traffic/landing-pages',
-    path: '/traffic/landing-pages',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedTrafficCrmRoute = AuthenticatedTrafficCrmRouteImport.update({
-  id: '/traffic/crm',
-  path: '/traffic/crm',
+const AuthenticatedTrafegoCrmRoute = AuthenticatedTrafegoCrmRouteImport.update({
+  id: '/trafego/crm',
+  path: '/trafego/crm',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTrafficAnalyticsRoute =
-  AuthenticatedTrafficAnalyticsRouteImport.update({
-    id: '/traffic/analytics',
-    path: '/traffic/analytics',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedReviewTokenRoute =
   AuthenticatedReviewTokenRouteImport.update({
     id: '/review/$token',
     path: '/review/$token',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRelatoriosMensalRoute =
+  AuthenticatedRelatoriosMensalRouteImport.update({
+    id: '/relatorios/mensal',
+    path: '/relatorios/mensal',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPortalCalendarRoute =
@@ -221,122 +166,189 @@ const AuthenticatedPortalCalendarRoute =
     path: '/portal/calendar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedLibraryBriefingsRoute =
-  AuthenticatedLibraryBriefingsRouteImport.update({
-    id: '/library/briefings',
-    path: '/library/briefings',
+const AuthenticatedInicioReunioesRoute =
+  AuthenticatedInicioReunioesRouteImport.update({
+    id: '/inicio/reunioes',
+    path: '/inicio/reunioes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedFinanceSettingsRoute =
-  AuthenticatedFinanceSettingsRouteImport.update({
-    id: '/finance/settings',
-    path: '/finance/settings',
+const AuthenticatedFinanceiroReceberRoute =
+  AuthenticatedFinanceiroReceberRouteImport.update({
+    id: '/financeiro/receber',
+    path: '/financeiro/receber',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedFinanceReceivablesRoute =
-  AuthenticatedFinanceReceivablesRouteImport.update({
-    id: '/finance/receivables',
-    path: '/finance/receivables',
+const AuthenticatedFinanceiroContratosRoute =
+  AuthenticatedFinanceiroContratosRouteImport.update({
+    id: '/financeiro/contratos',
+    path: '/financeiro/contratos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedFinancePaymentMethodsRoute =
-  AuthenticatedFinancePaymentMethodsRouteImport.update({
-    id: '/finance/payment-methods',
-    path: '/finance/payment-methods',
+const AuthenticatedConteudoQuadroRoute =
+  AuthenticatedConteudoQuadroRouteImport.update({
+    id: '/conteudo/quadro',
+    path: '/conteudo/quadro',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedFinanceContractsRoute =
-  AuthenticatedFinanceContractsRouteImport.update({
-    id: '/finance/contracts',
-    path: '/finance/contracts',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedFinanceClientsRoute =
-  AuthenticatedFinanceClientsRouteImport.update({
-    id: '/finance/clients',
-    path: '/finance/clients',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCoursesCourseIdRoute =
-  AuthenticatedCoursesCourseIdRouteImport.update({
-    id: '/courses/$courseId',
-    path: '/courses/$courseId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedClientsClientIdRoute =
-  AuthenticatedClientsClientIdRouteImport.update({
-    id: '/clients/$clientId',
-    path: '/clients/$clientId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedBriefingsTemplateRoute =
-  AuthenticatedBriefingsTemplateRouteImport.update({
-    id: '/briefings/template',
-    path: '/briefings/template',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedBriefingsBriefingIdRoute =
-  AuthenticatedBriefingsBriefingIdRouteImport.update({
-    id: '/briefings/$briefingId',
-    path: '/briefings/$briefingId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAiToolsRoute = AuthenticatedAiToolsRouteImport.update({
-  id: '/tools',
-  path: '/tools',
-  getParentRoute: () => AuthenticatedAiRoute,
+const AuthenticatedConteudoIaRoute = AuthenticatedConteudoIaRouteImport.update({
+  id: '/conteudo/ia',
+  path: '/conteudo/ia',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAiThreadIdRoute = AuthenticatedAiThreadIdRouteImport.update({
-  id: '/$threadId',
-  path: '/$threadId',
-  getParentRoute: () => AuthenticatedAiRoute,
-} as any)
-const AuthenticatedAdminVisibilityRoute =
-  AuthenticatedAdminVisibilityRouteImport.update({
-    id: '/admin/visibility',
-    path: '/admin/visibility',
+const AuthenticatedConteudoControleDePostsRoute =
+  AuthenticatedConteudoControleDePostsRouteImport.update({
+    id: '/conteudo/controle-de-posts',
+    path: '/conteudo/controle-de-posts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminPostsControlRoute =
-  AuthenticatedAdminPostsControlRouteImport.update({
-    id: '/admin/posts-control',
-    path: '/admin/posts-control',
+const AuthenticatedConteudoCalendarioRoute =
+  AuthenticatedConteudoCalendarioRouteImport.update({
+    id: '/conteudo/calendario',
+    path: '/conteudo/calendario',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminPermissionsRoute =
-  AuthenticatedAdminPermissionsRouteImport.update({
-    id: '/admin/permissions',
-    path: '/admin/permissions',
+const AuthenticatedConteudoBibliotecaRoute =
+  AuthenticatedConteudoBibliotecaRouteImport.update({
+    id: '/conteudo/biblioteca',
+    path: '/conteudo/biblioteca',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedTrafficCampaignsIndexRoute =
-  AuthenticatedTrafficCampaignsIndexRouteImport.update({
-    id: '/traffic/campaigns/',
-    path: '/traffic/campaigns/',
+const AuthenticatedConteudoAprovacoesRoute =
+  AuthenticatedConteudoAprovacoesRouteImport.update({
+    id: '/conteudo/aprovacoes',
+    path: '/conteudo/aprovacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedManagementClientsIndexRoute =
-  AuthenticatedManagementClientsIndexRouteImport.update({
-    id: '/management/clients/',
-    path: '/management/clients/',
+const AuthenticatedConfiguracoesVisualizacoesRoute =
+  AuthenticatedConfiguracoesVisualizacoesRouteImport.update({
+    id: '/configuracoes/visualizacoes',
+    path: '/configuracoes/visualizacoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminCoursesIndexRoute =
-  AuthenticatedAdminCoursesIndexRouteImport.update({
-    id: '/admin/courses/',
-    path: '/admin/courses/',
+const AuthenticatedConfiguracoesVerComoRoute =
+  AuthenticatedConfiguracoesVerComoRouteImport.update({
+    id: '/configuracoes/ver-como',
+    path: '/configuracoes/ver-como',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedTrafficCampaignsCampaignIdRoute =
-  AuthenticatedTrafficCampaignsCampaignIdRouteImport.update({
-    id: '/traffic/campaigns/$campaignId',
-    path: '/traffic/campaigns/$campaignId',
+const AuthenticatedConfiguracoesPermissoesRoute =
+  AuthenticatedConfiguracoesPermissoesRouteImport.update({
+    id: '/configuracoes/permissoes',
+    path: '/configuracoes/permissoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedManagementClientsClientIdRoute =
-  AuthenticatedManagementClientsClientIdRouteImport.update({
-    id: '/management/clients/$clientId',
-    path: '/management/clients/$clientId',
+const AuthenticatedConfiguracoesPerfilRoute =
+  AuthenticatedConfiguracoesPerfilRouteImport.update({
+    id: '/configuracoes/perfil',
+    path: '/configuracoes/perfil',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesMarketplaceRoute =
+  AuthenticatedConfiguracoesMarketplaceRouteImport.update({
+    id: '/configuracoes/marketplace',
+    path: '/configuracoes/marketplace',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesFormasDePagamentoRoute =
+  AuthenticatedConfiguracoesFormasDePagamentoRouteImport.update({
+    id: '/configuracoes/formas-de-pagamento',
+    path: '/configuracoes/formas-de-pagamento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesFinanceiroRoute =
+  AuthenticatedConfiguracoesFinanceiroRouteImport.update({
+    id: '/configuracoes/financeiro',
+    path: '/configuracoes/financeiro',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesEquipeRoute =
+  AuthenticatedConfiguracoesEquipeRouteImport.update({
+    id: '/configuracoes/equipe',
+    path: '/configuracoes/equipe',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesAcessosRoute =
+  AuthenticatedConfiguracoesAcessosRouteImport.update({
+    id: '/configuracoes/acessos',
+    path: '/configuracoes/acessos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesRetencaoRoute =
+  AuthenticatedClientesRetencaoRouteImport.update({
+    id: '/clientes/retencao',
+    path: '/clientes/retencao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesComercialRoute =
+  AuthenticatedClientesComercialRouteImport.update({
+    id: '/clientes/comercial',
+    path: '/clientes/comercial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesClientIdRoute =
+  AuthenticatedClientesClientIdRouteImport.update({
+    id: '/clientes/$clientId',
+    path: '/clientes/$clientId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrafegoCampanhasIndexRoute =
+  AuthenticatedTrafegoCampanhasIndexRouteImport.update({
+    id: '/trafego/campanhas/',
+    path: '/trafego/campanhas/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConteudoIaIndexRoute =
+  AuthenticatedConteudoIaIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedConteudoIaRoute,
+  } as any)
+const AuthenticatedConfiguracoesCursosIndexRoute =
+  AuthenticatedConfiguracoesCursosIndexRouteImport.update({
+    id: '/configuracoes/cursos/',
+    path: '/configuracoes/cursos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTrafegoCampanhasCampaignIdRoute =
+  AuthenticatedTrafegoCampanhasCampaignIdRouteImport.update({
+    id: '/trafego/campanhas/$campaignId',
+    path: '/trafego/campanhas/$campaignId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConteudoIaFerramentasRoute =
+  AuthenticatedConteudoIaFerramentasRouteImport.update({
+    id: '/ferramentas',
+    path: '/ferramentas',
+    getParentRoute: () => AuthenticatedConteudoIaRoute,
+  } as any)
+const AuthenticatedConteudoIaThreadIdRoute =
+  AuthenticatedConteudoIaThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => AuthenticatedConteudoIaRoute,
+  } as any)
+const AuthenticatedConfiguracoesCursosGerenciarRoute =
+  AuthenticatedConfiguracoesCursosGerenciarRouteImport.update({
+    id: '/configuracoes/cursos/gerenciar',
+    path: '/configuracoes/cursos/gerenciar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedConfiguracoesCursosCourseIdRoute =
+  AuthenticatedConfiguracoesCursosCourseIdRouteImport.update({
+    id: '/configuracoes/cursos/$courseId',
+    path: '/configuracoes/cursos/$courseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesBriefingModeloRoute =
+  AuthenticatedClientesBriefingModeloRouteImport.update({
+    id: '/clientes/briefing/modelo',
+    path: '/clientes/briefing/modelo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesBriefingBriefingIdRoute =
+  AuthenticatedClientesBriefingBriefingIdRouteImport.update({
+    id: '/clientes/briefing/$briefingId',
+    path: '/clientes/briefing/$briefingId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -344,102 +356,102 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/ai': typeof AuthenticatedAiRouteWithChildren
-  '/analytics': typeof AuthenticatedAnalyticsRoute
-  '/commercial': typeof AuthenticatedCommercialRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/meetings': typeof AuthenticatedMeetingsRoute
-  '/retention': typeof AuthenticatedRetentionRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/team': typeof AuthenticatedTeamRoute
+  '/$': typeof AuthenticatedSplatRoute
   '/api/chat': typeof ApiChatRoute
-  '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
-  '/admin/posts-control': typeof AuthenticatedAdminPostsControlRoute
-  '/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
-  '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
-  '/ai/tools': typeof AuthenticatedAiToolsRoute
-  '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
-  '/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
-  '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
-  '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
-  '/finance/clients': typeof AuthenticatedFinanceClientsRoute
-  '/finance/contracts': typeof AuthenticatedFinanceContractsRoute
-  '/finance/payment-methods': typeof AuthenticatedFinancePaymentMethodsRoute
-  '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
-  '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
-  '/library/briefings': typeof AuthenticatedLibraryBriefingsRoute
+  '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/clientes/comercial': typeof AuthenticatedClientesComercialRoute
+  '/clientes/retencao': typeof AuthenticatedClientesRetencaoRoute
+  '/configuracoes/acessos': typeof AuthenticatedConfiguracoesAcessosRoute
+  '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
+  '/configuracoes/financeiro': typeof AuthenticatedConfiguracoesFinanceiroRoute
+  '/configuracoes/formas-de-pagamento': typeof AuthenticatedConfiguracoesFormasDePagamentoRoute
+  '/configuracoes/marketplace': typeof AuthenticatedConfiguracoesMarketplaceRoute
+  '/configuracoes/perfil': typeof AuthenticatedConfiguracoesPerfilRoute
+  '/configuracoes/permissoes': typeof AuthenticatedConfiguracoesPermissoesRoute
+  '/configuracoes/ver-como': typeof AuthenticatedConfiguracoesVerComoRoute
+  '/configuracoes/visualizacoes': typeof AuthenticatedConfiguracoesVisualizacoesRoute
+  '/conteudo/aprovacoes': typeof AuthenticatedConteudoAprovacoesRoute
+  '/conteudo/biblioteca': typeof AuthenticatedConteudoBibliotecaRoute
+  '/conteudo/calendario': typeof AuthenticatedConteudoCalendarioRoute
+  '/conteudo/controle-de-posts': typeof AuthenticatedConteudoControleDePostsRoute
+  '/conteudo/ia': typeof AuthenticatedConteudoIaRouteWithChildren
+  '/conteudo/quadro': typeof AuthenticatedConteudoQuadroRoute
+  '/financeiro/contratos': typeof AuthenticatedFinanceiroContratosRoute
+  '/financeiro/receber': typeof AuthenticatedFinanceiroReceberRoute
+  '/inicio/reunioes': typeof AuthenticatedInicioReunioesRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/relatorios/mensal': typeof AuthenticatedRelatoriosMensalRoute
   '/review/$token': typeof AuthenticatedReviewTokenRoute
-  '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
-  '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
-  '/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
-  '/ai/': typeof AuthenticatedAiIndexRoute
-  '/briefings/': typeof AuthenticatedBriefingsIndexRoute
-  '/clients/': typeof AuthenticatedClientsIndexRoute
-  '/courses/': typeof AuthenticatedCoursesIndexRoute
-  '/finance/': typeof AuthenticatedFinanceIndexRoute
-  '/library/': typeof AuthenticatedLibraryIndexRoute
-  '/marketplace/': typeof AuthenticatedMarketplaceIndexRoute
+  '/trafego/crm': typeof AuthenticatedTrafegoCrmRoute
+  '/trafego/landing-pages': typeof AuthenticatedTrafegoLandingPagesRoute
+  '/trafego/metricas': typeof AuthenticatedTrafegoMetricasRoute
+  '/clientes/': typeof AuthenticatedClientesIndexRoute
+  '/financeiro/': typeof AuthenticatedFinanceiroIndexRoute
+  '/inicio/': typeof AuthenticatedInicioIndexRoute
   '/portal/': typeof AuthenticatedPortalIndexRoute
-  '/posts/': typeof AuthenticatedPostsIndexRoute
-  '/tasks/': typeof AuthenticatedTasksIndexRoute
-  '/traffic/': typeof AuthenticatedTrafficIndexRoute
-  '/vault/': typeof AuthenticatedVaultIndexRoute
-  '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
-  '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
-  '/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
-  '/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
-  '/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
+  '/relatorios/': typeof AuthenticatedRelatoriosIndexRoute
+  '/tarefas/': typeof AuthenticatedTarefasIndexRoute
+  '/trafego/': typeof AuthenticatedTrafegoIndexRoute
+  '/clientes/briefing/$briefingId': typeof AuthenticatedClientesBriefingBriefingIdRoute
+  '/clientes/briefing/modelo': typeof AuthenticatedClientesBriefingModeloRoute
+  '/configuracoes/cursos/$courseId': typeof AuthenticatedConfiguracoesCursosCourseIdRoute
+  '/configuracoes/cursos/gerenciar': typeof AuthenticatedConfiguracoesCursosGerenciarRoute
+  '/conteudo/ia/$threadId': typeof AuthenticatedConteudoIaThreadIdRoute
+  '/conteudo/ia/ferramentas': typeof AuthenticatedConteudoIaFerramentasRoute
+  '/trafego/campanhas/$campaignId': typeof AuthenticatedTrafegoCampanhasCampaignIdRoute
+  '/configuracoes/cursos/': typeof AuthenticatedConfiguracoesCursosIndexRoute
+  '/conteudo/ia/': typeof AuthenticatedConteudoIaIndexRoute
+  '/trafego/campanhas/': typeof AuthenticatedTrafegoCampanhasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/analytics': typeof AuthenticatedAnalyticsRoute
-  '/commercial': typeof AuthenticatedCommercialRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/meetings': typeof AuthenticatedMeetingsRoute
-  '/retention': typeof AuthenticatedRetentionRoute
-  '/settings': typeof AuthenticatedSettingsRoute
-  '/team': typeof AuthenticatedTeamRoute
+  '/$': typeof AuthenticatedSplatRoute
   '/api/chat': typeof ApiChatRoute
-  '/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
-  '/admin/posts-control': typeof AuthenticatedAdminPostsControlRoute
-  '/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
-  '/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
-  '/ai/tools': typeof AuthenticatedAiToolsRoute
-  '/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
-  '/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
-  '/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
-  '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
-  '/finance/clients': typeof AuthenticatedFinanceClientsRoute
-  '/finance/contracts': typeof AuthenticatedFinanceContractsRoute
-  '/finance/payment-methods': typeof AuthenticatedFinancePaymentMethodsRoute
-  '/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
-  '/finance/settings': typeof AuthenticatedFinanceSettingsRoute
-  '/library/briefings': typeof AuthenticatedLibraryBriefingsRoute
+  '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/clientes/comercial': typeof AuthenticatedClientesComercialRoute
+  '/clientes/retencao': typeof AuthenticatedClientesRetencaoRoute
+  '/configuracoes/acessos': typeof AuthenticatedConfiguracoesAcessosRoute
+  '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
+  '/configuracoes/financeiro': typeof AuthenticatedConfiguracoesFinanceiroRoute
+  '/configuracoes/formas-de-pagamento': typeof AuthenticatedConfiguracoesFormasDePagamentoRoute
+  '/configuracoes/marketplace': typeof AuthenticatedConfiguracoesMarketplaceRoute
+  '/configuracoes/perfil': typeof AuthenticatedConfiguracoesPerfilRoute
+  '/configuracoes/permissoes': typeof AuthenticatedConfiguracoesPermissoesRoute
+  '/configuracoes/ver-como': typeof AuthenticatedConfiguracoesVerComoRoute
+  '/configuracoes/visualizacoes': typeof AuthenticatedConfiguracoesVisualizacoesRoute
+  '/conteudo/aprovacoes': typeof AuthenticatedConteudoAprovacoesRoute
+  '/conteudo/biblioteca': typeof AuthenticatedConteudoBibliotecaRoute
+  '/conteudo/calendario': typeof AuthenticatedConteudoCalendarioRoute
+  '/conteudo/controle-de-posts': typeof AuthenticatedConteudoControleDePostsRoute
+  '/conteudo/quadro': typeof AuthenticatedConteudoQuadroRoute
+  '/financeiro/contratos': typeof AuthenticatedFinanceiroContratosRoute
+  '/financeiro/receber': typeof AuthenticatedFinanceiroReceberRoute
+  '/inicio/reunioes': typeof AuthenticatedInicioReunioesRoute
   '/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/relatorios/mensal': typeof AuthenticatedRelatoriosMensalRoute
   '/review/$token': typeof AuthenticatedReviewTokenRoute
-  '/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
-  '/traffic/crm': typeof AuthenticatedTrafficCrmRoute
-  '/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
-  '/ai': typeof AuthenticatedAiIndexRoute
-  '/briefings': typeof AuthenticatedBriefingsIndexRoute
-  '/clients': typeof AuthenticatedClientsIndexRoute
-  '/courses': typeof AuthenticatedCoursesIndexRoute
-  '/finance': typeof AuthenticatedFinanceIndexRoute
-  '/library': typeof AuthenticatedLibraryIndexRoute
-  '/marketplace': typeof AuthenticatedMarketplaceIndexRoute
+  '/trafego/crm': typeof AuthenticatedTrafegoCrmRoute
+  '/trafego/landing-pages': typeof AuthenticatedTrafegoLandingPagesRoute
+  '/trafego/metricas': typeof AuthenticatedTrafegoMetricasRoute
+  '/clientes': typeof AuthenticatedClientesIndexRoute
+  '/financeiro': typeof AuthenticatedFinanceiroIndexRoute
+  '/inicio': typeof AuthenticatedInicioIndexRoute
   '/portal': typeof AuthenticatedPortalIndexRoute
-  '/posts': typeof AuthenticatedPostsIndexRoute
-  '/tasks': typeof AuthenticatedTasksIndexRoute
-  '/traffic': typeof AuthenticatedTrafficIndexRoute
-  '/vault': typeof AuthenticatedVaultIndexRoute
-  '/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
-  '/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
-  '/admin/courses': typeof AuthenticatedAdminCoursesIndexRoute
-  '/management/clients': typeof AuthenticatedManagementClientsIndexRoute
-  '/traffic/campaigns': typeof AuthenticatedTrafficCampaignsIndexRoute
+  '/relatorios': typeof AuthenticatedRelatoriosIndexRoute
+  '/tarefas': typeof AuthenticatedTarefasIndexRoute
+  '/trafego': typeof AuthenticatedTrafegoIndexRoute
+  '/clientes/briefing/$briefingId': typeof AuthenticatedClientesBriefingBriefingIdRoute
+  '/clientes/briefing/modelo': typeof AuthenticatedClientesBriefingModeloRoute
+  '/configuracoes/cursos/$courseId': typeof AuthenticatedConfiguracoesCursosCourseIdRoute
+  '/configuracoes/cursos/gerenciar': typeof AuthenticatedConfiguracoesCursosGerenciarRoute
+  '/conteudo/ia/$threadId': typeof AuthenticatedConteudoIaThreadIdRoute
+  '/conteudo/ia/ferramentas': typeof AuthenticatedConteudoIaFerramentasRoute
+  '/trafego/campanhas/$campaignId': typeof AuthenticatedTrafegoCampanhasCampaignIdRoute
+  '/configuracoes/cursos': typeof AuthenticatedConfiguracoesCursosIndexRoute
+  '/conteudo/ia': typeof AuthenticatedConteudoIaIndexRoute
+  '/trafego/campanhas': typeof AuthenticatedTrafegoCampanhasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -447,52 +459,52 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/ai': typeof AuthenticatedAiRouteWithChildren
-  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
-  '/_authenticated/commercial': typeof AuthenticatedCommercialRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
-  '/_authenticated/retention': typeof AuthenticatedRetentionRoute
-  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/team': typeof AuthenticatedTeamRoute
+  '/_authenticated/$': typeof AuthenticatedSplatRoute
   '/api/chat': typeof ApiChatRoute
-  '/_authenticated/admin/permissions': typeof AuthenticatedAdminPermissionsRoute
-  '/_authenticated/admin/posts-control': typeof AuthenticatedAdminPostsControlRoute
-  '/_authenticated/admin/visibility': typeof AuthenticatedAdminVisibilityRoute
-  '/_authenticated/ai/$threadId': typeof AuthenticatedAiThreadIdRoute
-  '/_authenticated/ai/tools': typeof AuthenticatedAiToolsRoute
-  '/_authenticated/briefings/$briefingId': typeof AuthenticatedBriefingsBriefingIdRoute
-  '/_authenticated/briefings/template': typeof AuthenticatedBriefingsTemplateRoute
-  '/_authenticated/clients/$clientId': typeof AuthenticatedClientsClientIdRoute
-  '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
-  '/_authenticated/finance/clients': typeof AuthenticatedFinanceClientsRoute
-  '/_authenticated/finance/contracts': typeof AuthenticatedFinanceContractsRoute
-  '/_authenticated/finance/payment-methods': typeof AuthenticatedFinancePaymentMethodsRoute
-  '/_authenticated/finance/receivables': typeof AuthenticatedFinanceReceivablesRoute
-  '/_authenticated/finance/settings': typeof AuthenticatedFinanceSettingsRoute
-  '/_authenticated/library/briefings': typeof AuthenticatedLibraryBriefingsRoute
+  '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/_authenticated/clientes/comercial': typeof AuthenticatedClientesComercialRoute
+  '/_authenticated/clientes/retencao': typeof AuthenticatedClientesRetencaoRoute
+  '/_authenticated/configuracoes/acessos': typeof AuthenticatedConfiguracoesAcessosRoute
+  '/_authenticated/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
+  '/_authenticated/configuracoes/financeiro': typeof AuthenticatedConfiguracoesFinanceiroRoute
+  '/_authenticated/configuracoes/formas-de-pagamento': typeof AuthenticatedConfiguracoesFormasDePagamentoRoute
+  '/_authenticated/configuracoes/marketplace': typeof AuthenticatedConfiguracoesMarketplaceRoute
+  '/_authenticated/configuracoes/perfil': typeof AuthenticatedConfiguracoesPerfilRoute
+  '/_authenticated/configuracoes/permissoes': typeof AuthenticatedConfiguracoesPermissoesRoute
+  '/_authenticated/configuracoes/ver-como': typeof AuthenticatedConfiguracoesVerComoRoute
+  '/_authenticated/configuracoes/visualizacoes': typeof AuthenticatedConfiguracoesVisualizacoesRoute
+  '/_authenticated/conteudo/aprovacoes': typeof AuthenticatedConteudoAprovacoesRoute
+  '/_authenticated/conteudo/biblioteca': typeof AuthenticatedConteudoBibliotecaRoute
+  '/_authenticated/conteudo/calendario': typeof AuthenticatedConteudoCalendarioRoute
+  '/_authenticated/conteudo/controle-de-posts': typeof AuthenticatedConteudoControleDePostsRoute
+  '/_authenticated/conteudo/ia': typeof AuthenticatedConteudoIaRouteWithChildren
+  '/_authenticated/conteudo/quadro': typeof AuthenticatedConteudoQuadroRoute
+  '/_authenticated/financeiro/contratos': typeof AuthenticatedFinanceiroContratosRoute
+  '/_authenticated/financeiro/receber': typeof AuthenticatedFinanceiroReceberRoute
+  '/_authenticated/inicio/reunioes': typeof AuthenticatedInicioReunioesRoute
   '/_authenticated/portal/calendar': typeof AuthenticatedPortalCalendarRoute
+  '/_authenticated/relatorios/mensal': typeof AuthenticatedRelatoriosMensalRoute
   '/_authenticated/review/$token': typeof AuthenticatedReviewTokenRoute
-  '/_authenticated/traffic/analytics': typeof AuthenticatedTrafficAnalyticsRoute
-  '/_authenticated/traffic/crm': typeof AuthenticatedTrafficCrmRoute
-  '/_authenticated/traffic/landing-pages': typeof AuthenticatedTrafficLandingPagesRoute
-  '/_authenticated/ai/': typeof AuthenticatedAiIndexRoute
-  '/_authenticated/briefings/': typeof AuthenticatedBriefingsIndexRoute
-  '/_authenticated/clients/': typeof AuthenticatedClientsIndexRoute
-  '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
-  '/_authenticated/finance/': typeof AuthenticatedFinanceIndexRoute
-  '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
-  '/_authenticated/marketplace/': typeof AuthenticatedMarketplaceIndexRoute
+  '/_authenticated/trafego/crm': typeof AuthenticatedTrafegoCrmRoute
+  '/_authenticated/trafego/landing-pages': typeof AuthenticatedTrafegoLandingPagesRoute
+  '/_authenticated/trafego/metricas': typeof AuthenticatedTrafegoMetricasRoute
+  '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
+  '/_authenticated/financeiro/': typeof AuthenticatedFinanceiroIndexRoute
+  '/_authenticated/inicio/': typeof AuthenticatedInicioIndexRoute
   '/_authenticated/portal/': typeof AuthenticatedPortalIndexRoute
-  '/_authenticated/posts/': typeof AuthenticatedPostsIndexRoute
-  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
-  '/_authenticated/traffic/': typeof AuthenticatedTrafficIndexRoute
-  '/_authenticated/vault/': typeof AuthenticatedVaultIndexRoute
-  '/_authenticated/management/clients/$clientId': typeof AuthenticatedManagementClientsClientIdRoute
-  '/_authenticated/traffic/campaigns/$campaignId': typeof AuthenticatedTrafficCampaignsCampaignIdRoute
-  '/_authenticated/admin/courses/': typeof AuthenticatedAdminCoursesIndexRoute
-  '/_authenticated/management/clients/': typeof AuthenticatedManagementClientsIndexRoute
-  '/_authenticated/traffic/campaigns/': typeof AuthenticatedTrafficCampaignsIndexRoute
+  '/_authenticated/relatorios/': typeof AuthenticatedRelatoriosIndexRoute
+  '/_authenticated/tarefas/': typeof AuthenticatedTarefasIndexRoute
+  '/_authenticated/trafego/': typeof AuthenticatedTrafegoIndexRoute
+  '/_authenticated/clientes/briefing/$briefingId': typeof AuthenticatedClientesBriefingBriefingIdRoute
+  '/_authenticated/clientes/briefing/modelo': typeof AuthenticatedClientesBriefingModeloRoute
+  '/_authenticated/configuracoes/cursos/$courseId': typeof AuthenticatedConfiguracoesCursosCourseIdRoute
+  '/_authenticated/configuracoes/cursos/gerenciar': typeof AuthenticatedConfiguracoesCursosGerenciarRoute
+  '/_authenticated/conteudo/ia/$threadId': typeof AuthenticatedConteudoIaThreadIdRoute
+  '/_authenticated/conteudo/ia/ferramentas': typeof AuthenticatedConteudoIaFerramentasRoute
+  '/_authenticated/trafego/campanhas/$campaignId': typeof AuthenticatedTrafegoCampanhasCampaignIdRoute
+  '/_authenticated/configuracoes/cursos/': typeof AuthenticatedConfiguracoesCursosIndexRoute
+  '/_authenticated/conteudo/ia/': typeof AuthenticatedConteudoIaIndexRoute
+  '/_authenticated/trafego/campanhas/': typeof AuthenticatedTrafegoCampanhasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -500,154 +512,154 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/ai'
-    | '/analytics'
-    | '/commercial'
-    | '/dashboard'
-    | '/meetings'
-    | '/retention'
-    | '/settings'
-    | '/team'
+    | '/$'
     | '/api/chat'
-    | '/admin/permissions'
-    | '/admin/posts-control'
-    | '/admin/visibility'
-    | '/ai/$threadId'
-    | '/ai/tools'
-    | '/briefings/$briefingId'
-    | '/briefings/template'
-    | '/clients/$clientId'
-    | '/courses/$courseId'
-    | '/finance/clients'
-    | '/finance/contracts'
-    | '/finance/payment-methods'
-    | '/finance/receivables'
-    | '/finance/settings'
-    | '/library/briefings'
+    | '/clientes/$clientId'
+    | '/clientes/comercial'
+    | '/clientes/retencao'
+    | '/configuracoes/acessos'
+    | '/configuracoes/equipe'
+    | '/configuracoes/financeiro'
+    | '/configuracoes/formas-de-pagamento'
+    | '/configuracoes/marketplace'
+    | '/configuracoes/perfil'
+    | '/configuracoes/permissoes'
+    | '/configuracoes/ver-como'
+    | '/configuracoes/visualizacoes'
+    | '/conteudo/aprovacoes'
+    | '/conteudo/biblioteca'
+    | '/conteudo/calendario'
+    | '/conteudo/controle-de-posts'
+    | '/conteudo/ia'
+    | '/conteudo/quadro'
+    | '/financeiro/contratos'
+    | '/financeiro/receber'
+    | '/inicio/reunioes'
     | '/portal/calendar'
+    | '/relatorios/mensal'
     | '/review/$token'
-    | '/traffic/analytics'
-    | '/traffic/crm'
-    | '/traffic/landing-pages'
-    | '/ai/'
-    | '/briefings/'
-    | '/clients/'
-    | '/courses/'
-    | '/finance/'
-    | '/library/'
-    | '/marketplace/'
+    | '/trafego/crm'
+    | '/trafego/landing-pages'
+    | '/trafego/metricas'
+    | '/clientes/'
+    | '/financeiro/'
+    | '/inicio/'
     | '/portal/'
-    | '/posts/'
-    | '/tasks/'
-    | '/traffic/'
-    | '/vault/'
-    | '/management/clients/$clientId'
-    | '/traffic/campaigns/$campaignId'
-    | '/admin/courses/'
-    | '/management/clients/'
-    | '/traffic/campaigns/'
+    | '/relatorios/'
+    | '/tarefas/'
+    | '/trafego/'
+    | '/clientes/briefing/$briefingId'
+    | '/clientes/briefing/modelo'
+    | '/configuracoes/cursos/$courseId'
+    | '/configuracoes/cursos/gerenciar'
+    | '/conteudo/ia/$threadId'
+    | '/conteudo/ia/ferramentas'
+    | '/trafego/campanhas/$campaignId'
+    | '/configuracoes/cursos/'
+    | '/conteudo/ia/'
+    | '/trafego/campanhas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/analytics'
-    | '/commercial'
-    | '/dashboard'
-    | '/meetings'
-    | '/retention'
-    | '/settings'
-    | '/team'
+    | '/$'
     | '/api/chat'
-    | '/admin/permissions'
-    | '/admin/posts-control'
-    | '/admin/visibility'
-    | '/ai/$threadId'
-    | '/ai/tools'
-    | '/briefings/$briefingId'
-    | '/briefings/template'
-    | '/clients/$clientId'
-    | '/courses/$courseId'
-    | '/finance/clients'
-    | '/finance/contracts'
-    | '/finance/payment-methods'
-    | '/finance/receivables'
-    | '/finance/settings'
-    | '/library/briefings'
+    | '/clientes/$clientId'
+    | '/clientes/comercial'
+    | '/clientes/retencao'
+    | '/configuracoes/acessos'
+    | '/configuracoes/equipe'
+    | '/configuracoes/financeiro'
+    | '/configuracoes/formas-de-pagamento'
+    | '/configuracoes/marketplace'
+    | '/configuracoes/perfil'
+    | '/configuracoes/permissoes'
+    | '/configuracoes/ver-como'
+    | '/configuracoes/visualizacoes'
+    | '/conteudo/aprovacoes'
+    | '/conteudo/biblioteca'
+    | '/conteudo/calendario'
+    | '/conteudo/controle-de-posts'
+    | '/conteudo/quadro'
+    | '/financeiro/contratos'
+    | '/financeiro/receber'
+    | '/inicio/reunioes'
     | '/portal/calendar'
+    | '/relatorios/mensal'
     | '/review/$token'
-    | '/traffic/analytics'
-    | '/traffic/crm'
-    | '/traffic/landing-pages'
-    | '/ai'
-    | '/briefings'
-    | '/clients'
-    | '/courses'
-    | '/finance'
-    | '/library'
-    | '/marketplace'
+    | '/trafego/crm'
+    | '/trafego/landing-pages'
+    | '/trafego/metricas'
+    | '/clientes'
+    | '/financeiro'
+    | '/inicio'
     | '/portal'
-    | '/posts'
-    | '/tasks'
-    | '/traffic'
-    | '/vault'
-    | '/management/clients/$clientId'
-    | '/traffic/campaigns/$campaignId'
-    | '/admin/courses'
-    | '/management/clients'
-    | '/traffic/campaigns'
+    | '/relatorios'
+    | '/tarefas'
+    | '/trafego'
+    | '/clientes/briefing/$briefingId'
+    | '/clientes/briefing/modelo'
+    | '/configuracoes/cursos/$courseId'
+    | '/configuracoes/cursos/gerenciar'
+    | '/conteudo/ia/$threadId'
+    | '/conteudo/ia/ferramentas'
+    | '/trafego/campanhas/$campaignId'
+    | '/configuracoes/cursos'
+    | '/conteudo/ia'
+    | '/trafego/campanhas'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
-    | '/_authenticated/ai'
-    | '/_authenticated/analytics'
-    | '/_authenticated/commercial'
-    | '/_authenticated/dashboard'
-    | '/_authenticated/meetings'
-    | '/_authenticated/retention'
-    | '/_authenticated/settings'
-    | '/_authenticated/team'
+    | '/_authenticated/$'
     | '/api/chat'
-    | '/_authenticated/admin/permissions'
-    | '/_authenticated/admin/posts-control'
-    | '/_authenticated/admin/visibility'
-    | '/_authenticated/ai/$threadId'
-    | '/_authenticated/ai/tools'
-    | '/_authenticated/briefings/$briefingId'
-    | '/_authenticated/briefings/template'
-    | '/_authenticated/clients/$clientId'
-    | '/_authenticated/courses/$courseId'
-    | '/_authenticated/finance/clients'
-    | '/_authenticated/finance/contracts'
-    | '/_authenticated/finance/payment-methods'
-    | '/_authenticated/finance/receivables'
-    | '/_authenticated/finance/settings'
-    | '/_authenticated/library/briefings'
+    | '/_authenticated/clientes/$clientId'
+    | '/_authenticated/clientes/comercial'
+    | '/_authenticated/clientes/retencao'
+    | '/_authenticated/configuracoes/acessos'
+    | '/_authenticated/configuracoes/equipe'
+    | '/_authenticated/configuracoes/financeiro'
+    | '/_authenticated/configuracoes/formas-de-pagamento'
+    | '/_authenticated/configuracoes/marketplace'
+    | '/_authenticated/configuracoes/perfil'
+    | '/_authenticated/configuracoes/permissoes'
+    | '/_authenticated/configuracoes/ver-como'
+    | '/_authenticated/configuracoes/visualizacoes'
+    | '/_authenticated/conteudo/aprovacoes'
+    | '/_authenticated/conteudo/biblioteca'
+    | '/_authenticated/conteudo/calendario'
+    | '/_authenticated/conteudo/controle-de-posts'
+    | '/_authenticated/conteudo/ia'
+    | '/_authenticated/conteudo/quadro'
+    | '/_authenticated/financeiro/contratos'
+    | '/_authenticated/financeiro/receber'
+    | '/_authenticated/inicio/reunioes'
     | '/_authenticated/portal/calendar'
+    | '/_authenticated/relatorios/mensal'
     | '/_authenticated/review/$token'
-    | '/_authenticated/traffic/analytics'
-    | '/_authenticated/traffic/crm'
-    | '/_authenticated/traffic/landing-pages'
-    | '/_authenticated/ai/'
-    | '/_authenticated/briefings/'
-    | '/_authenticated/clients/'
-    | '/_authenticated/courses/'
-    | '/_authenticated/finance/'
-    | '/_authenticated/library/'
-    | '/_authenticated/marketplace/'
+    | '/_authenticated/trafego/crm'
+    | '/_authenticated/trafego/landing-pages'
+    | '/_authenticated/trafego/metricas'
+    | '/_authenticated/clientes/'
+    | '/_authenticated/financeiro/'
+    | '/_authenticated/inicio/'
     | '/_authenticated/portal/'
-    | '/_authenticated/posts/'
-    | '/_authenticated/tasks/'
-    | '/_authenticated/traffic/'
-    | '/_authenticated/vault/'
-    | '/_authenticated/management/clients/$clientId'
-    | '/_authenticated/traffic/campaigns/$campaignId'
-    | '/_authenticated/admin/courses/'
-    | '/_authenticated/management/clients/'
-    | '/_authenticated/traffic/campaigns/'
+    | '/_authenticated/relatorios/'
+    | '/_authenticated/tarefas/'
+    | '/_authenticated/trafego/'
+    | '/_authenticated/clientes/briefing/$briefingId'
+    | '/_authenticated/clientes/briefing/modelo'
+    | '/_authenticated/configuracoes/cursos/$courseId'
+    | '/_authenticated/configuracoes/cursos/gerenciar'
+    | '/_authenticated/conteudo/ia/$threadId'
+    | '/_authenticated/conteudo/ia/ferramentas'
+    | '/_authenticated/trafego/campanhas/$campaignId'
+    | '/_authenticated/configuracoes/cursos/'
+    | '/_authenticated/conteudo/ia/'
+    | '/_authenticated/trafego/campanhas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -695,88 +707,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/team': {
-      id: '/_authenticated/team'
-      path: '/team'
-      fullPath: '/team'
-      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+    '/_authenticated/$': {
+      id: '/_authenticated/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof AuthenticatedSplatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+    '/_authenticated/trafego/': {
+      id: '/_authenticated/trafego/'
+      path: '/trafego'
+      fullPath: '/trafego/'
+      preLoaderRoute: typeof AuthenticatedTrafegoIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/retention': {
-      id: '/_authenticated/retention'
-      path: '/retention'
-      fullPath: '/retention'
-      preLoaderRoute: typeof AuthenticatedRetentionRouteImport
+    '/_authenticated/tarefas/': {
+      id: '/_authenticated/tarefas/'
+      path: '/tarefas'
+      fullPath: '/tarefas/'
+      preLoaderRoute: typeof AuthenticatedTarefasIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/meetings': {
-      id: '/_authenticated/meetings'
-      path: '/meetings'
-      fullPath: '/meetings'
-      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/commercial': {
-      id: '/_authenticated/commercial'
-      path: '/commercial'
-      fullPath: '/commercial'
-      preLoaderRoute: typeof AuthenticatedCommercialRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/analytics': {
-      id: '/_authenticated/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ai': {
-      id: '/_authenticated/ai'
-      path: '/ai'
-      fullPath: '/ai'
-      preLoaderRoute: typeof AuthenticatedAiRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/vault/': {
-      id: '/_authenticated/vault/'
-      path: '/vault'
-      fullPath: '/vault/'
-      preLoaderRoute: typeof AuthenticatedVaultIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/traffic/': {
-      id: '/_authenticated/traffic/'
-      path: '/traffic'
-      fullPath: '/traffic/'
-      preLoaderRoute: typeof AuthenticatedTrafficIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tasks/': {
-      id: '/_authenticated/tasks/'
-      path: '/tasks'
-      fullPath: '/tasks/'
-      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/posts/': {
-      id: '/_authenticated/posts/'
-      path: '/posts'
-      fullPath: '/posts/'
-      preLoaderRoute: typeof AuthenticatedPostsIndexRouteImport
+    '/_authenticated/relatorios/': {
+      id: '/_authenticated/relatorios/'
+      path: '/relatorios'
+      fullPath: '/relatorios/'
+      preLoaderRoute: typeof AuthenticatedRelatoriosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/portal/': {
@@ -786,74 +742,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/marketplace/': {
-      id: '/_authenticated/marketplace/'
-      path: '/marketplace'
-      fullPath: '/marketplace/'
-      preLoaderRoute: typeof AuthenticatedMarketplaceIndexRouteImport
+    '/_authenticated/inicio/': {
+      id: '/_authenticated/inicio/'
+      path: '/inicio'
+      fullPath: '/inicio/'
+      preLoaderRoute: typeof AuthenticatedInicioIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/library/': {
-      id: '/_authenticated/library/'
-      path: '/library'
-      fullPath: '/library/'
-      preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
+    '/_authenticated/financeiro/': {
+      id: '/_authenticated/financeiro/'
+      path: '/financeiro'
+      fullPath: '/financeiro/'
+      preLoaderRoute: typeof AuthenticatedFinanceiroIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance/': {
-      id: '/_authenticated/finance/'
-      path: '/finance'
-      fullPath: '/finance/'
-      preLoaderRoute: typeof AuthenticatedFinanceIndexRouteImport
+    '/_authenticated/clientes/': {
+      id: '/_authenticated/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof AuthenticatedClientesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/courses/': {
-      id: '/_authenticated/courses/'
-      path: '/courses'
-      fullPath: '/courses/'
-      preLoaderRoute: typeof AuthenticatedCoursesIndexRouteImport
+    '/_authenticated/trafego/metricas': {
+      id: '/_authenticated/trafego/metricas'
+      path: '/trafego/metricas'
+      fullPath: '/trafego/metricas'
+      preLoaderRoute: typeof AuthenticatedTrafegoMetricasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/clients/': {
-      id: '/_authenticated/clients/'
-      path: '/clients'
-      fullPath: '/clients/'
-      preLoaderRoute: typeof AuthenticatedClientsIndexRouteImport
+    '/_authenticated/trafego/landing-pages': {
+      id: '/_authenticated/trafego/landing-pages'
+      path: '/trafego/landing-pages'
+      fullPath: '/trafego/landing-pages'
+      preLoaderRoute: typeof AuthenticatedTrafegoLandingPagesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/briefings/': {
-      id: '/_authenticated/briefings/'
-      path: '/briefings'
-      fullPath: '/briefings/'
-      preLoaderRoute: typeof AuthenticatedBriefingsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ai/': {
-      id: '/_authenticated/ai/'
-      path: '/'
-      fullPath: '/ai/'
-      preLoaderRoute: typeof AuthenticatedAiIndexRouteImport
-      parentRoute: typeof AuthenticatedAiRoute
-    }
-    '/_authenticated/traffic/landing-pages': {
-      id: '/_authenticated/traffic/landing-pages'
-      path: '/traffic/landing-pages'
-      fullPath: '/traffic/landing-pages'
-      preLoaderRoute: typeof AuthenticatedTrafficLandingPagesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/traffic/crm': {
-      id: '/_authenticated/traffic/crm'
-      path: '/traffic/crm'
-      fullPath: '/traffic/crm'
-      preLoaderRoute: typeof AuthenticatedTrafficCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/traffic/analytics': {
-      id: '/_authenticated/traffic/analytics'
-      path: '/traffic/analytics'
-      fullPath: '/traffic/analytics'
-      preLoaderRoute: typeof AuthenticatedTrafficAnalyticsRouteImport
+    '/_authenticated/trafego/crm': {
+      id: '/_authenticated/trafego/crm'
+      path: '/trafego/crm'
+      fullPath: '/trafego/crm'
+      preLoaderRoute: typeof AuthenticatedTrafegoCrmRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/review/$token': {
@@ -863,6 +791,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReviewTokenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios/mensal': {
+      id: '/_authenticated/relatorios/mensal'
+      path: '/relatorios/mensal'
+      fullPath: '/relatorios/mensal'
+      preLoaderRoute: typeof AuthenticatedRelatoriosMensalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/portal/calendar': {
       id: '/_authenticated/portal/calendar'
       path: '/portal/calendar'
@@ -870,258 +805,348 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPortalCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/library/briefings': {
-      id: '/_authenticated/library/briefings'
-      path: '/library/briefings'
-      fullPath: '/library/briefings'
-      preLoaderRoute: typeof AuthenticatedLibraryBriefingsRouteImport
+    '/_authenticated/inicio/reunioes': {
+      id: '/_authenticated/inicio/reunioes'
+      path: '/inicio/reunioes'
+      fullPath: '/inicio/reunioes'
+      preLoaderRoute: typeof AuthenticatedInicioReunioesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance/settings': {
-      id: '/_authenticated/finance/settings'
-      path: '/finance/settings'
-      fullPath: '/finance/settings'
-      preLoaderRoute: typeof AuthenticatedFinanceSettingsRouteImport
+    '/_authenticated/financeiro/receber': {
+      id: '/_authenticated/financeiro/receber'
+      path: '/financeiro/receber'
+      fullPath: '/financeiro/receber'
+      preLoaderRoute: typeof AuthenticatedFinanceiroReceberRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance/receivables': {
-      id: '/_authenticated/finance/receivables'
-      path: '/finance/receivables'
-      fullPath: '/finance/receivables'
-      preLoaderRoute: typeof AuthenticatedFinanceReceivablesRouteImport
+    '/_authenticated/financeiro/contratos': {
+      id: '/_authenticated/financeiro/contratos'
+      path: '/financeiro/contratos'
+      fullPath: '/financeiro/contratos'
+      preLoaderRoute: typeof AuthenticatedFinanceiroContratosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance/payment-methods': {
-      id: '/_authenticated/finance/payment-methods'
-      path: '/finance/payment-methods'
-      fullPath: '/finance/payment-methods'
-      preLoaderRoute: typeof AuthenticatedFinancePaymentMethodsRouteImport
+    '/_authenticated/conteudo/quadro': {
+      id: '/_authenticated/conteudo/quadro'
+      path: '/conteudo/quadro'
+      fullPath: '/conteudo/quadro'
+      preLoaderRoute: typeof AuthenticatedConteudoQuadroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance/contracts': {
-      id: '/_authenticated/finance/contracts'
-      path: '/finance/contracts'
-      fullPath: '/finance/contracts'
-      preLoaderRoute: typeof AuthenticatedFinanceContractsRouteImport
+    '/_authenticated/conteudo/ia': {
+      id: '/_authenticated/conteudo/ia'
+      path: '/conteudo/ia'
+      fullPath: '/conteudo/ia'
+      preLoaderRoute: typeof AuthenticatedConteudoIaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/finance/clients': {
-      id: '/_authenticated/finance/clients'
-      path: '/finance/clients'
-      fullPath: '/finance/clients'
-      preLoaderRoute: typeof AuthenticatedFinanceClientsRouteImport
+    '/_authenticated/conteudo/controle-de-posts': {
+      id: '/_authenticated/conteudo/controle-de-posts'
+      path: '/conteudo/controle-de-posts'
+      fullPath: '/conteudo/controle-de-posts'
+      preLoaderRoute: typeof AuthenticatedConteudoControleDePostsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/courses/$courseId': {
-      id: '/_authenticated/courses/$courseId'
-      path: '/courses/$courseId'
-      fullPath: '/courses/$courseId'
-      preLoaderRoute: typeof AuthenticatedCoursesCourseIdRouteImport
+    '/_authenticated/conteudo/calendario': {
+      id: '/_authenticated/conteudo/calendario'
+      path: '/conteudo/calendario'
+      fullPath: '/conteudo/calendario'
+      preLoaderRoute: typeof AuthenticatedConteudoCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/clients/$clientId': {
-      id: '/_authenticated/clients/$clientId'
-      path: '/clients/$clientId'
-      fullPath: '/clients/$clientId'
-      preLoaderRoute: typeof AuthenticatedClientsClientIdRouteImport
+    '/_authenticated/conteudo/biblioteca': {
+      id: '/_authenticated/conteudo/biblioteca'
+      path: '/conteudo/biblioteca'
+      fullPath: '/conteudo/biblioteca'
+      preLoaderRoute: typeof AuthenticatedConteudoBibliotecaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/briefings/template': {
-      id: '/_authenticated/briefings/template'
-      path: '/briefings/template'
-      fullPath: '/briefings/template'
-      preLoaderRoute: typeof AuthenticatedBriefingsTemplateRouteImport
+    '/_authenticated/conteudo/aprovacoes': {
+      id: '/_authenticated/conteudo/aprovacoes'
+      path: '/conteudo/aprovacoes'
+      fullPath: '/conteudo/aprovacoes'
+      preLoaderRoute: typeof AuthenticatedConteudoAprovacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/briefings/$briefingId': {
-      id: '/_authenticated/briefings/$briefingId'
-      path: '/briefings/$briefingId'
-      fullPath: '/briefings/$briefingId'
-      preLoaderRoute: typeof AuthenticatedBriefingsBriefingIdRouteImport
+    '/_authenticated/configuracoes/visualizacoes': {
+      id: '/_authenticated/configuracoes/visualizacoes'
+      path: '/configuracoes/visualizacoes'
+      fullPath: '/configuracoes/visualizacoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesVisualizacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/ai/tools': {
-      id: '/_authenticated/ai/tools'
-      path: '/tools'
-      fullPath: '/ai/tools'
-      preLoaderRoute: typeof AuthenticatedAiToolsRouteImport
-      parentRoute: typeof AuthenticatedAiRoute
+    '/_authenticated/configuracoes/ver-como': {
+      id: '/_authenticated/configuracoes/ver-como'
+      path: '/configuracoes/ver-como'
+      fullPath: '/configuracoes/ver-como'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesVerComoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/ai/$threadId': {
-      id: '/_authenticated/ai/$threadId'
+    '/_authenticated/configuracoes/permissoes': {
+      id: '/_authenticated/configuracoes/permissoes'
+      path: '/configuracoes/permissoes'
+      fullPath: '/configuracoes/permissoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesPermissoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/perfil': {
+      id: '/_authenticated/configuracoes/perfil'
+      path: '/configuracoes/perfil'
+      fullPath: '/configuracoes/perfil'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/marketplace': {
+      id: '/_authenticated/configuracoes/marketplace'
+      path: '/configuracoes/marketplace'
+      fullPath: '/configuracoes/marketplace'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesMarketplaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/formas-de-pagamento': {
+      id: '/_authenticated/configuracoes/formas-de-pagamento'
+      path: '/configuracoes/formas-de-pagamento'
+      fullPath: '/configuracoes/formas-de-pagamento'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesFormasDePagamentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/financeiro': {
+      id: '/_authenticated/configuracoes/financeiro'
+      path: '/configuracoes/financeiro'
+      fullPath: '/configuracoes/financeiro'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/equipe': {
+      id: '/_authenticated/configuracoes/equipe'
+      path: '/configuracoes/equipe'
+      fullPath: '/configuracoes/equipe'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes/acessos': {
+      id: '/_authenticated/configuracoes/acessos'
+      path: '/configuracoes/acessos'
+      fullPath: '/configuracoes/acessos'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesAcessosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes/retencao': {
+      id: '/_authenticated/clientes/retencao'
+      path: '/clientes/retencao'
+      fullPath: '/clientes/retencao'
+      preLoaderRoute: typeof AuthenticatedClientesRetencaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes/comercial': {
+      id: '/_authenticated/clientes/comercial'
+      path: '/clientes/comercial'
+      fullPath: '/clientes/comercial'
+      preLoaderRoute: typeof AuthenticatedClientesComercialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes/$clientId': {
+      id: '/_authenticated/clientes/$clientId'
+      path: '/clientes/$clientId'
+      fullPath: '/clientes/$clientId'
+      preLoaderRoute: typeof AuthenticatedClientesClientIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/trafego/campanhas/': {
+      id: '/_authenticated/trafego/campanhas/'
+      path: '/trafego/campanhas'
+      fullPath: '/trafego/campanhas/'
+      preLoaderRoute: typeof AuthenticatedTrafegoCampanhasIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conteudo/ia/': {
+      id: '/_authenticated/conteudo/ia/'
+      path: '/'
+      fullPath: '/conteudo/ia/'
+      preLoaderRoute: typeof AuthenticatedConteudoIaIndexRouteImport
+      parentRoute: typeof AuthenticatedConteudoIaRoute
+    }
+    '/_authenticated/configuracoes/cursos/': {
+      id: '/_authenticated/configuracoes/cursos/'
+      path: '/configuracoes/cursos'
+      fullPath: '/configuracoes/cursos/'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesCursosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/trafego/campanhas/$campaignId': {
+      id: '/_authenticated/trafego/campanhas/$campaignId'
+      path: '/trafego/campanhas/$campaignId'
+      fullPath: '/trafego/campanhas/$campaignId'
+      preLoaderRoute: typeof AuthenticatedTrafegoCampanhasCampaignIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/conteudo/ia/ferramentas': {
+      id: '/_authenticated/conteudo/ia/ferramentas'
+      path: '/ferramentas'
+      fullPath: '/conteudo/ia/ferramentas'
+      preLoaderRoute: typeof AuthenticatedConteudoIaFerramentasRouteImport
+      parentRoute: typeof AuthenticatedConteudoIaRoute
+    }
+    '/_authenticated/conteudo/ia/$threadId': {
+      id: '/_authenticated/conteudo/ia/$threadId'
       path: '/$threadId'
-      fullPath: '/ai/$threadId'
-      preLoaderRoute: typeof AuthenticatedAiThreadIdRouteImport
-      parentRoute: typeof AuthenticatedAiRoute
+      fullPath: '/conteudo/ia/$threadId'
+      preLoaderRoute: typeof AuthenticatedConteudoIaThreadIdRouteImport
+      parentRoute: typeof AuthenticatedConteudoIaRoute
     }
-    '/_authenticated/admin/visibility': {
-      id: '/_authenticated/admin/visibility'
-      path: '/admin/visibility'
-      fullPath: '/admin/visibility'
-      preLoaderRoute: typeof AuthenticatedAdminVisibilityRouteImport
+    '/_authenticated/configuracoes/cursos/gerenciar': {
+      id: '/_authenticated/configuracoes/cursos/gerenciar'
+      path: '/configuracoes/cursos/gerenciar'
+      fullPath: '/configuracoes/cursos/gerenciar'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesCursosGerenciarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin/posts-control': {
-      id: '/_authenticated/admin/posts-control'
-      path: '/admin/posts-control'
-      fullPath: '/admin/posts-control'
-      preLoaderRoute: typeof AuthenticatedAdminPostsControlRouteImport
+    '/_authenticated/configuracoes/cursos/$courseId': {
+      id: '/_authenticated/configuracoes/cursos/$courseId'
+      path: '/configuracoes/cursos/$courseId'
+      fullPath: '/configuracoes/cursos/$courseId'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesCursosCourseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin/permissions': {
-      id: '/_authenticated/admin/permissions'
-      path: '/admin/permissions'
-      fullPath: '/admin/permissions'
-      preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport
+    '/_authenticated/clientes/briefing/modelo': {
+      id: '/_authenticated/clientes/briefing/modelo'
+      path: '/clientes/briefing/modelo'
+      fullPath: '/clientes/briefing/modelo'
+      preLoaderRoute: typeof AuthenticatedClientesBriefingModeloRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/traffic/campaigns/': {
-      id: '/_authenticated/traffic/campaigns/'
-      path: '/traffic/campaigns'
-      fullPath: '/traffic/campaigns/'
-      preLoaderRoute: typeof AuthenticatedTrafficCampaignsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/management/clients/': {
-      id: '/_authenticated/management/clients/'
-      path: '/management/clients'
-      fullPath: '/management/clients/'
-      preLoaderRoute: typeof AuthenticatedManagementClientsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/admin/courses/': {
-      id: '/_authenticated/admin/courses/'
-      path: '/admin/courses'
-      fullPath: '/admin/courses/'
-      preLoaderRoute: typeof AuthenticatedAdminCoursesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/traffic/campaigns/$campaignId': {
-      id: '/_authenticated/traffic/campaigns/$campaignId'
-      path: '/traffic/campaigns/$campaignId'
-      fullPath: '/traffic/campaigns/$campaignId'
-      preLoaderRoute: typeof AuthenticatedTrafficCampaignsCampaignIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/management/clients/$clientId': {
-      id: '/_authenticated/management/clients/$clientId'
-      path: '/management/clients/$clientId'
-      fullPath: '/management/clients/$clientId'
-      preLoaderRoute: typeof AuthenticatedManagementClientsClientIdRouteImport
+    '/_authenticated/clientes/briefing/$briefingId': {
+      id: '/_authenticated/clientes/briefing/$briefingId'
+      path: '/clientes/briefing/$briefingId'
+      fullPath: '/clientes/briefing/$briefingId'
+      preLoaderRoute: typeof AuthenticatedClientesBriefingBriefingIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface AuthenticatedAiRouteChildren {
-  AuthenticatedAiThreadIdRoute: typeof AuthenticatedAiThreadIdRoute
-  AuthenticatedAiToolsRoute: typeof AuthenticatedAiToolsRoute
-  AuthenticatedAiIndexRoute: typeof AuthenticatedAiIndexRoute
+interface AuthenticatedConteudoIaRouteChildren {
+  AuthenticatedConteudoIaThreadIdRoute: typeof AuthenticatedConteudoIaThreadIdRoute
+  AuthenticatedConteudoIaFerramentasRoute: typeof AuthenticatedConteudoIaFerramentasRoute
+  AuthenticatedConteudoIaIndexRoute: typeof AuthenticatedConteudoIaIndexRoute
 }
 
-const AuthenticatedAiRouteChildren: AuthenticatedAiRouteChildren = {
-  AuthenticatedAiThreadIdRoute: AuthenticatedAiThreadIdRoute,
-  AuthenticatedAiToolsRoute: AuthenticatedAiToolsRoute,
-  AuthenticatedAiIndexRoute: AuthenticatedAiIndexRoute,
-}
+const AuthenticatedConteudoIaRouteChildren: AuthenticatedConteudoIaRouteChildren =
+  {
+    AuthenticatedConteudoIaThreadIdRoute: AuthenticatedConteudoIaThreadIdRoute,
+    AuthenticatedConteudoIaFerramentasRoute:
+      AuthenticatedConteudoIaFerramentasRoute,
+    AuthenticatedConteudoIaIndexRoute: AuthenticatedConteudoIaIndexRoute,
+  }
 
-const AuthenticatedAiRouteWithChildren = AuthenticatedAiRoute._addFileChildren(
-  AuthenticatedAiRouteChildren,
-)
+const AuthenticatedConteudoIaRouteWithChildren =
+  AuthenticatedConteudoIaRoute._addFileChildren(
+    AuthenticatedConteudoIaRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAiRoute: typeof AuthenticatedAiRouteWithChildren
-  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
-  AuthenticatedCommercialRoute: typeof AuthenticatedCommercialRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
-  AuthenticatedRetentionRoute: typeof AuthenticatedRetentionRoute
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
-  AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute
-  AuthenticatedAdminPostsControlRoute: typeof AuthenticatedAdminPostsControlRoute
-  AuthenticatedAdminVisibilityRoute: typeof AuthenticatedAdminVisibilityRoute
-  AuthenticatedBriefingsBriefingIdRoute: typeof AuthenticatedBriefingsBriefingIdRoute
-  AuthenticatedBriefingsTemplateRoute: typeof AuthenticatedBriefingsTemplateRoute
-  AuthenticatedClientsClientIdRoute: typeof AuthenticatedClientsClientIdRoute
-  AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
-  AuthenticatedFinanceClientsRoute: typeof AuthenticatedFinanceClientsRoute
-  AuthenticatedFinanceContractsRoute: typeof AuthenticatedFinanceContractsRoute
-  AuthenticatedFinancePaymentMethodsRoute: typeof AuthenticatedFinancePaymentMethodsRoute
-  AuthenticatedFinanceReceivablesRoute: typeof AuthenticatedFinanceReceivablesRoute
-  AuthenticatedFinanceSettingsRoute: typeof AuthenticatedFinanceSettingsRoute
-  AuthenticatedLibraryBriefingsRoute: typeof AuthenticatedLibraryBriefingsRoute
+  AuthenticatedSplatRoute: typeof AuthenticatedSplatRoute
+  AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
+  AuthenticatedClientesComercialRoute: typeof AuthenticatedClientesComercialRoute
+  AuthenticatedClientesRetencaoRoute: typeof AuthenticatedClientesRetencaoRoute
+  AuthenticatedConfiguracoesAcessosRoute: typeof AuthenticatedConfiguracoesAcessosRoute
+  AuthenticatedConfiguracoesEquipeRoute: typeof AuthenticatedConfiguracoesEquipeRoute
+  AuthenticatedConfiguracoesFinanceiroRoute: typeof AuthenticatedConfiguracoesFinanceiroRoute
+  AuthenticatedConfiguracoesFormasDePagamentoRoute: typeof AuthenticatedConfiguracoesFormasDePagamentoRoute
+  AuthenticatedConfiguracoesMarketplaceRoute: typeof AuthenticatedConfiguracoesMarketplaceRoute
+  AuthenticatedConfiguracoesPerfilRoute: typeof AuthenticatedConfiguracoesPerfilRoute
+  AuthenticatedConfiguracoesPermissoesRoute: typeof AuthenticatedConfiguracoesPermissoesRoute
+  AuthenticatedConfiguracoesVerComoRoute: typeof AuthenticatedConfiguracoesVerComoRoute
+  AuthenticatedConfiguracoesVisualizacoesRoute: typeof AuthenticatedConfiguracoesVisualizacoesRoute
+  AuthenticatedConteudoAprovacoesRoute: typeof AuthenticatedConteudoAprovacoesRoute
+  AuthenticatedConteudoBibliotecaRoute: typeof AuthenticatedConteudoBibliotecaRoute
+  AuthenticatedConteudoCalendarioRoute: typeof AuthenticatedConteudoCalendarioRoute
+  AuthenticatedConteudoControleDePostsRoute: typeof AuthenticatedConteudoControleDePostsRoute
+  AuthenticatedConteudoIaRoute: typeof AuthenticatedConteudoIaRouteWithChildren
+  AuthenticatedConteudoQuadroRoute: typeof AuthenticatedConteudoQuadroRoute
+  AuthenticatedFinanceiroContratosRoute: typeof AuthenticatedFinanceiroContratosRoute
+  AuthenticatedFinanceiroReceberRoute: typeof AuthenticatedFinanceiroReceberRoute
+  AuthenticatedInicioReunioesRoute: typeof AuthenticatedInicioReunioesRoute
   AuthenticatedPortalCalendarRoute: typeof AuthenticatedPortalCalendarRoute
+  AuthenticatedRelatoriosMensalRoute: typeof AuthenticatedRelatoriosMensalRoute
   AuthenticatedReviewTokenRoute: typeof AuthenticatedReviewTokenRoute
-  AuthenticatedTrafficAnalyticsRoute: typeof AuthenticatedTrafficAnalyticsRoute
-  AuthenticatedTrafficCrmRoute: typeof AuthenticatedTrafficCrmRoute
-  AuthenticatedTrafficLandingPagesRoute: typeof AuthenticatedTrafficLandingPagesRoute
-  AuthenticatedBriefingsIndexRoute: typeof AuthenticatedBriefingsIndexRoute
-  AuthenticatedClientsIndexRoute: typeof AuthenticatedClientsIndexRoute
-  AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
-  AuthenticatedFinanceIndexRoute: typeof AuthenticatedFinanceIndexRoute
-  AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
-  AuthenticatedMarketplaceIndexRoute: typeof AuthenticatedMarketplaceIndexRoute
+  AuthenticatedTrafegoCrmRoute: typeof AuthenticatedTrafegoCrmRoute
+  AuthenticatedTrafegoLandingPagesRoute: typeof AuthenticatedTrafegoLandingPagesRoute
+  AuthenticatedTrafegoMetricasRoute: typeof AuthenticatedTrafegoMetricasRoute
+  AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
+  AuthenticatedFinanceiroIndexRoute: typeof AuthenticatedFinanceiroIndexRoute
+  AuthenticatedInicioIndexRoute: typeof AuthenticatedInicioIndexRoute
   AuthenticatedPortalIndexRoute: typeof AuthenticatedPortalIndexRoute
-  AuthenticatedPostsIndexRoute: typeof AuthenticatedPostsIndexRoute
-  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
-  AuthenticatedTrafficIndexRoute: typeof AuthenticatedTrafficIndexRoute
-  AuthenticatedVaultIndexRoute: typeof AuthenticatedVaultIndexRoute
-  AuthenticatedManagementClientsClientIdRoute: typeof AuthenticatedManagementClientsClientIdRoute
-  AuthenticatedTrafficCampaignsCampaignIdRoute: typeof AuthenticatedTrafficCampaignsCampaignIdRoute
-  AuthenticatedAdminCoursesIndexRoute: typeof AuthenticatedAdminCoursesIndexRoute
-  AuthenticatedManagementClientsIndexRoute: typeof AuthenticatedManagementClientsIndexRoute
-  AuthenticatedTrafficCampaignsIndexRoute: typeof AuthenticatedTrafficCampaignsIndexRoute
+  AuthenticatedRelatoriosIndexRoute: typeof AuthenticatedRelatoriosIndexRoute
+  AuthenticatedTarefasIndexRoute: typeof AuthenticatedTarefasIndexRoute
+  AuthenticatedTrafegoIndexRoute: typeof AuthenticatedTrafegoIndexRoute
+  AuthenticatedClientesBriefingBriefingIdRoute: typeof AuthenticatedClientesBriefingBriefingIdRoute
+  AuthenticatedClientesBriefingModeloRoute: typeof AuthenticatedClientesBriefingModeloRoute
+  AuthenticatedConfiguracoesCursosCourseIdRoute: typeof AuthenticatedConfiguracoesCursosCourseIdRoute
+  AuthenticatedConfiguracoesCursosGerenciarRoute: typeof AuthenticatedConfiguracoesCursosGerenciarRoute
+  AuthenticatedTrafegoCampanhasCampaignIdRoute: typeof AuthenticatedTrafegoCampanhasCampaignIdRoute
+  AuthenticatedConfiguracoesCursosIndexRoute: typeof AuthenticatedConfiguracoesCursosIndexRoute
+  AuthenticatedTrafegoCampanhasIndexRoute: typeof AuthenticatedTrafegoCampanhasIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAiRoute: AuthenticatedAiRouteWithChildren,
-  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
-  AuthenticatedCommercialRoute: AuthenticatedCommercialRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
-  AuthenticatedRetentionRoute: AuthenticatedRetentionRoute,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
-  AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
-  AuthenticatedAdminPostsControlRoute: AuthenticatedAdminPostsControlRoute,
-  AuthenticatedAdminVisibilityRoute: AuthenticatedAdminVisibilityRoute,
-  AuthenticatedBriefingsBriefingIdRoute: AuthenticatedBriefingsBriefingIdRoute,
-  AuthenticatedBriefingsTemplateRoute: AuthenticatedBriefingsTemplateRoute,
-  AuthenticatedClientsClientIdRoute: AuthenticatedClientsClientIdRoute,
-  AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
-  AuthenticatedFinanceClientsRoute: AuthenticatedFinanceClientsRoute,
-  AuthenticatedFinanceContractsRoute: AuthenticatedFinanceContractsRoute,
-  AuthenticatedFinancePaymentMethodsRoute:
-    AuthenticatedFinancePaymentMethodsRoute,
-  AuthenticatedFinanceReceivablesRoute: AuthenticatedFinanceReceivablesRoute,
-  AuthenticatedFinanceSettingsRoute: AuthenticatedFinanceSettingsRoute,
-  AuthenticatedLibraryBriefingsRoute: AuthenticatedLibraryBriefingsRoute,
+  AuthenticatedSplatRoute: AuthenticatedSplatRoute,
+  AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
+  AuthenticatedClientesComercialRoute: AuthenticatedClientesComercialRoute,
+  AuthenticatedClientesRetencaoRoute: AuthenticatedClientesRetencaoRoute,
+  AuthenticatedConfiguracoesAcessosRoute:
+    AuthenticatedConfiguracoesAcessosRoute,
+  AuthenticatedConfiguracoesEquipeRoute: AuthenticatedConfiguracoesEquipeRoute,
+  AuthenticatedConfiguracoesFinanceiroRoute:
+    AuthenticatedConfiguracoesFinanceiroRoute,
+  AuthenticatedConfiguracoesFormasDePagamentoRoute:
+    AuthenticatedConfiguracoesFormasDePagamentoRoute,
+  AuthenticatedConfiguracoesMarketplaceRoute:
+    AuthenticatedConfiguracoesMarketplaceRoute,
+  AuthenticatedConfiguracoesPerfilRoute: AuthenticatedConfiguracoesPerfilRoute,
+  AuthenticatedConfiguracoesPermissoesRoute:
+    AuthenticatedConfiguracoesPermissoesRoute,
+  AuthenticatedConfiguracoesVerComoRoute:
+    AuthenticatedConfiguracoesVerComoRoute,
+  AuthenticatedConfiguracoesVisualizacoesRoute:
+    AuthenticatedConfiguracoesVisualizacoesRoute,
+  AuthenticatedConteudoAprovacoesRoute: AuthenticatedConteudoAprovacoesRoute,
+  AuthenticatedConteudoBibliotecaRoute: AuthenticatedConteudoBibliotecaRoute,
+  AuthenticatedConteudoCalendarioRoute: AuthenticatedConteudoCalendarioRoute,
+  AuthenticatedConteudoControleDePostsRoute:
+    AuthenticatedConteudoControleDePostsRoute,
+  AuthenticatedConteudoIaRoute: AuthenticatedConteudoIaRouteWithChildren,
+  AuthenticatedConteudoQuadroRoute: AuthenticatedConteudoQuadroRoute,
+  AuthenticatedFinanceiroContratosRoute: AuthenticatedFinanceiroContratosRoute,
+  AuthenticatedFinanceiroReceberRoute: AuthenticatedFinanceiroReceberRoute,
+  AuthenticatedInicioReunioesRoute: AuthenticatedInicioReunioesRoute,
   AuthenticatedPortalCalendarRoute: AuthenticatedPortalCalendarRoute,
+  AuthenticatedRelatoriosMensalRoute: AuthenticatedRelatoriosMensalRoute,
   AuthenticatedReviewTokenRoute: AuthenticatedReviewTokenRoute,
-  AuthenticatedTrafficAnalyticsRoute: AuthenticatedTrafficAnalyticsRoute,
-  AuthenticatedTrafficCrmRoute: AuthenticatedTrafficCrmRoute,
-  AuthenticatedTrafficLandingPagesRoute: AuthenticatedTrafficLandingPagesRoute,
-  AuthenticatedBriefingsIndexRoute: AuthenticatedBriefingsIndexRoute,
-  AuthenticatedClientsIndexRoute: AuthenticatedClientsIndexRoute,
-  AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
-  AuthenticatedFinanceIndexRoute: AuthenticatedFinanceIndexRoute,
-  AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
-  AuthenticatedMarketplaceIndexRoute: AuthenticatedMarketplaceIndexRoute,
+  AuthenticatedTrafegoCrmRoute: AuthenticatedTrafegoCrmRoute,
+  AuthenticatedTrafegoLandingPagesRoute: AuthenticatedTrafegoLandingPagesRoute,
+  AuthenticatedTrafegoMetricasRoute: AuthenticatedTrafegoMetricasRoute,
+  AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
+  AuthenticatedFinanceiroIndexRoute: AuthenticatedFinanceiroIndexRoute,
+  AuthenticatedInicioIndexRoute: AuthenticatedInicioIndexRoute,
   AuthenticatedPortalIndexRoute: AuthenticatedPortalIndexRoute,
-  AuthenticatedPostsIndexRoute: AuthenticatedPostsIndexRoute,
-  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
-  AuthenticatedTrafficIndexRoute: AuthenticatedTrafficIndexRoute,
-  AuthenticatedVaultIndexRoute: AuthenticatedVaultIndexRoute,
-  AuthenticatedManagementClientsClientIdRoute:
-    AuthenticatedManagementClientsClientIdRoute,
-  AuthenticatedTrafficCampaignsCampaignIdRoute:
-    AuthenticatedTrafficCampaignsCampaignIdRoute,
-  AuthenticatedAdminCoursesIndexRoute: AuthenticatedAdminCoursesIndexRoute,
-  AuthenticatedManagementClientsIndexRoute:
-    AuthenticatedManagementClientsIndexRoute,
-  AuthenticatedTrafficCampaignsIndexRoute:
-    AuthenticatedTrafficCampaignsIndexRoute,
+  AuthenticatedRelatoriosIndexRoute: AuthenticatedRelatoriosIndexRoute,
+  AuthenticatedTarefasIndexRoute: AuthenticatedTarefasIndexRoute,
+  AuthenticatedTrafegoIndexRoute: AuthenticatedTrafegoIndexRoute,
+  AuthenticatedClientesBriefingBriefingIdRoute:
+    AuthenticatedClientesBriefingBriefingIdRoute,
+  AuthenticatedClientesBriefingModeloRoute:
+    AuthenticatedClientesBriefingModeloRoute,
+  AuthenticatedConfiguracoesCursosCourseIdRoute:
+    AuthenticatedConfiguracoesCursosCourseIdRoute,
+  AuthenticatedConfiguracoesCursosGerenciarRoute:
+    AuthenticatedConfiguracoesCursosGerenciarRoute,
+  AuthenticatedTrafegoCampanhasCampaignIdRoute:
+    AuthenticatedTrafegoCampanhasCampaignIdRoute,
+  AuthenticatedConfiguracoesCursosIndexRoute:
+    AuthenticatedConfiguracoesCursosIndexRoute,
+  AuthenticatedTrafegoCampanhasIndexRoute:
+    AuthenticatedTrafegoCampanhasIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

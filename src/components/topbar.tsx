@@ -1,6 +1,6 @@
-import { navForPath, navigation, activeNavigation, portalNavigation } from "@/lib/navigation";
+import { areaForPath, portalNavigation } from "@/lib/navigation";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Eye, Gauge, LogOut, User as UserIcon } from "lucide-react";
+import { Eye, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -68,22 +68,18 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
             <span className="text-xs font-normal text-muted-foreground">{user?.email}</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
+          <DropdownMenuItem onClick={() => navigate({ to: "/configuracoes/perfil" })}>
             <UserIcon className="mr-2 h-4 w-4" /> Perfil
           </DropdownMenuItem>
+          {isStaff && (
+            <DropdownMenuItem onClick={() => navigate({ to: "/configuracoes/perfil" })}>
+              <Settings className="mr-2 h-4 w-4" /> Configurações
+            </DropdownMenuItem>
+          )}
           {isAdmin && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setViewAsOpen(true)}>
-                <Eye className="mr-2 h-4 w-4" /> Ver como cliente ou equipe
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate({ to: "/admin/visibility" })}>
-                <Eye className="mr-2 h-4 w-4" /> Gerenciar Visualizações
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate({ to: "/admin/posts-control" })}>
-                <Gauge className="mr-2 h-4 w-4" /> Controle de Posts
-              </DropdownMenuItem>
-            </>
+            <DropdownMenuItem onClick={() => setViewAsOpen(true)}>
+              <Eye className="mr-2 h-4 w-4" /> Ver como cliente ou equipe
+            </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
 
@@ -106,9 +102,7 @@ export function Topbar() {
   const staff = hasRole("administrator") || hasRole("team");
   const tab = String((loc.search as Record<string, unknown>).tab ?? "home");
   const label = staff
-    ? (navigation.find((n) =>
-        activeNavigation(n.href, loc.pathname, loc.search as Record<string, unknown>),
-      )?.label ?? navForPath(loc.pathname)?.label)
+    ? areaForPath(loc.pathname)?.label
     : (portalNavigation.find(([, t]) => t === tab)?.[0] ??
       (["approvals", "calendar", "feed"].includes(tab) ? "Conteúdos" : "Portal do cliente"));
   return (

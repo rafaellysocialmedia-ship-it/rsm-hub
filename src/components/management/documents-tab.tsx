@@ -41,7 +41,7 @@ export function DocumentsTab({ clientId }: { clientId: string }) {
         description="Contratos, briefings, identidade visual, logos e materiais enviados"
         actions={
           <Button size="sm" variant="outline" asChild>
-            <Link to="/library">
+            <Link to="/conteudo/biblioteca">
               Abrir biblioteca
               <ExternalLink className="ml-2 h-4 w-4" />
             </Link>

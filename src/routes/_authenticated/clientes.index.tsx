@@ -1,0 +1,416 @@
+import { useStickyState } from "@/hooks/use-sticky-state";
+import { isActiveClient } from "@/lib/active-clients";
+import { useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import {
+  ArrowUpDown,
+  ArrowUpRight,
+  Building2,
+  CalendarDays,
+  LayoutGrid,
+  List,
+  Plus,
+  Search,
+  UserRound,
+  BriefcaseBusiness,
+  Clock3,
+  BellRing,
+} from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import type { Client } from "@/lib/clients";
+import { CLIENT_STATUS } from "@/lib/clients";
+import { formatDate, formatDateTime, type ClientService } from "@/lib/client-master";
+import { useStaffMembers } from "@/hooks/use-staff";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ClientLogo } from "@/components/clients/client-logo";
+import { ClientFormDialog } from "@/components/clients/client-form-dialog";
+import { StatusBadge } from "@/components/clients/status-badge";
+import { ListSkeleton } from "@/components/skeletons";
+import { ClientAlertChips } from "@/components/clients/client-alerts";
+import { useClientAlerts } from "@/hooks/use-client-alerts";
+
+export const Route = createFileRoute("/_authenticated/clientes/")({
+  head: () => ({
+    meta: [
+      { title: "Clientes · RSM Gestão de Marketing" },
+      {
+        name: "description",
+        content: "Cadastro mestre dos clientes da agência em um só lugar.",
+      },
+    ],
+  }),
+  component: ManagementClientsPage,
+  errorComponent: ({ error }) => (
+    <div className="px-6 py-16 text-center text-sm text-muted-foreground">{error.message}</div>
+  ),
+  notFoundComponent: () => (
+    <div className="px-6 py-16 text-center text-sm text-muted-foreground">Não encontrado</div>
+  ),
+});
+
+type SortKey = "name" | "start_date" | "updated_at" | "alerts";
+const LEVEL_WEIGHT = { urgent: 100, warning: 10, info: 1 } as const;
+
+function ManagementClientsPage() {
+  const { hasRole } = useAuth();
+  const canManage = hasRole("administrator") || hasRole("team");
+  const [search, setSearch] = useStickyState("client-list-search", "");
+  const [status, setStatus] = useStickyState("client-list-status", "active");
+  const [sort, setSort] = useStickyState<SortKey>("client-list-sort", "updated_at");
+  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [viewMode, setViewMode] = useStickyState<"grid" | "list">("client-list-view", "grid");
+  const { data: staff = [] } = useStaffMembers();
+
+  const { data: clients, isLoading } = useQuery({
+    queryKey: ["management-clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Client[];
+    },
+  });
+
+  const { data: services = [] } = useQuery({
+    queryKey: ["management-client-services"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_services")
+        .select("client_id, label, service_key, situation");
+      if (error) throw error;
+      return (data ?? []) as Pick<
+        ClientService,
+        "client_id" | "label" | "service_key" | "situation"
+      >[];
+    },
+  });
+
+  const [onlyAlerts, setOnlyAlerts] = useStickyState("client-list-only-alerts", false);
+  const alerts = useClientAlerts();
+  const alertsByClient = alerts.byClient;
+  const withAlerts = (clients ?? []).filter(
+    (c) => isActiveClient(c) && (alertsByClient.get(c.id)?.alerts.length ?? 0) > 0,
+  ).length;
+
+  const rows = useMemo(() => {
+    const alertWeight = (id: string) =>
+      (alertsByClient.get(id)?.alerts ?? []).reduce(
+        (sum, alert) => sum + LEVEL_WEIGHT[alert.level],
+        0,
+      );
+    const q = search.trim().toLowerCase();
+    return (clients ?? [])
+      .filter((c) =>
+        status === "active" ? isActiveClient(c) : status === "all" || c.status === status,
+      )
+      .filter((c) => !onlyAlerts || (alertsByClient.get(c.id)?.alerts.length ?? 0) > 0)
+      .filter((c) =>
+        !q
+          ? true
+          : [c.name, c.legal_name, c.responsible, c.email, c.segment]
+              .filter(Boolean)
+              .some((v) => (v as string).toLowerCase().includes(q)),
+      )
+      .sort((a, b) => {
+        if (sort === "name") return a.name.localeCompare(b.name);
+        if (sort === "alerts")
+          return alertWeight(b.id) - alertWeight(a.id) || a.name.localeCompare(b.name);
+        const av = (a as unknown as Record<string, string | null>)[sort] ?? "";
+        const bv = (b as unknown as Record<string, string | null>)[sort] ?? "";
+        return bv.localeCompare(av);
+      });
+  }, [clients, search, status, sort, onlyAlerts, alertsByClient]);
+
+  const nameOf = (id: string | null | undefined) => {
+    if (!id) return "—";
+    const m = staff.find((s) => s.id === id);
+    return m?.name || m?.email || "—";
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 py-5 sm:px-6 sm:py-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
+              <p className="text-sm text-muted-foreground">
+                Todos os clientes e suas principais informações em um só lugar.
+              </p>
+            </div>
+          </div>
+        </div>
+        {canManage && (
+          <Button onClick={() => setNewClientOpen(true)} className="gap-2">
+            <Plus className="size-4" /> Novo cliente
+          </Button>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        {[
+          { label: "Clientes cadastrados", value: clients?.length ?? 0, icon: Building2 },
+          {
+            label: "Contas ativas",
+            value: (clients ?? []).filter(isActiveClient).length,
+            icon: BriefcaseBusiness,
+          },
+        ].map(({ label, value, icon: Icon }) => (
+          <div
+            key={label}
+            className="flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm"
+          >
+            <div className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-primary sm:flex">
+              <Icon className="size-4" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs text-muted-foreground">{label}</p>
+              <p className="text-xl font-semibold tabular-nums">{isLoading ? "…" : value}</p>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          aria-pressed={onlyAlerts}
+          onClick={() => setOnlyAlerts(!onlyAlerts)}
+          title={onlyAlerts ? "Mostrar todos os clientes" : "Mostrar só clientes com alertas"}
+          className={`col-span-2 flex items-center gap-3 rounded-xl border p-3 text-left shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:col-span-1 ${
+            onlyAlerts
+              ? "border-amber-500/40 bg-amber-500/10"
+              : withAlerts > 0
+                ? "border-amber-500/30 bg-card hover:bg-amber-500/5"
+                : "bg-card hover:bg-muted/40"
+          }`}
+        >
+          <div className="hidden size-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 sm:flex">
+            <BellRing className="size-4" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs text-muted-foreground">Clientes com alertas</p>
+            <p className="text-xl font-semibold tabular-nums">
+              {isLoading || alerts.isLoading ? "…" : withAlerts}
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-medium text-primary">
+            {onlyAlerts ? "Ver todos" : "Filtrar"}
+          </span>
+        </button>
+      </div>
+      <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            placeholder="Buscar por nome, empresa, responsável…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="sm:w-[170px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            {CLIENT_STATUS.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={sort} onValueChange={(v) => setSort(v as SortKey)}>
+          <SelectTrigger className="sm:w-[200px]">
+            <ArrowUpDown className="mr-2 h-3.5 w-3.5" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="alerts">Mais alertas primeiro</SelectItem>
+            <SelectItem value="updated_at">Última atualização</SelectItem>
+            <SelectItem value="name">Nome (A-Z)</SelectItem>
+            <SelectItem value="start_date">Data de início</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground" role="status">
+          {isLoading
+            ? "Carregando clientes…"
+            : `${rows.length} cliente${rows.length === 1 ? "" : "s"} encontrado${rows.length === 1 ? "" : "s"}`}
+        </p>
+        <div
+          className="flex items-center gap-1 rounded-lg border bg-card p-1"
+          aria-label="Visualização de clientes"
+        >
+          <Button
+            size="sm"
+            variant={viewMode === "grid" ? "secondary" : "ghost"}
+            aria-pressed={viewMode === "grid"}
+            onClick={() => setViewMode("grid")}
+            className="h-8 gap-1.5 text-xs"
+          >
+            <LayoutGrid className="size-3.5" aria-hidden /> Cards
+          </Button>
+          <Button
+            size="sm"
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            aria-pressed={viewMode === "list"}
+            onClick={() => setViewMode("list")}
+            className="h-8 gap-1.5 text-xs"
+          >
+            <List className="size-3.5" aria-hidden /> Lista
+          </Button>
+        </div>
+      </div>
+      {isLoading ? (
+        <div className="mt-6">
+          <ListSkeleton />
+        </div>
+      ) : rows.length === 0 ? (
+        <Card className="mt-6 border-dashed p-10 text-center text-sm text-muted-foreground">
+          Nenhum cliente encontrado com os filtros atuais.
+        </Card>
+      ) : (
+        <div
+          className={viewMode === "grid" ? "grid gap-4 md:grid-cols-2 xl:grid-cols-3" : "space-y-2"}
+        >
+          {rows.map((client) => {
+            const extra = client as Client & {
+              trade_name?: string | null;
+              account_manager_id?: string | null;
+            };
+            const svc = services.filter((s) => s.client_id === client.id);
+            const clientAlerts = alertsByClient.get(client.id)?.alerts ?? [];
+            return (
+              <Link
+                key={client.id}
+                to="/clientes/$clientId"
+                params={{ clientId: client.id }}
+                className={`group relative flex min-w-0 flex-col gap-4 rounded-xl border border-border/75 bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${viewMode === "list" ? "lg:flex-row lg:items-center" : ""}`}
+              >
+                <div
+                  className={`flex min-w-0 items-center gap-3 ${viewMode === "list" ? "lg:min-w-[230px] lg:flex-1" : ""}`}
+                >
+                  <ClientLogo
+                    path={client.logo_url}
+                    name={client.name}
+                    className="size-12 shrink-0 rounded-xl"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold" title={client.name}>
+                      {client.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {extra.trade_name ||
+                        client.legal_name ||
+                        client.segment ||
+                        "Empresa não informada"}
+                    </p>
+                    <div className="mt-1.5">
+                      <StatusBadge status={client.status} />
+                    </div>
+                  </div>
+                  <ArrowUpRight
+                    className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary"
+                    aria-hidden
+                  />
+                </div>
+                <div className={`min-w-0 ${viewMode === "list" ? "lg:w-[260px]" : ""}`}>
+                  <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">Alertas</p>
+                  {clientAlerts.length > 0 ? (
+                    <ClientAlertChips alerts={clientAlerts} max={viewMode === "list" ? 2 : 3} />
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {alerts.isLoading
+                        ? "Carregando…"
+                        : isActiveClient(client)
+                          ? "Sem alertas"
+                          : "Conta inativa"}
+                    </span>
+                  )}
+                </div>
+                <div className={`min-w-0 ${viewMode === "list" ? "lg:w-[220px]" : ""}`}>
+                  <p className="mb-1.5 text-[11px] font-medium text-muted-foreground">
+                    Serviços contratados
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {svc.length === 0 ? (
+                      <span className="text-xs text-muted-foreground">
+                        Sem serviços cadastrados
+                      </span>
+                    ) : (
+                      svc.slice(0, 3).map((s) => (
+                        <Badge
+                          key={s.service_key}
+                          variant="secondary"
+                          className="max-w-full truncate rounded-md text-[10px] font-medium"
+                        >
+                          {s.label || s.service_key}
+                        </Badge>
+                      ))
+                    )}
+                    {svc.length > 3 && (
+                      <Badge variant="outline" className="text-[10px]">
+                        +{svc.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div
+                  className={`grid grid-cols-2 gap-3 border-t border-border/60 pt-3 text-xs ${viewMode === "list" ? "lg:w-[345px] lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0" : ""}`}
+                >
+                  <div className="min-w-0 space-y-1">
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <UserRound className="size-3" aria-hidden /> Responsável interno
+                    </p>
+                    <p className="truncate font-medium">{nameOf(extra.account_manager_id)}</p>
+                    <p
+                      className="truncate text-[11px] text-muted-foreground"
+                      title={client.responsible ?? ""}
+                    >
+                      {client.responsible || "Contato não informado"}
+                    </p>
+                  </div>
+                  <div className="min-w-0 space-y-1">
+                    <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <CalendarDays className="size-3" aria-hidden /> Início
+                    </p>
+                    <p className="font-medium">{formatDate(client.start_date)}</p>
+                    <p
+                      className="flex items-center gap-1 truncate text-[11px] text-muted-foreground"
+                      title={`Atualizado em ${formatDateTime(client.updated_at)}`}
+                    >
+                      <Clock3 className="size-3 shrink-0" aria-hidden />
+                      Atualizado em {formatDateTime(client.updated_at)}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      <ClientFormDialog open={newClientOpen} onOpenChange={setNewClientOpen} client={null} />
+    </div>
+  );
+}

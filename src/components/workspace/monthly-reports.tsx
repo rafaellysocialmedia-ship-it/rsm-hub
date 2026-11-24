@@ -93,7 +93,7 @@ export function MonthlyReports({
         </div>
         {
           <Button variant="outline" asChild>
-            <Link to="/analytics">
+            <Link to="/relatorios">
               {canEdit ? "Registrar métricas" : "Ver métricas detalhadas"}
             </Link>
           </Button>

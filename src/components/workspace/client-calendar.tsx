@@ -526,7 +526,7 @@ export function ClientCalendarPage({
                 }}
                 className="h-7 w-auto shrink-0 rounded-md border border-border/70 bg-background pl-1.5 pr-6 text-[11px]"
               >
-                <option value="other">Outras apresentações</option>
+                <option value="other">Mais visualizações</option>
                 <option value="list">Agenda do período</option>
                 <option value="grid">Grade de prévias</option>
               </select>

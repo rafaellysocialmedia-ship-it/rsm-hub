@@ -22,6 +22,7 @@ import {
   Pencil,
   Repeat,
   Send,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -548,6 +549,17 @@ export function PostEditorSheet({
             {isEdit ? "Editar publicação" : "Nova publicação"}
           </Title>
           <div className="flex items-center gap-1">
+            {permissions.can("social.ai") && (
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                title="Abrir o assistente de IA em outra aba do navegador"
+                onClick={() => window.open("/conteudo/ia", "_blank", "noopener")}
+              >
+                <Sparkles className="mr-1.5 h-4 w-4 text-brand-accent" /> IA
+              </Button>
+            )}
             {readOnly && (
               <p role="alert" className="text-sm text-destructive">
                 Edição indisponível para sua permissão atual. Seu rascunho foi mantido.

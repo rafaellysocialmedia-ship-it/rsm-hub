@@ -111,7 +111,7 @@ export function ClientPortal({
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">
-            {filter === "pending" ? "Conteúdos para revisar" : "Seus conteúdos"}
+            {staff && !clientId ? "Aprovações" : filter === "pending" ? "Conteúdos para revisar" : "Seus conteúdos"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Abra a prévia para conferir a arte, a legenda e conversar com a equipe.

@@ -25,7 +25,7 @@ function ResetPasswordPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Senha atualizada.");
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/inicio" });
   };
 
   return (

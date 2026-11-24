@@ -1,7 +1,7 @@
 import { ClientWorkspace } from "@/components/workspace/client-workspace";
 import { ClientPortal } from "@/components/workspace/client-approvals";
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CheckCircle2,
@@ -103,6 +103,7 @@ const DECISION_META: Record<Decision, { label: string; tone: string; icon: typeo
 
 function PortalRouter() {
   const { hasRole, loading } = useAuth();
+  const search = Route.useSearch();
   if (loading)
     return (
       <div className="flex flex-1 items-center justify-center p-10">
@@ -110,13 +111,8 @@ function PortalRouter() {
       </div>
     );
   const isStaff = hasRole("administrator") || hasRole("team");
-  return isStaff ? (
-    <div className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <ClientPortal />
-    </div>
-  ) : (
-    <ClientWorkspace />
-  );
+  // A equipe revisa em Conteúdo › Aprovações; o portal do cliente continua aqui.
+  return isStaff ? <Navigate to="/conteudo/aprovacoes" search={search as never} replace /> : <ClientWorkspace />;
 }
 
 /* ---------------- STAFF VIEW ---------------- */

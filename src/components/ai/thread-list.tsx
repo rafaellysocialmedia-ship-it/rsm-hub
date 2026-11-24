@@ -38,7 +38,7 @@ export function ThreadList({ threads, activeId, loading, onNew, onDelete }: Prop
             return (
               <li key={t.id} className="group relative">
                 <Link
-                  to="/ai/$threadId"
+                  to="/conteudo/ia/$threadId"
                   params={{ threadId: t.id }}
                   className={cn(
                     "flex flex-col gap-0.5 rounded-md px-3 py-2 pr-9 text-sm transition",

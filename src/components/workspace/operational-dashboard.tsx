@@ -176,7 +176,7 @@ export function OperationalDashboard({ name }: { name: string }) {
             </div>
             <Button size="sm" variant="outline" asChild>
               <Link
-                to="/management/clients/$clientId"
+                to="/clientes/$clientId"
                 params={{ clientId: i.client }}
                 search={{ tab: i.tab }}
               >
@@ -218,7 +218,7 @@ export function OperationalDashboard({ name }: { name: string }) {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link to="/management/clients">Gerenciar clientes e histórico</Link>
+          <Link to="/clientes">Gerenciar clientes e histórico</Link>
         </Button>
       </header>
       <QueryState loading={q.isLoading} error={q.error}>
@@ -302,7 +302,7 @@ export function OperationalDashboard({ name }: { name: string }) {
                   <li className="flex items-center justify-between gap-3 py-3" key={c.client_id}>
                     <Link
                       className="text-sm font-medium hover:underline"
-                      to="/management/clients/$clientId"
+                      to="/clientes/$clientId"
                       params={{ clientId: c.client_id }}
                       search={{ tab: "overview" }}
                     >

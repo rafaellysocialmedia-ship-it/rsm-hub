@@ -48,7 +48,7 @@ export function FinanceAlertsPanel({
   const clientLink = (clientId: string, label: string) => (
     <Link
       key={clientId + label}
-      to="/management/clients/$clientId"
+      to="/clientes/$clientId"
       params={{ clientId }}
       search={{ tab: "finance" }}
       className="font-medium text-foreground underline-offset-2 hover:underline"
