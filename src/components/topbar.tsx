@@ -68,13 +68,16 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
             <span className="text-xs font-normal text-muted-foreground">{user?.email}</span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate({ to: "/configuracoes/perfil" })}>
-            <UserIcon className="mr-2 h-4 w-4" /> Perfil
-          </DropdownMenuItem>
+          {/* Cliente só usa o portal; perfil e configurações são da equipe. */}
           {isStaff && (
-            <DropdownMenuItem onClick={() => navigate({ to: "/configuracoes/perfil" })}>
-              <Settings className="mr-2 h-4 w-4" /> Configurações
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem onClick={() => navigate({ to: "/configuracoes/perfil" })}>
+                <UserIcon className="mr-2 h-4 w-4" /> Perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/configuracoes/perfil" })}>
+                <Settings className="mr-2 h-4 w-4" /> Configurações
+              </DropdownMenuItem>
+            </>
           )}
           {isAdmin && (
             <DropdownMenuItem onClick={() => setViewAsOpen(true)}>

@@ -7,7 +7,6 @@ import {
   Layers,
   CircleDollarSign,
   BarChart3,
-  MoreHorizontal,
   Star,
   X,
   PanelLeftClose,
@@ -78,8 +77,7 @@ export function AppSidebar() {
     onboarding.data?.filter(
       (s) => s.owner_scope === "client" && !["done", "not_applicable"].includes(s.status),
     ) ?? [];
-  const [more, setMore] = useState(false),
-    [all, setAll] = useState(false);
+  const [all, setAll] = useState(false);
   const collapsed = state === "collapsed" && !isMobile;
   useEffect(() => {
     setOpenMobile(false);
@@ -356,33 +354,6 @@ export function AppSidebar() {
                 <CheckSquare />
                 <span>Concluir cadastro · {pendingSteps.length} pendentes</span>
               </SidebarMenuButton>
-            )}
-            <SidebarMenuButton
-              tooltip="Outros recursos"
-              isActive={!["/portal", "/inicio", "/portal/calendar"].includes(location.pathname)}
-              aria-expanded={more}
-              onClick={() => {
-                if (collapsed) toggleSidebar();
-                setMore(!more);
-              }}
-            >
-              <MoreHorizontal />
-              <span>Mais</span>
-            </SidebarMenuButton>
-            {more && !collapsed && (
-              <SidebarMenu>
-                {allowed
-                  .filter((n) =>
-                    [
-                      "/configuracoes/cursos",
-                      "/configuracoes/marketplace",
-                      "/inicio/reunioes",
-                      "/conteudo/biblioteca",
-                      "/relatorios",
-                    ].includes(n.href),
-                  )
-                  .map(item)}
-              </SidebarMenu>
             )}
           </SidebarGroup>
         )}

@@ -91,13 +91,12 @@ export function MonthlyReports({
             Resultados das publicações, análise da RSM e próximos passos.
           </p>
         </div>
-        {
+        {/* Métricas detalhadas ficam em Relatórios, área da equipe (o cliente fica no portal). */}
+        {canEdit && (
           <Button variant="outline" asChild>
-            <Link to="/relatorios">
-              {canEdit ? "Registrar métricas" : "Ver métricas detalhadas"}
-            </Link>
+            <Link to="/relatorios">Registrar métricas</Link>
           </Button>
-        }
+        )}
       </div>
       {canEdit ? (
         <Tabs defaultValue="published">

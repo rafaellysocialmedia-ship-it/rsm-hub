@@ -1,7 +1,7 @@
 import { PostWorkspaceProvider } from "./posts/post-workspace";
 import { QuickActionsProvider } from "./navigation/quick-actions";
 import { useEffect, useState, type ReactNode } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { Navigate, useRouterState } from "@tanstack/react-router";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -23,25 +23,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
   const permissions = usePermissions();
   const dest = navForPath(path);
-  // Telas que o cliente já podia abrir (mesmas de antes, nos endereços novos).
-  const clientExact = [
-    "/inicio",
-    "/conteudo/biblioteca",
-    "/relatorios",
-    "/configuracoes/perfil",
-    "/configuracoes/marketplace",
-  ];
-  const clientPrefix = ["/review", "/clientes/briefing", "/portal", "/inicio/reunioes"];
-  // Cursos: lista e aulas sim; "Gerenciar cursos" continua só para administradores.
-  const clientCourse = /^\/configuracoes\/cursos(\/(?!gerenciar$)[^/]+)?$/;
+  // O cliente só vê o portal (e o link de aprovação que recebe); qualquer outra
+  // tela leva de volta ao portal em vez de mostrar erro ou página vazia.
   const cleanPath = path.replace(/\/$/, "") || "/";
+  const clientArea = ["/portal", "/review"].some(
+    (p) => cleanPath === p || cleanPath.startsWith(p + "/"),
+  );
+  const sendClientToPortal = !staff && !clientArea;
   const forbidden =
-    (!staff &&
-      !clientExact.includes(cleanPath) &&
-      !clientCourse.test(cleanPath) &&
-      !clientPrefix.some((p) => cleanPath === p || cleanPath.startsWith(p + "/"))) ||
-    (dest?.admin && !hasRole("administrator")) ||
-    (dest && !permissions.can(requiredModule(path, search) ?? dest.module));
+    staff &&
+    ((dest?.admin && !hasRole("administrator")) ||
+      (dest && !permissions.can(requiredModule(path, search) ?? dest.module)));
   return (
     <SidebarProvider
       open={open}
@@ -74,6 +66,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <p role="alert" className="p-8">
                     Não foi possível verificar seu acesso. Atualize a página para tentar novamente.
                   </p>
+                ) : sendClientToPortal ? (
+                  <Navigate to="/portal" replace />
                 ) : forbidden ? (
                   <p role="alert" className="p-8">
                     Seu perfil não tem acesso a esta área.
