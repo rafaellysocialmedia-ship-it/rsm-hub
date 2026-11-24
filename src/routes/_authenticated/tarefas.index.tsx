@@ -26,7 +26,8 @@ import type { Client } from "@/lib/clients";
 export const Route = createFileRoute("/_authenticated/tarefas/")({
   validateSearch: (s: Record<string, unknown>): { de?: "minhas" | "equipe"; overdue?: string } => ({
     de: s.de === "equipe" ? "equipe" : "minhas",
-    overdue: s.overdue === "1" ? "1" : undefined,
+    // Links digitados trazem overdue=1 como número; os do app, como texto.
+    overdue: s.overdue === "1" || s.overdue === 1 ? "1" : undefined,
   }),
   component: TasksPage,
   errorComponent: ({ error }) => (

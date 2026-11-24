@@ -58,7 +58,7 @@ import { ChartSkeleton, ListSkeleton } from "@/components/skeletons";
 export const Route = createFileRoute("/_authenticated/inicio/")({
   head: () => ({
     meta: [
-      { title: "Dashboard · Social Media Hub" },
+      { title: "Início · RSM Gestão de Marketing" },
       { name: "description", content: "Visão geral em tempo real da sua operação de social media." },
     ],
   }),

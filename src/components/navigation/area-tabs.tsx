@@ -31,6 +31,8 @@ export function AreaTabs() {
                 to={to as never}
                 search={(qs ? Object.fromEntries(new URLSearchParams(qs)) : undefined) as never}
                 aria-current={active ? "page" : undefined}
+                activeOptions={{ exact: true, includeSearch: false }}
+                activeProps={{ "aria-current": active ? "page" : undefined } as never}
                 className={`relative inline-flex h-11 items-center px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   active
                     ? "font-semibold text-brand after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-brand-accent"
