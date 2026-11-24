@@ -25,6 +25,8 @@ export type NavItem = {
   admin?: boolean;
   /** Tela da área que não aparece como aba (ex.: detalhe, IA, reuniões). */
   hidden?: boolean;
+  /** Outra permissão que também abre esta aba, em outra visão (ex.: Receber › Por cliente). */
+  alt?: { module: string; href: string };
 };
 
 export type Area = { key: AreaKey; label: string; base: string };
@@ -134,6 +136,8 @@ export const navigation: NavItem[] = [
     href: "/financeiro/receber",
     module: "finance.receivables",
     area: "financeiro",
+    // A antiga Carteira financeira (permissão própria) virou a visão "Por cliente".
+    alt: { module: "finance.clients", href: "/financeiro/receber?visao=por-cliente" },
   },
   {
     label: "Contratos",
@@ -240,6 +244,20 @@ export function areaForPath(path: string): Area | undefined {
   return [...areas, settingsArea].find((a) => p === a.base || p.startsWith(a.base + "/"));
 }
 
+/** Endereço da aba para quem tem esta permissão (ou a visão alternativa), ou null. */
+export function hrefFor(n: NavItem, can: (module: string) => boolean): string | null {
+  if (can(n.module)) return n.href;
+  if (n.alt && can(n.alt.module)) return n.alt.href;
+  return null;
+}
+
+/** Permissão exigida para abrir um endereço (considera visões com permissão própria). */
+export function requiredModule(path: string, search: Record<string, unknown> = {}) {
+  if (clean(path) === "/financeiro/receber" && search.visao === "por-cliente")
+    return "finance.clients";
+  return navForPath(path)?.module;
+}
+
 /** Abas visíveis de uma área (sem as telas escondidas). */
 export function tabsOf(area: AreaKey) {
   return navigation.filter((n) => n.area === area && !n.hidden);
@@ -327,7 +345,8 @@ export function legacyTarget(pathname: string, search: Search = {}): string | nu
     delete s.scope;
     return withSearch("/tarefas", { de, ...s });
   }
-  if (p === "/finance/clients") return withSearch("/financeiro/receber", { ...s, visao: "por-cliente" });
+  if (p === "/finance/clients")
+    return withSearch("/financeiro/receber", { ...s, visao: "por-cliente" });
   if (p === "/briefings" || p === "/library/briefings") {
     const client = typeof s.client === "string" ? s.client : undefined;
     return client ? withSearch(`/clientes/${client}`, { tab: "strategy" }) : "/clientes";

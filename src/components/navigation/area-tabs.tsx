@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
-import { areaForPath, isTabActive, tabsOf, type NavItem } from "@/lib/navigation";
+import { areaForPath, hrefFor, isTabActive, tabsOf, type NavItem } from "@/lib/navigation";
 
 /** Abas da área atual (ex.: Conteúdo › Calendário · Quadro · Aprovações · Biblioteca).
  *  Só aparecem nas telas que são abas; telas de detalhe ficam sem abas. */
@@ -12,9 +12,10 @@ export function AreaTabs() {
   const staff = hasRole("administrator") || hasRole("team");
   const area = areaForPath(path);
   if (!staff || !area) return null;
-  const tabs = tabsOf(area.key).filter(
-    (t: NavItem) => can(t.module) && (!t.admin || hasRole("administrator")),
-  );
+  const tabs = tabsOf(area.key).flatMap((t: NavItem) => {
+    const href = hrefFor(t, can);
+    return href && (!t.admin || hasRole("administrator")) ? [{ ...t, href }] : [];
+  });
   if (tabs.length < 2 || !tabs.some((t) => isTabActive(t.href, path))) return null;
   return (
     <nav

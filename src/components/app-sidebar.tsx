@@ -35,6 +35,7 @@ import { usePortalAccount } from "@/hooks/use-account-workspace";
 import {
   areas,
   areaForPath,
+  hrefFor,
   navForPath,
   navigation,
   portalNavigation,
@@ -91,9 +92,10 @@ export function AppSidebar() {
       hash: u.hash.slice(1),
     });
   };
-  const allowed = navigation.filter(
-    (n) => !loading && can(n.module) && (!n.admin || hasRole("administrator")),
-  );
+  const allowed = navigation.flatMap((n) => {
+    const href = loading ? null : hrefFor(n, can);
+    return href && (!n.admin || hasRole("administrator")) ? [{ ...n, href }] : [];
+  });
   // As 7 áreas; cada uma aparece se a pessoa puder ver ao menos uma tela dela
   // e abre na primeira aba permitida.
   const areaItems = areas.flatMap((a) => {
@@ -215,10 +217,16 @@ export function AppSidebar() {
                         : "Fixar esta tela nos favoritos"
                     }
                     aria-pressed={prefs.favorites.some((f) => f.href === location.href)}
-                    disabled={!current || prefs.isLoading || !!prefs.error || prefs.update.isPending}
+                    disabled={
+                      !current || prefs.isLoading || !!prefs.error || prefs.update.isPending
+                    }
                     onClick={() =>
                       current &&
-                      prefs.toggle({ href: location.href, label: current.label, module: current.module })
+                      prefs.toggle({
+                        href: location.href,
+                        label: current.label,
+                        module: current.module,
+                      })
                     }
                     className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
                   >

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { usePermissions } from "@/hooks/use-permissions";
 import { FinanceWallet } from "@/components/finance/finance-wallet";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -74,29 +75,38 @@ export const Route = createFileRoute("/_authenticated/financeiro/receber")({
 function ReceberPage() {
   const { visao } = Route.useSearch();
   const navigate = Route.useNavigate();
+  const { can } = usePermissions();
+  // Cada visão mantém a permissão que a tela tinha antes.
+  const views = (
+    [
+      [undefined, "Por cobrança", "finance.receivables"],
+      ["por-cliente", "Por cliente", "finance.clients"],
+    ] as const
+  ).filter(([, , module]) => can(module));
   return (
     <div className="flex flex-col">
-      <div className="px-6 pt-6">
-        <div role="group" aria-label="Como ver o que há para receber" className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
-          {(
-            [
-              [undefined, "Por cobrança"],
-              ["por-cliente", "Por cliente"],
-            ] as const
-          ).map(([value, label]) => (
-            <Button
-              key={label}
-              size="sm"
-              variant={visao === value ? "secondary" : "ghost"}
-              aria-pressed={visao === value}
-              className="h-8 px-3"
-              onClick={() => void navigate({ search: { visao: value }, replace: true })}
-            >
-              {label}
-            </Button>
-          ))}
+      {views.length > 1 && (
+        <div className="px-6 pt-6">
+          <div
+            role="group"
+            aria-label="Como ver o que há para receber"
+            className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5"
+          >
+            {views.map(([value, label]) => (
+              <Button
+                key={label}
+                size="sm"
+                variant={visao === value ? "secondary" : "ghost"}
+                aria-pressed={visao === value}
+                className="h-8 px-3"
+                onClick={() => void navigate({ search: { visao: value }, replace: true })}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       {visao === "por-cliente" ? (
         <div className="p-6">
           <FinanceWallet />
@@ -142,7 +152,7 @@ function ReceivablesPage() {
     [clients],
   );
   const methodName = (id: string | null) =>
-    id ? methods.find((m) => m.id === id)?.label ?? "—" : "—";
+    id ? (methods.find((m) => m.id === id)?.label ?? "—") : "—";
 
   const filtered = useMemo(
     () =>
@@ -167,7 +177,17 @@ function ReceivablesPage() {
         }
         return true;
       }),
-    [charges, clientFilter, serviceFilter, statusFilter, methodFilter, search, clientName, month.from, month.toExclusive],
+    [
+      charges,
+      clientFilter,
+      serviceFilter,
+      statusFilter,
+      methodFilter,
+      search,
+      clientName,
+      month.from,
+      month.toExclusive,
+    ],
   );
 
   const cancel = useMutation({
@@ -254,38 +274,54 @@ function ReceivablesPage() {
             />
           </div>
           <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger><SelectValue placeholder="Cliente" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Cliente" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os clientes</SelectItem>
               {clients.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={serviceFilter} onValueChange={setServiceFilter}>
-            <SelectTrigger><SelectValue placeholder="Serviço" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Serviço" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os serviços</SelectItem>
               {SERVICE_CATALOG.map((s) => (
-                <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>
+                <SelectItem key={s.key} value={s.key}>
+                  {s.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
               {(Object.keys(CHARGE_STATUS_META) as ChargeStatus[]).map((s) => (
-                <SelectItem key={s} value={s}>{CHARGE_STATUS_META[s].label}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  {CHARGE_STATUS_META[s].label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={methodFilter} onValueChange={setMethodFilter}>
-            <SelectTrigger><SelectValue placeholder="Forma de pagamento" /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue placeholder="Forma de pagamento" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as formas</SelectItem>
               {methods.map((m) => (
-                <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
+                <SelectItem key={m.id} value={m.id}>
+                  {m.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -301,7 +337,8 @@ function ReceivablesPage() {
                 <TableHead>Serviço</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Valor</TableHead>
-                <TableHead>Competência</TableHead><TableHead>Vencimento</TableHead>
+                <TableHead>Competência</TableHead>
+                <TableHead>Vencimento</TableHead>
                 <TableHead>Forma</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Pagamento</TableHead>
@@ -311,13 +348,19 @@ function ReceivablesPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={10}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
                     Carregando…
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell
+                    colSpan={10}
+                    className="py-10 text-center text-sm text-muted-foreground"
+                  >
                     Nenhuma cobrança encontrada com os filtros atuais.
                   </TableCell>
                 </TableRow>
@@ -337,7 +380,10 @@ function ReceivablesPage() {
                       <TableCell>{c.service_label ?? "—"}</TableCell>
                       <TableCell className="max-w-[220px] truncate">{c.description}</TableCell>
                       <TableCell>{money(c.amount)}</TableCell>
-                      <TableCell>{c.competence?.slice(0,7).split("-").reverse().join("/")||"A definir"}</TableCell><TableCell>{dateBR(c.due_date)}</TableCell>
+                      <TableCell>
+                        {c.competence?.slice(0, 7).split("-").reverse().join("/") || "A definir"}
+                      </TableCell>
+                      <TableCell>{dateBR(c.due_date)}</TableCell>
                       <TableCell>{methodName(c.payment_method_id)}</TableCell>
                       <TableCell>
                         <ChargeStatusBadge charge={c} />

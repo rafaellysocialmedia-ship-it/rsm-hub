@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useNavigationPreferences } from "@/hooks/use-navigation";
-import { navForPath } from "@/lib/navigation";
+import { navForPath, requiredModule } from "@/lib/navigation";
 import { AppSidebar } from "./app-sidebar";
 import { Topbar } from "./topbar";
 import { AreaTabs } from "./navigation/area-tabs";
@@ -20,18 +20,28 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (prefs.data) setOpen(prefs.data.sidebar_open);
   }, [prefs.data?.sidebar_open]);
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const search = useRouterState({ select: (s) => s.location.search }) as Record<string, unknown>;
   const permissions = usePermissions();
   const dest = navForPath(path);
   // Telas que o cliente já podia abrir (mesmas de antes, nos endereços novos).
-  const clientExact = ["/inicio", "/conteudo/biblioteca", "/relatorios", "/configuracoes/perfil", "/configuracoes/marketplace"];
-  const clientPrefix = ["/review", "/clientes/briefing", "/portal", "/inicio/reunioes", "/configuracoes/cursos"];
+  const clientExact = [
+    "/inicio",
+    "/conteudo/biblioteca",
+    "/relatorios",
+    "/configuracoes/perfil",
+    "/configuracoes/marketplace",
+  ];
+  const clientPrefix = ["/review", "/clientes/briefing", "/portal", "/inicio/reunioes"];
+  // Cursos: lista e aulas sim; "Gerenciar cursos" continua só para administradores.
+  const clientCourse = /^\/configuracoes\/cursos(\/(?!gerenciar$)[^/]+)?$/;
   const cleanPath = path.replace(/\/$/, "") || "/";
   const forbidden =
     (!staff &&
       !clientExact.includes(cleanPath) &&
+      !clientCourse.test(cleanPath) &&
       !clientPrefix.some((p) => cleanPath === p || cleanPath.startsWith(p + "/"))) ||
     (dest?.admin && !hasRole("administrator")) ||
-    (dest && !permissions.can(dest.module));
+    (dest && !permissions.can(requiredModule(path, search) ?? dest.module));
   return (
     <SidebarProvider
       open={open}
