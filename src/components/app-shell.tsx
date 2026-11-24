@@ -29,11 +29,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const clientArea = ["/portal", "/review"].some(
     (p) => cleanPath === p || cleanPath.startsWith(p + "/"),
   );
-  const sendClientToPortal = !staff && !clientArea;
+  // Só quem tem o papel de cliente vai para o portal; se os papéis não carregaram
+  // (ex.: falha de conexão), mostra o aviso de acesso em vez de redirecionar.
+  const sendClientToPortal = !staff && hasRole("client") && !clientArea;
   const forbidden =
-    staff &&
-    ((dest?.admin && !hasRole("administrator")) ||
-      (dest && !permissions.can(requiredModule(path, search) ?? dest.module)));
+    (!staff && !hasRole("client") && !clientArea) ||
+    (staff &&
+      ((dest?.admin && !hasRole("administrator")) ||
+        (dest && !permissions.can(requiredModule(path, search) ?? dest.module))));
   return (
     <SidebarProvider
       open={open}
