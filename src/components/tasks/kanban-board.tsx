@@ -8,6 +8,9 @@ import {
 } from "@dnd-kit/core";
 import { Eye, EyeOff, Plus } from "lucide-react";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useRememberedState } from "@/hooks/use-remembered-state";
+import { StageTabs } from "@/components/stage-tabs";
 import { Button } from "@/components/ui/button";
 import { TaskCard } from "@/components/tasks/task-card";
 import { STATUS_COLUMNS, type Task, type TaskStatus } from "@/lib/tasks";
@@ -88,6 +91,14 @@ export function KanbanBoard({ tasks, clients, onMove, onAdd, onOpen }: Props) {
 
   const visibleColumns = STATUS_COLUMNS.filter((c) => c.id !== "done" || showDone);
   const doneCount = tasks.filter((t) => t.status === "done").length;
+  const isMobile = useIsMobile();
+  // Celular: uma etapa por vez, com abas e a contagem de cada etapa.
+  const [stage, setStage] = useRememberedState<string>("rsm:tarefas:etapa", "");
+  const countOf = (id: string) => tasks.filter((t) => t.status === id).length;
+  const currentStage =
+    visibleColumns.find((c) => c.id === stage)?.id ??
+    visibleColumns.find((c) => countOf(c.id) > 0)?.id ??
+    visibleColumns[0]?.id;
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -102,8 +113,16 @@ export function KanbanBoard({ tasks, clients, onMove, onAdd, onOpen }: Props) {
           {showDone ? "Ocultar concluídos" : `Ver concluídos${doneCount ? ` (${doneCount})` : ""}`}
         </Button>
       </div>
+      {isMobile && (
+        <StageTabs
+          label="Etapas das tarefas"
+          value={currentStage}
+          onChange={setStage}
+          stages={visibleColumns.map((c) => ({ id: c.id, label: c.label, count: countOf(c.id) }))}
+        />
+      )}
       <div className="grid gap-3 pb-4 sm:grid-cols-2 xl:grid-cols-4">
-        {visibleColumns.map((col) => {
+        {visibleColumns.filter((c) => !isMobile || c.id === currentStage).map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.id);
           return (
             <Column

@@ -17,6 +17,9 @@ import { Button } from "@/components/ui/button";
 import { POST_STATUS, type Post, type PostStatus } from "@/lib/posts";
 import { PostCard } from "../post-card";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useRememberedState } from "@/hooks/use-remembered-state";
+import { StageTabs } from "@/components/stage-tabs";
 
 type Props = {
   posts: Post[];
@@ -38,6 +41,13 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
   }, [posts]);
 
   const active = posts.find((p) => p.id === activeId) ?? null;
+  const isMobile = useIsMobile();
+  // Celular: uma etapa por vez, escolhida nas abas (lembrada entre visitas).
+  const [stage, setStage] = useRememberedState<string>("rsm:conteudo:quadro:etapa", "");
+  const currentStage =
+    POST_STATUS.find((s) => s.value === stage)?.value ??
+    POST_STATUS.find((s) => (grouped.get(s.value)?.length ?? 0) > 0)?.value ??
+    POST_STATUS[0].value;
 
   function handleDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
@@ -54,8 +64,21 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex gap-2.5 overflow-x-auto pb-3">
-        {POST_STATUS.map((s) => (
+      {isMobile && (
+        <StageTabs
+          label="Etapas do quadro"
+          value={currentStage}
+          onChange={setStage}
+          stages={POST_STATUS.map((s) => ({
+            id: s.value,
+            label: s.label,
+            dot: s.dot,
+            count: grouped.get(s.value)?.length ?? 0,
+          }))}
+        />
+      )}
+      <div className={isMobile ? "pb-3" : "flex gap-2.5 overflow-x-auto pb-3"}>
+        {POST_STATUS.filter((s) => !isMobile || s.value === currentStage).map((s) => (
           <Column
             key={s.value}
             status={s.value}
@@ -65,6 +88,7 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
             clientMap={clientMap}
             onOpen={onOpen}
             onAdd={() => onAdd(s.value)}
+            fullWidth={isMobile}
           />
         ))}
       </div>
@@ -80,22 +104,22 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
 }
 
 function Column({
-  status, label, dot, posts, clientMap, onOpen, onAdd,
+  status, label, dot, posts, clientMap, onOpen, onAdd, fullWidth = false,
 }: {
   status: PostStatus; label: string; dot: string;
   posts: Post[]; clientMap: Map<string, string>;
-  onOpen: (p: Post) => void; onAdd: () => void;
+  onOpen: (p: Post) => void; onAdd: () => void; fullWidth?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
-    <div className="flex w-60 shrink-0 flex-col">
+    <div className={cn("flex shrink-0 flex-col", fullWidth ? "w-full" : "w-60")}>
       <div className="mb-1.5 flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <span className={cn("h-2 w-2 rounded-full", dot)} />
           <span className="text-xs font-medium">{label}</span>
           <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">{posts.length}</Badge>
         </div>
-        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={onAdd}>
+        <Button size="icon" variant="ghost" className={fullWidth ? "size-10" : "h-6 w-6"} aria-label={`Nova publicação em ${label}`} onClick={onAdd}>
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
@@ -117,7 +141,7 @@ function Column({
         ))}
         {posts.length === 0 && (
           <p className="rounded-md border border-dashed border-border py-6 text-center text-[11px] text-muted-foreground">
-            Solte aqui
+            {fullWidth ? "Nenhuma publicação nesta etapa." : "Solte aqui"}
           </p>
         )}
       </div>

@@ -4,6 +4,8 @@ import { ClientLabel } from "@/components/clients/client-label";
 import { usePostWorkspace } from "@/components/posts/post-workspace";
 import { useNavigationPreferences } from "@/hooks/use-navigation";
 import { useStickyState } from "@/hooks/use-sticky-state";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useRememberedState } from "@/hooks/use-remembered-state";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
@@ -47,7 +49,16 @@ export function ClientCalendarPage({
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const setCursor = (value: Date | ((date: Date) => Date)) =>
     setCursorText(format(typeof value === "function" ? value(cursor) : value, "yyyy-MM-dd"));
-  const [view, setView] = useStickyState(`${scope}:view`, "month");
+  const isMobile = useIsMobile();
+  // Última visualização lembrada por tamanho de tela. No celular não há grade do mês:
+  // só Semana e Dia (o Mês aparece a partir do tablet).
+  const [savedView, setSavedView] = useRememberedState(
+    `rsm:${scope}:visualizacao:${isMobile ? "celular" : "computador"}`,
+    isMobile ? "week" : "month",
+  );
+  const view =
+    isMobile && providedPosts !== undefined && !["week", "day"].includes(savedView) ? "week" : savedView;
+  const setView = (v: string) => setSavedView(v);
   const [channel, setChannel] = useStickyState(`${scope}:channel`, "");
   const [kind, setKind] = useStickyState(`${scope}:kind`, "");
   const [status, setStatus] = useStickyState(`${scope}:status`, "");
@@ -487,7 +498,7 @@ export function ClientCalendarPage({
         >
           {(providedPosts !== undefined
             ? [
-                { value: "month", label: "Mês" },
+                ...(isMobile ? [] : [{ value: "month", label: "Mês" }]),
                 { value: "week", label: "Semana" },
                 { value: "day", label: "Dia" },
               ]
@@ -511,7 +522,7 @@ export function ClientCalendarPage({
               {mode.label}
             </Button>
           ))}
-          {providedPosts !== undefined && (
+          {providedPosts !== undefined && !isMobile && (
             <>
               <label htmlFor="calendar-more-views" className="sr-only">
                 Outras visualizações do calendário
@@ -538,6 +549,7 @@ export function ClientCalendarPage({
           <input
             type="date"
             id="calendar-date-jump"
+            hidden={isMobile}
             title="Ir diretamente para uma data"
             className="h-7 w-[120px] max-w-full rounded-md border border-border/70 bg-background px-1.5 text-xs shadow-none"
             value={format(cursor, "yyyy-MM-dd")}
@@ -553,6 +565,7 @@ export function ClientCalendarPage({
           </label>
           <select
             id="calendar-density"
+            hidden={isMobile}
             title="Tamanho dos cartões"
             aria-label="Tamanho dos cartões"
             disabled={prefs.isPending || prefs.update.isPending}
@@ -621,8 +634,8 @@ export function ClientCalendarPage({
         {view === "month" || view === "week" || view === "day" ? (
           <div className="w-full overflow-x-auto rounded-lg">
             <div
-              className={`grid gap-1 rounded-lg border border-border/60 bg-muted/20 p-1 ${view === "day" ? "grid-cols-1" : "grid-cols-7"}`}
-              style={view === "day" ? undefined : { minWidth: "620px" }}
+              className={`grid gap-1 rounded-lg border border-border/60 bg-muted/20 p-1 ${view === "day" || (isMobile && view === "week") ? "grid-cols-1" : "grid-cols-7"}`}
+              style={view === "day" || isMobile ? undefined : { minWidth: "620px" }}
             >
               {days.map(dayCell)}
             </div>

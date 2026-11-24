@@ -16,14 +16,19 @@ import {
 import { QueryState } from "./account-panels";
 import { MeetingDialog } from "@/components/meetings/meeting-dialog";
 import { isActiveClient } from "@/lib/active-clients";
-import { CalendarPlus } from "lucide-react";
+import { AlertTriangle, CalendarPlus, CheckCircle2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { addDays, startOfWeek, format } from "date-fns";
 type Item = { id: string; client: string; title: string; date: string | null; tab: string };
+/** Ordem de gravidade em "Andamento das contas". */
+const SEVERITY: Record<string, number> = { critical: 0, attention: 1 };
 export function OperationalDashboard({ name }: { name: string }) {
   const access = useFinanceAccess();
   const retention = useRetention();
   const [selection, setSelection] = useState<string | null>(null);
   const [meetingOpen, setMeetingOpen] = useState(false);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
+  const isMobile = useIsMobile();
   const today = localDate(),
     soon = format(addDays(new Date(today + "T12:00:00"), 7), "yyyy-MM-dd");
   const weekStart = format(
@@ -226,52 +231,135 @@ export function OperationalDashboard({ name }: { name: string }) {
         </Button>
       </header>
       <QueryState loading={q.isLoading} error={q.error}>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
-          {Object.entries(groups)
-            .sort(
-              ([a], [b]) =>
-                [
-                  "Cobranças vencidas",
-                  "Aprovações atrasadas",
-                  "Tarefas vencidas",
-                  "Publicações próximas",
-                  "Materiais aguardados",
-                  "Reuniões de hoje",
-                ].indexOf(a) -
-                [
-                  "Cobranças vencidas",
-                  "Aprovações atrasadas",
-                  "Tarefas vencidas",
-                  "Publicações próximas",
-                  "Materiais aguardados",
-                  "Reuniões de hoje",
-                ].indexOf(b),
-            )
-            .map(([title, items]) => (
-              <button
-                key={title}
-                onClick={() => setSelection(title)}
-                className={`group rounded-lg border bg-card p-3 text-left transition-colors hover:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring ${items.length > 0 && ["Aprovações atrasadas", "Tarefas vencidas", "Cobranças vencidas"].includes(title) ? "border-amber-300/70 dark:border-amber-700/60" : "border-border"}`}
-              >
-                <span className="block text-xs font-medium leading-5 text-muted-foreground">
-                  {title}
-                </span>
-                <strong
-                  className={`mt-1 block text-xl font-semibold tabular-nums tracking-tight ${items.length ? "text-foreground" : "text-muted-foreground"}`}
-                >
-                  {items.length}
-                </strong>
-                <span className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                  {title === "Publicações próximas" ? "Hoje + próximos 7 dias" : "Ver detalhes"}
-                  <span aria-hidden="true" className="text-primary">
-                    →
-                  </span>
-                </span>
-              </button>
-            ))}
-        </div>
+        {(() => {
+          // Cards que pedem ação: só aparecem em destaque quando há algo a fazer.
+          const ACTIONS = [
+            { title: "Cobranças vencidas", tone: "critical", cta: "Cobrar", to: "/financeiro/receber" },
+            { title: "Tarefas vencidas", tone: "critical", cta: "Ver tarefas", to: "/tarefas", search: { de: "equipe", overdue: "1" } },
+            { title: "Aprovações atrasadas", tone: "warning", cta: "Ver aprovações", to: "/conteudo/aprovacoes" },
+            { title: "Materiais aguardados", tone: "warning", cta: "Ver pedidos" },
+          ] as const;
+          const pending = ACTIONS.filter((a) => (groups[a.title]?.length ?? 0) > 0);
+          const meetingsToday = groups["Reuniões de hoje"] ?? [];
+          const upcoming = groups["Publicações próximas"] ?? [];
+          const zeroNames = [
+            ...ACTIONS.filter((a) => a.title in groups && !(groups[a.title]?.length ?? 0)).map((a) =>
+              a.title === "Cobranças vencidas"
+                ? "cobranças"
+                : a.title === "Tarefas vencidas"
+                  ? "tarefas"
+                  : a.title === "Aprovações atrasadas"
+                    ? "aprovações"
+                    : "materiais",
+            ),
+            ...(meetingsToday.length ? [] : ["reuniões de hoje"]),
+          ];
+          return (
+            <div className="space-y-3">
+              {pending.length === 0 && meetingsToday.length === 0 ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-5">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                      <CheckCircle2 className="size-5" aria-hidden />
+                    </span>
+                    <p className="text-base font-semibold">Tudo em dia por hoje.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild variant="outline" size="sm" className="h-10">
+                      <Link to="/conteudo/calendario">Abrir Calendário</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="sm" className="h-10">
+                      <Link to="/tarefas" search={{ de: "minhas" }}>Abrir Tarefas</Link>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {pending.length > 0 && (
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                      {pending.map((a) => {
+                        const items = groups[a.title] ?? [];
+                        const accounts = new Set(items.map((i) => i.client)).size;
+                        const critical = a.tone === "critical";
+                        return (
+                          <div
+                            key={a.title}
+                            className={`flex flex-col gap-3 rounded-xl border p-4 ${critical ? "border-red-500/40 bg-red-500/[0.06]" : "border-amber-500/50 bg-amber-500/[0.07]"}`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className={`text-sm font-medium ${critical ? "text-red-800 dark:text-red-200" : "text-amber-900 dark:text-amber-200"}`}>
+                                {a.title}
+                              </span>
+                              <AlertTriangle
+                                className={`size-4 shrink-0 ${critical ? "text-red-700 dark:text-red-300" : "text-amber-700 dark:text-amber-300"}`}
+                                aria-hidden
+                              />
+                            </div>
+                            <div>
+                              <strong className="block text-3xl font-semibold tabular-nums tracking-tight">{items.length}</strong>
+                              <span className="text-xs text-muted-foreground">
+                                {accounts} {accounts === 1 ? "conta" : "contas"}
+                              </span>
+                            </div>
+                            <div className="mt-auto flex flex-wrap gap-2">
+                              {"to" in a ? (
+                                <Button asChild size="sm" className="h-10 flex-1">
+                                  <Link to={a.to as never} search={("search" in a ? a.search : undefined) as never}>
+                                    {a.cta}
+                                  </Link>
+                                </Button>
+                              ) : (
+                                <Button size="sm" className="h-10 flex-1" onClick={() => setSelection(a.title)}>
+                                  {a.cta}
+                                </Button>
+                              )}
+                              <Button size="sm" variant="outline" className="h-10" onClick={() => setSelection(a.title)}>
+                                Ver lista
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {zeroNames.length > 0 && (
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="size-4 shrink-0" aria-hidden />
+                      Tudo em dia: {zeroNames.join(", ")}
+                    </p>
+                  )}
+                </>
+              )}
+              {/* Informativos (sem cor de alerta). */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Publicações próximas</span>
+                    <strong className="block text-2xl font-semibold tabular-nums">{upcoming.length}</strong>
+                    <span className="text-xs text-muted-foreground">Hoje e próximos 7 dias</span>
+                  </div>
+                  <Button asChild variant="outline" size="sm" className="h-10">
+                    <Link to="/conteudo/calendario">Ver calendário</Link>
+                  </Button>
+                </div>
+                {meetingsToday.length > 0 && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Reuniões de hoje</span>
+                      <strong className="block text-2xl font-semibold tabular-nums">{meetingsToday.length}</strong>
+                    </div>
+                    <Button variant="outline" size="sm" className="h-10" onClick={() => setSelection("Reuniões de hoje")}>
+                      Ver reuniões
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <section className={`rounded-xl border bg-card p-5 ${agenda.length ? "" : "self-start"}`}>
+          {/* No celular: cards de ação → Andamento das contas → Agenda da semana. */}
+          <section className={`order-2 rounded-xl border bg-card p-5 lg:order-1 ${agenda.length ? "" : "self-start"}`}>
             <h2 className="text-lg font-semibold">Agenda da semana</h2>
             {[
               ["Passadas · verificar conclusão", agenda.filter((i) => i.date && i.date < today)],
@@ -301,7 +389,7 @@ export function OperationalDashboard({ name }: { name: string }) {
             )}
             <ScheduleMeeting open={meetingOpen} onOpenChange={setMeetingOpen} />
           </section>
-          <section className="rounded-xl border bg-card p-5">
+          <section className="order-1 rounded-xl border bg-card p-5 lg:order-2">
             <h2 className="text-lg font-semibold">Andamento das contas</h2>
             <QueryState
               loading={retention.isLoading}
@@ -309,7 +397,10 @@ export function OperationalDashboard({ name }: { name: string }) {
               empty={!retention.data?.length}
             >
               <ul className="divide-y">
-                {retention.data?.map((c) => (
+                {[...(retention.data ?? [])]
+                  .sort((x, y) => SEVERITY[x.health] - SEVERITY[y.health] || x.name.localeCompare(y.name))
+                  .filter((_, idx) => !isMobile || showAllAccounts || idx < 5)
+                  .map((c) => (
                   <li className="flex items-center justify-between gap-3 py-3" key={c.client_id}>
                     <Link
                       className="text-sm font-medium hover:underline"
@@ -342,6 +433,11 @@ export function OperationalDashboard({ name }: { name: string }) {
                   </li>
                 ))}
               </ul>
+              {isMobile && !showAllAccounts && (retention.data?.length ?? 0) > 5 && (
+                <Button variant="ghost" size="sm" className="mt-2 h-10 w-full" onClick={() => setShowAllAccounts(true)}>
+                  Ver todas ({retention.data?.length})
+                </Button>
+              )}
             </QueryState>
           </section>
         </div>

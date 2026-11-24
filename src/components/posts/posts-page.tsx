@@ -5,6 +5,11 @@ import { ClientCalendarPage } from "@/components/workspace/client-calendar";
 import { isActiveClient, belongsToActiveClient } from "@/lib/active-clients";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { addMonths, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useRememberedState } from "@/hooks/use-remembered-state";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   CalendarDays,
@@ -14,6 +19,8 @@ import {
   Table2,
   Plus,
   X,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Send,
   CheckSquare,
@@ -66,15 +73,14 @@ export const POSTS_SECTIONS = {
 } as const;
 export type PostsSection = keyof typeof POSTS_SECTIONS;
 
-function defaultView(section: PostsSection): ViewMode {
+function defaultView(section: PostsSection, isMobile: boolean): ViewMode {
   if (section === "quadro") return "kanban";
-  // No celular o Calendário abre em Lista.
-  if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) return "list";
-  return "calendar";
+  // No celular o Calendário abre em Lista (agrupada por dia).
+  return isMobile ? "list" : "calendar";
 }
 
 export function validatePostsSearch(section: PostsSection) {
-  return (s: Record<string, unknown>) => ({
+  return (s: Record<string, unknown>): { view?: ViewMode } & Record<string, unknown> => ({
     ...s,
     view: (POSTS_SECTIONS[section].views as string[]).includes(String(s.view))
       ? (String(s.view) as ViewMode)
@@ -82,22 +88,41 @@ export function validatePostsSearch(section: PostsSection) {
   });
 }
 
+const VIEW_OPTIONS = [
+  ["calendar", CalendarDays, "Calendário"],
+  ["list", ListIcon, "Lista"],
+  ["timeline", GanttChart, "Timeline"],
+  ["kanban", KanbanSquare, "Kanban"],
+  ["table", Table2, "Tabela"],
+] as const;
+
 export function PostsPage({ section }: { section: PostsSection }) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const workspace = usePostWorkspace();
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const rawSearch = useSearch({ strict: false }) as { view?: ViewMode };
-  const [fallbackView] = useState<ViewMode>(() => defaultView(section));
-  const view: ViewMode = rawSearch.view ?? fallbackView;
+  const isMobile = useIsMobile();
   const sectionViews = POSTS_SECTIONS[section].views;
+  // Última visualização escolhida, lembrada separadamente no celular e no computador.
+  const [rememberedView, setRememberedView] = useRememberedState<ViewMode | "">(
+    `rsm:conteudo:${section}:visualizacao:${isMobile ? "celular" : "computador"}`,
+    "",
+  );
+  const view: ViewMode =
+    rawSearch.view ??
+    (rememberedView && sectionViews.includes(rememberedView) ? rememberedView : defaultView(section, isMobile));
   const navigate = useNavigate();
-  const setView = (value: ViewMode) =>
+  // Lista no celular: navegação por mês, com os posts agrupados por dia.
+  const [listMonth, setListMonth] = useState(() => format(new Date(), "yyyy-MM"));
+  const setView = (value: ViewMode) => {
+    setRememberedView(value);
     void navigate({
       to: POSTS_SECTIONS[section].path,
       search: (old: Record<string, unknown>) => ({ ...old, view: value }),
       replace: true,
     } as never);
+  };
   const [search, setSearch] = useStickyState<string>(`posts:${user?.id}:search`, "");
   const [statusFilter, setStatusFilter] = useStickyState<string>(
     `posts:${user?.id}:status`,
@@ -392,7 +417,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
             <Download className="size-3.5" />
             <span className="hidden sm:inline">Exportar</span>
           </Button>
-          <Button type="button" size="sm" disabled={!workspace.canCreate} onClick={() => openNew()} className="h-8 gap-1.5 rounded-lg px-3 text-xs">
+          <Button type="button" size="sm" disabled={!workspace.canCreate} onClick={() => openNew()} className="hidden h-8 gap-1.5 rounded-lg px-3 text-xs md:inline-flex">
             <Plus className="size-3.5" /> Nova publicação
           </Button>
         </div>
@@ -501,17 +526,26 @@ export function PostsPage({ section }: { section: PostsSection }) {
           ]}
         />
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2">
+          {isMobile ? (
+            // Celular: as visualizações ficam num menu, para a barra caber na tela.
+            <Select value={view} onValueChange={(v) => setView(v as ViewMode)}>
+              <SelectTrigger aria-label="Visualização" className="h-9 w-auto min-w-36 text-xs">
+                <span className="text-muted-foreground">Visualização:</span> <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VIEW_OPTIONS.filter(([value]) => sectionViews.includes(value)).map(([value, Icon, label]) => (
+                  <SelectItem key={value} value={value}>
+                    <span className="flex items-center gap-2">
+                      <Icon className="size-3.5" /> {label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
           <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
             <TabsList className="flex h-8 flex-wrap justify-start gap-0.5 bg-muted/40 p-0.5">
-              {(
-                [
-                  ["calendar", CalendarDays, "Calendário"],
-                  ["list", ListIcon, "Lista"],
-                  ["timeline", GanttChart, "Timeline"],
-                  ["kanban", KanbanSquare, "Kanban"],
-                  ["table", Table2, "Tabela"],
-                ] as const
-              )
+              {VIEW_OPTIONS
                 .filter(([value]) => sectionViews.includes(value))
                 .map(([value, Icon, label]) => (
                   <TabsTrigger key={value} value={value} className="h-7 gap-1 px-2.5 text-[11px]">
@@ -520,6 +554,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
                 ))}
             </TabsList>
           </Tabs>
+          )}
           <span className="text-[11px] tabular-nums text-muted-foreground">
             {isLoading ? <InlineSkeleton className="w-16" /> : `${filtered.length} conteúdos`}
           </span>
@@ -586,9 +621,36 @@ export function PostsPage({ section }: { section: PostsSection }) {
                 }
               />
             )}
+            {view === "list" && isMobile && (
+              <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-card px-2 py-1.5">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-10"
+                  aria-label="Mês anterior"
+                  onClick={() => setListMonth((m) => format(addMonths(new Date(m + "-15T12:00:00"), -1), "yyyy-MM"))}
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <span className="text-sm font-semibold">
+                  {format(new Date(listMonth + "-15T12:00:00"), "MMMM 'de' yyyy", { locale: ptBR })}
+                </span>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-10"
+                  aria-label="Próximo mês"
+                  onClick={() => setListMonth((m) => format(addMonths(new Date(m + "-15T12:00:00"), 1), "yyyy-MM"))}
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+              </div>
+            )}
             {view === "list" && (
               <ListView
-                posts={filtered}
+                posts={isMobile ? filtered.filter((p) => p.scheduled_date?.startsWith(listMonth)) : filtered}
                 clientMap={clientMap}
                 onOpen={openExisting}
                 selected={selected}
@@ -613,6 +675,18 @@ export function PostsPage({ section }: { section: PostsSection }) {
           </Suspense>
         )}
       </div>
+
+      {/* Celular: botão fixo, grande o bastante para tocar (56 px). */}
+      <Button
+        type="button"
+        disabled={!workspace.canCreate}
+        onClick={() => openNew()}
+        className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-30 h-14 gap-2 rounded-full px-5 text-sm shadow-elevated md:hidden"
+      >
+        <Plus className="size-5" /> Nova publicação
+      </Button>
+      {/* Espaço para o botão fixo não cobrir o último item da lista. */}
+      <div className="h-16 md:hidden" aria-hidden="true" />
 
       {detailPost && (
         <PostDetailSheet
