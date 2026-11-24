@@ -17,6 +17,7 @@ import { ContractsCard } from "@/components/clients/contracts-card";
 import { ChurnCard } from "@/components/clients/churn-card";
 import { useState, type ReactNode } from "react";
 import { ClientAlertChips } from "@/components/clients/client-alerts";
+import { useStartViewAs } from "@/components/view-as";
 import { ClientSetupChecklist } from "@/components/clients/client-setup-checklist";
 import { useClientAlerts } from "@/hooks/use-client-alerts";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -32,6 +33,7 @@ import {
   CalendarClock,
   Send,
   Copy,
+  Eye,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -113,6 +115,8 @@ function ClientMasterPage() {
   const { hasRole } = useAuth();
   const financeAccess = useFinanceAccess();
   const canEdit = hasRole("administrator") || hasRole("team");
+  const isAdmin = hasRole("administrator");
+  const viewAs = useStartViewAs();
   const { tab: requestedTab } = Route.useSearch();
   const navigate = Route.useNavigate();
   const tab = requestedTab || "overview";
@@ -257,6 +261,15 @@ function ClientMasterPage() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
+              )}
+              {isAdmin && (
+                <DropdownMenuItem
+                  disabled={!client.user_id || !!viewAs.pending}
+                  onSelect={() => void viewAs.run({ clientId: client.id, key: client.id })}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  {client.user_id ? "Ver como o cliente" : "Ver como o cliente (sem login vinculado)"}
+                </DropdownMenuItem>
               )}
               <DropdownMenuItem
                 onSelect={() => {

@@ -17,6 +17,8 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationsMenu } from "@/components/notifications-menu";
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
+import { ViewAsDialog } from "@/components/view-as";
 
 const roleLabel: Record<string, string> = {
   administrator: "Administrador",
@@ -36,6 +38,7 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
     .join("")
     .toUpperCase();
   const primaryRole = roles[0];
+  const [viewAsOpen, setViewAsOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -71,6 +74,9 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
           {isAdmin && (
             <>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setViewAsOpen(true)}>
+                <Eye className="mr-2 h-4 w-4" /> Ver como cliente ou equipe
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/admin/visibility" })}>
                 <Eye className="mr-2 h-4 w-4" /> Gerenciar Visualizações
               </DropdownMenuItem>
@@ -89,6 +95,7 @@ export function AccountMenu({ compact = false }: { compact?: boolean }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {isAdmin && <ViewAsDialog open={viewAsOpen} onOpenChange={setViewAsOpen} />}
     </div>
   );
 }

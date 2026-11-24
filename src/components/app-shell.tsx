@@ -9,6 +9,7 @@ import { useNavigationPreferences } from "@/hooks/use-navigation";
 import { navForPath } from "@/lib/navigation";
 import { AppSidebar } from "./app-sidebar";
 import { Topbar } from "./topbar";
+import { ViewAsBanner } from "./view-as";
 export function AppShell({ children }: { children: ReactNode }) {
   const { hasRole, user } = useAuth();
   const staff = hasRole("administrator") || hasRole("team");
@@ -46,6 +47,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     >
       <PostWorkspaceProvider key={user?.id}>
         <QuickActionsProvider>
+          <ViewAsBanner />
           <div className="rsm-app-dense flex min-h-screen w-full bg-background text-foreground">
             <AppSidebar />
             <SidebarInset className="flex min-w-0 flex-1 flex-col bg-transparent">
