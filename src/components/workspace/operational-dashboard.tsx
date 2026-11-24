@@ -398,7 +398,7 @@ export function OperationalDashboard({ name }: { name: string }) {
             >
               <ul className="divide-y">
                 {[...(retention.data ?? [])]
-                  .sort((x, y) => SEVERITY[x.health] - SEVERITY[y.health] || x.name.localeCompare(y.name))
+                  .sort((x, y) => (SEVERITY[x.health] ?? 2) - (SEVERITY[y.health] ?? 2) || x.name.localeCompare(y.name))
                   .filter((_, idx) => !isMobile || showAllAccounts || idx < 5)
                   .map((c) => (
                   <li className="flex items-center justify-between gap-3 py-3" key={c.client_id}>
