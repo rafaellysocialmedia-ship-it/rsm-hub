@@ -68,15 +68,14 @@ function AuthPage() {
       {/* Brand panel */}
       <div className="relative hidden overflow-hidden bg-gradient-brand lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,theme(colors.white/15),transparent_60%)]" />
-        <div className="relative inline-flex w-fit rounded-2xl bg-white/95 px-5 py-3 shadow-lg">
-          <img
-            src="/rsm-logo.png"
-            alt="RSM — Estratégia e Performance"
-            width={360}
-            height={245}
-            className="h-auto w-48 object-contain"
-          />
-        </div>
+        {/* Logomarca branca direto sobre o roxo, sem a caixa branca. */}
+        <img
+          src="/rsm-logo-white.png"
+          alt="RSM — Estratégia e Performance"
+          width={720}
+          height={410}
+          className="relative h-auto w-52 object-contain"
+        />
         <div className="relative space-y-4 text-white">
           <h1 className="text-4xl font-semibold leading-tight tracking-tight">
             Gestão premium para agências de social media.
