@@ -60,7 +60,7 @@ import { ListSkeleton, PageSkeleton } from "@/components/skeletons";
 export const Route = createFileRoute("/_authenticated/trafego/metricas")({
   head: () => ({
     meta: [
-      { title: "Analytics de Tráfego Pago · Social Media Hub" },
+      { title: "Métricas · Tráfego · Social Media Hub" },
       {
         name: "description",
         content:

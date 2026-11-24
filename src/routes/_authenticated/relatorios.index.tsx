@@ -29,7 +29,7 @@ type Metric = Database["public"]["Tables"]["post_metrics"]["Row"];
 export const Route = createFileRoute("/_authenticated/relatorios/")({
   head: () => ({
     meta: [
-      { title: "Analytics · Social Media Hub" },
+      { title: "Resultados · Relatórios · RSM Gestão de Marketing" },
       { name: "description", content: "Métricas e relatórios de desempenho das publicações." },
     ],
   }),
