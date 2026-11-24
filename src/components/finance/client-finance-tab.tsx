@@ -306,7 +306,7 @@ export function ClientFinanceTab({
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="text-violet-700 hover:text-violet-800 dark:text-violet-300"
+                                className="text-brand-accent hover:text-brand-accent/80"
                                 onClick={() => openRenegotiation([c])}
                               >
                                 <Handshake className="mr-1.5 h-4 w-4" /> Renegociar

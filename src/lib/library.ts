@@ -16,7 +16,7 @@ export const FILE_CATEGORIES: {
   icon: typeof Image;
   tone: string;
 }[] = [
-  { value: "logos", label: "Logos", icon: Sparkles, tone: "text-violet-500 bg-violet-500/10" },
+  { value: "logos", label: "Logos", icon: Sparkles, tone: "text-brand-accent bg-brand-accent/10" },
   { value: "fotos", label: "Fotos", icon: Image, tone: "text-pink-500 bg-pink-500/10" },
   { value: "videos", label: "Vídeos", icon: Video, tone: "text-rose-500 bg-rose-500/10" },
   { value: "criativos", label: "Criativos", icon: Palette, tone: "text-amber-500 bg-amber-500/10" },

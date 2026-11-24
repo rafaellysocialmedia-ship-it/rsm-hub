@@ -53,7 +53,7 @@ export function MultiClientFilter({
               >
                 <input
                   type="checkbox"
-                  className="size-4 accent-[#42145d]"
+                  className="size-4 accent-brand"
                   checked={selected.includes(o.value)}
                   onChange={(e) => {
                     const next = e.target.checked

@@ -23,8 +23,8 @@ const TONE: Record<Tone, { box: string; icon: string }> = {
     icon: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
   },
   info: {
-    box: "border-violet-500/30 bg-violet-500/[0.06]",
-    icon: "bg-violet-500/15 text-violet-700 dark:text-violet-300",
+    box: "border-brand-accent/30 bg-brand-accent/[0.06]",
+    icon: "bg-brand-accent/15 text-brand-accent",
   },
   success: {
     box: "border-emerald-500/30 bg-emerald-500/[0.06]",

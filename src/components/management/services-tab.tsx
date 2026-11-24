@@ -457,9 +457,9 @@ export function ServicesTab({ clientId, canEdit }: { clientId: string; canEdit: 
               </div>
             </div>
           </div>
-          <div className="space-y-2 rounded-xl border border-[#b283f3]/40 bg-[#b283f3]/10 p-3 sm:p-4">
+          <div className="space-y-2 rounded-xl border border-brand-accent/40 bg-brand-accent/10 p-3 sm:p-4">
             <div className="flex items-center gap-2">
-              <CalendarClock className="size-4 shrink-0 text-[#42145d] dark:text-[#b283f3]" aria-hidden="true" />
+              <CalendarClock className="size-4 shrink-0 text-brand" aria-hidden="true" />
               <Label htmlFor="service-billing-day" className="text-sm font-semibold">
                 Dia de vencimento da mensalidade
               </Label>

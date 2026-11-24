@@ -289,7 +289,7 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
           value={metrics.total}
           icon={Briefcase}
           loading={isLoading}
-          accent="from-violet-500/20 to-transparent"
+          accent="from-brand-accent/20 to-transparent"
         />
         <StatCard
           label="Clientes ativos"

@@ -308,7 +308,7 @@ export function RenegotiateDialog({
           </ul>
         )}
         {requestNote && (
-          <p className="rounded-lg border border-violet-500/30 bg-violet-500/[0.06] p-2.5 text-xs">
+          <p className="rounded-lg border border-brand-accent/30 bg-brand-accent/[0.06] p-2.5 text-xs">
             <span className="font-medium">Pedido do cliente:</span> {requestNote}
           </p>
         )}

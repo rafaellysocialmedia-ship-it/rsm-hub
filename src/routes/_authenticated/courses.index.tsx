@@ -91,7 +91,7 @@ function CoursesCatalog() {
             const owned = ownedIds.has(c.id);
             return (
               <Card key={c.id} className="overflow-hidden transition-shadow hover:shadow-lg">
-                <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-fuchsia-500/20 via-purple-500/20 to-blue-500/20">
+                <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-brand-accent/20 via-brand/15 to-blue-500/20">
                   {c.thumbnail_url ? (
                     <img
                       src={c.thumbnail_url}

@@ -184,7 +184,7 @@ function CourseDetail() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gradient-to-br from-fuchsia-500/20 via-purple-500/20 to-blue-500/20">
+          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gradient-to-br from-brand-accent/20 via-brand/15 to-blue-500/20">
             {selectedLesson && canAccess && signedVideoUrl && selectedLesson.content_type === "video" ? (
               <video src={signedVideoUrl} controls className="h-full w-full" />
             ) : course.thumbnail_url ? (

@@ -10,8 +10,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --font-sans: "Aileron", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -47,6 +47,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-foreground: var(--brand-accent-foreground);
 }
 
 :root {
@@ -61,27 +63,36 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.015 260);
 
-  --primary: #42145d;
-  --primary-foreground: #ffffff;
+  /* Marca RSM: brand = base (menu ativo, cabeçalhos, botões principais);
+     brand-accent = só destaques (foco, links, item selecionado, indicadores).
+     Os demais tons roxos do tema derivam destes dois. */
+  --brand-base: #42145d;
+  --brand-accent-base: #9100e6;
 
-  --secondary: #f0eaf5;
-  --secondary-foreground: #42145d;
+  --brand: var(--brand-base);
+  --brand-foreground: #ffffff;
+  --brand-accent: var(--brand-accent-base);
+  --brand-accent-foreground: #ffffff;
+
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+
+  --secondary: color-mix(in oklab, var(--brand) 8%, white);
+  --secondary-foreground: var(--brand);
 
   --muted: #f0eff3;
   --muted-foreground: #696171;
 
-  --accent: #ede3fb;
-  --accent-foreground: #42145d;
+  /* "accent" do shadcn = fundo de hover/seleção suave, tingido do acento da marca. */
+  --accent: color-mix(in oklab, var(--brand-accent) 9%, white);
+  --accent-foreground: var(--brand);
 
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.98 0.003 250);
 
   --border: #e5e0e9;
   --input: #d8d0df;
-  --ring: #69139b;
-
-  --brand: #69139b;
-  --brand-foreground: oklch(0.98 0.003 250);
+  --ring: var(--brand-accent);
 
   --chart-1: oklch(0.62 0.18 265);
   --chart-2: oklch(0.68 0.15 195);
@@ -94,14 +105,14 @@
 
   --sidebar: #f1f0f4;
   --sidebar-foreground: oklch(0.25 0.015 260);
-  --sidebar-primary: #42145d;
-  --sidebar-primary-foreground: oklch(0.98 0.003 250);
-  --sidebar-accent: #f0e8fa;
-  --sidebar-accent-foreground: #42145d;
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--brand-foreground);
+  --sidebar-accent: color-mix(in oklab, var(--brand-accent) 9%, white);
+  --sidebar-accent-foreground: var(--brand);
   --sidebar-border: #e5e0e9;
-  --sidebar-ring: #69139b;
+  --sidebar-ring: var(--brand-accent);
 
-  --gradient-brand: linear-gradient(#42145d,#42145d);
+  --gradient-brand: linear-gradient(var(--brand), var(--brand));
   --gradient-surface: none;
   --shadow-soft: 0 1px 2px oklch(0.2 0.02 260 / 0.04), 0 4px 16px oklch(0.2 0.02 260 / 0.04);
   --shadow-elevated: 0 8px 32px -8px oklch(0.2 0.02 260 / 0.12);
@@ -117,8 +128,14 @@
   --popover: oklch(0.18 0.014 260);
   --popover-foreground: oklch(0.96 0.005 250);
 
-  --primary: #c9a5f5;
-  --primary-foreground: #21132f;
+  /* Escuro: passos claros dos mesmos dois tokens, para ter contraste no fundo escuro. */
+  --brand: color-mix(in oklab, var(--brand-accent-base) 35%, white);
+  --brand-foreground: var(--brand-base);
+  --brand-accent: color-mix(in oklab, var(--brand-accent-base) 60%, white);
+  --brand-accent-foreground: var(--brand-base);
+
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
 
   --secondary: oklch(0.22 0.014 260);
   --secondary-foreground: oklch(0.96 0.005 250);
@@ -134,10 +151,7 @@
 
   --border: oklch(1 0 0 / 0.08);
   --input: oklch(1 0 0 / 0.1);
-  --ring: oklch(0.68 0.18 265);
-
-  --brand: oklch(0.68 0.18 265);
-  --brand-foreground: oklch(0.14 0.012 260);
+  --ring: var(--brand-accent);
 
   --chart-1: oklch(0.68 0.18 265);
   --chart-2: oklch(0.72 0.15 195);
@@ -154,10 +168,10 @@
   --sidebar-accent: oklch(0.22 0.014 260);
   --sidebar-accent-foreground: oklch(0.96 0.005 250);
   --sidebar-border: oklch(1 0 0 / 0.06);
-  --sidebar-ring: oklch(0.68 0.18 265);
+  --sidebar-ring: var(--brand-accent);
 
-  --gradient-brand: linear-gradient(135deg, oklch(0.68 0.18 265), oklch(0.62 0.2 295));
-  --gradient-surface: linear-gradient(180deg, oklch(1 0 0 / 0), oklch(0.68 0.18 265 / 0.08));
+  --gradient-brand: linear-gradient(var(--brand-base), var(--brand-base));
+  --gradient-surface: linear-gradient(180deg, oklch(1 0 0 / 0), color-mix(in oklab, var(--brand-accent) 8%, transparent));
   --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.3), 0 4px 16px oklch(0 0 0 / 0.25);
   --shadow-elevated: 0 8px 32px -8px oklch(0 0 0 / 0.5);
 }
@@ -174,6 +188,11 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-weight: 400;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
   }
 }
 

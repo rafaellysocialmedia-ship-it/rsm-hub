@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/team")({
 
 type AppRole = "administrator" | "team" | "client";
 const ROLE_META: Record<AppRole, { label: string; tone: string }> = {
-  administrator: { label: "Administrador", tone: "bg-violet-500/10 text-violet-600 border-violet-500/20" },
+  administrator: { label: "Administrador", tone: "bg-brand-accent/10 text-brand-accent border-brand-accent/20" },
   team: { label: "Equipe", tone: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
   client: { label: "Cliente", tone: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
 };

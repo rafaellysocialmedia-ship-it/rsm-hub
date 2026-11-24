@@ -75,7 +75,7 @@ export function ContentFilters({
               <label key={option.value} className="flex min-h-8 cursor-pointer items-center gap-2 rounded px-2 text-xs hover:bg-muted">
                 <input
                   type="checkbox"
-                  className="size-3.5 accent-[#42145d]"
+                  className="size-3.5 accent-brand"
                   checked={chosen}
                   onChange={(event) => {
                     const next = event.target.checked

@@ -320,7 +320,7 @@ function ReceivablesPage() {
                               aria-label={`Renegociar cobrança de ${clientName(c.client_id)}`}
                               onClick={() => setRenegotiating(c)}
                             >
-                              <Handshake className="h-4 w-4 text-violet-600" />
+                              <Handshake className="h-4 w-4 text-brand-accent" />
                             </Button>
                           )}
                           {access.canEdit && c.status === "paid" && (

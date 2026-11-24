@@ -40,14 +40,14 @@ export const CAMPAIGN_STATUS: { value: TrafficCampaignStatus; label: string; ton
 export const LEAD_STAGES: { value: TrafficLeadStage; label: string; tone: string }[] = [
   { value: "new", label: "Novo Lead", tone: "bg-sky-500/10 text-sky-500" },
   { value: "first_contact", label: "Primeiro Contato", tone: "bg-indigo-500/10 text-indigo-500" },
-  { value: "in_service", label: "Em Atendimento", tone: "bg-violet-500/10 text-violet-500" },
+  { value: "in_service", label: "Em Atendimento", tone: "bg-brand-accent/10 text-brand-accent" },
   { value: "proposal", label: "Proposta", tone: "bg-amber-500/10 text-amber-500" },
   { value: "client", label: "Cliente", tone: "bg-emerald-500/10 text-emerald-500" },
   { value: "lost", label: "Perdido", tone: "bg-destructive/10 text-destructive" },
 ];
 
 export const LP_STATUS: { value: LandingPageStatus; label: string; tone: string }[] = [
-  { value: "planning", label: "Em planejamento", tone: "bg-violet-500/10 text-violet-500 border-violet-500/20" },
+  { value: "planning", label: "Em planejamento", tone: "bg-brand-accent/10 text-brand-accent border-brand-accent/20" },
   { value: "development", label: "Em desenvolvimento", tone: "bg-sky-500/10 text-sky-500 border-sky-500/20" },
   { value: "review", label: "Revisão", tone: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
   { value: "published", label: "Publicada", tone: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },

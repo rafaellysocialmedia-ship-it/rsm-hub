@@ -89,7 +89,7 @@ export function ChargeStatusBadge({
         <span className="pl-1 text-[11px] text-muted-foreground">{due}</span>
       )}
       {isRenegotiated(charge) && (
-        <span className="inline-flex items-center gap-1 pl-1 text-[11px] text-violet-700 dark:text-violet-300">
+        <span className="inline-flex items-center gap-1 pl-1 text-[11px] text-brand-accent">
           <Handshake className="size-3" aria-hidden /> Acordo de renegociação
         </span>
       )}

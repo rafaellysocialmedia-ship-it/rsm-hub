@@ -172,7 +172,7 @@ export function platformInitials(name: string) {
 
 export function platformTone(name: string) {
   const palette = [
-    "bg-violet-500/10 text-violet-500",
+    "bg-brand-accent/10 text-brand-accent",
     "bg-pink-500/10 text-pink-500",
     "bg-emerald-500/10 text-emerald-500",
     "bg-sky-500/10 text-sky-500",

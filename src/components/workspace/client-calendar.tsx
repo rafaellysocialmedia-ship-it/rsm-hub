@@ -151,7 +151,7 @@ export function ClientCalendarPage({
         setDragging(null);
         setDestination(null);
       }}
-      className={`group min-w-0 select-none rounded-lg border bg-card ${extraPostIds?.has(p.id) ? "border-amber-500/60 bg-amber-500/[0.06]" : "border-border/70"} ${view === "month" && !modal ? "p-1.5" : density === "compact" && !modal ? "p-2" : "p-2.5"} shadow-none transition-colors hover:border-[#b283f3]/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-[#b283f3]" : ""}`}
+      className={`group min-w-0 select-none rounded-lg border bg-card ${extraPostIds?.has(p.id) ? "border-amber-500/60 bg-amber-500/[0.06]" : "border-border/70"} ${view === "month" && !modal ? "p-1.5" : density === "compact" && !modal ? "p-2" : "p-2.5"} shadow-none transition-colors hover:border-brand-accent/70 ${dragging?.id === p.id ? "opacity-50 ring-2 ring-brand-accent" : ""}`}
     >
       <button
         type="button"
@@ -162,13 +162,13 @@ export function ClientCalendarPage({
           }
         }}
         aria-label={`Abrir publicação ${p.title}, ${statusMeta(p.status).label}`}
-        className="block w-full min-w-0 space-y-1.5 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#69139b]"
+        className="block w-full min-w-0 space-y-1.5 rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {view === "month" && !modal ? (
           <div className="min-w-0 space-y-1">
             <div className="flex min-w-0 items-center gap-1.5">
               {p.scheduled_time && (
-                <span className="shrink-0 text-[10px] font-semibold tabular-nums text-[#42145d] dark:text-violet-200">
+                <span className="shrink-0 text-[10px] font-semibold tabular-nums text-brand">
                   {p.scheduled_time.slice(0, 5)}
                 </span>
               )}
@@ -231,7 +231,7 @@ export function ClientCalendarPage({
                 />
               </span>
               <span
-                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-violet-50 px-1.5 py-1 text-[10px] font-semibold tabular-nums text-[#42145d] dark:bg-violet-950/40 dark:text-violet-200"
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-brand-accent/10 px-1.5 py-1 text-[10px] font-semibold tabular-nums text-brand"
                 title={
                   p.scheduled_time
                     ? `Horário: ${p.scheduled_time.slice(0, 5)}`
@@ -262,7 +262,7 @@ export function ClientCalendarPage({
               <span className="mx-0.5 h-4 w-px shrink-0 bg-border" aria-hidden="true" />
               {p.format && (
                 <span
-                  className="inline-flex min-w-0 max-w-full truncate rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/40 dark:text-violet-200"
+                  className="inline-flex min-w-0 max-w-full truncate rounded-full bg-brand-accent/10 px-2 py-0.5 text-[10px] font-semibold text-brand-accent"
                   title={p.format}
                 >
                   {p.format}
@@ -325,7 +325,7 @@ export function ClientCalendarPage({
         key={date}
         data-calendar-date={date}
         aria-current={isToday ? "date" : undefined}
-        className={`min-w-0 space-y-1 rounded-md border border-border/60 p-1.5 transition-colors ${view === "day" ? "min-h-40" : density === "compact" ? "min-h-[88px]" : density === "expanded" ? "min-h-48" : "min-h-28"} ${isToday ? "bg-[#b283f3]/10" : "bg-card"} ${selected ? "outline outline-2 -outline-offset-2 outline-[#69139b]" : ""} ${destination === date ? "ring-2 ring-inset ring-[#b283f3]" : ""}`}
+        className={`min-w-0 space-y-1 rounded-md border border-border/60 p-1.5 transition-colors ${view === "day" ? "min-h-40" : density === "compact" ? "min-h-[88px]" : density === "expanded" ? "min-h-48" : "min-h-28"} ${isToday ? "bg-brand-accent/10" : "bg-card"} ${selected ? "outline outline-2 -outline-offset-2 outline-brand-accent" : ""} ${destination === date ? "ring-2 ring-inset ring-brand-accent" : ""}`}
         onDragOver={(e) => {
           if (dragging && date >= today && !moving) {
             e.preventDefault();
@@ -347,17 +347,17 @@ export function ClientCalendarPage({
             aria-label={`${format(d, "dd/MM/yyyy")}${isToday ? ", hoje" : ""}`}
             aria-pressed={selected}
             onClick={() => setSelectedDay(date)}
-            className="flex items-center gap-1 rounded focus-visible:ring-2 focus-visible:ring-[#69139b]"
+            className="flex items-center gap-1 rounded focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="text-[10px] text-muted-foreground">
               {format(d, "EEE", { locale: ptBR })}
             </span>
             <span
-              className={`inline-flex size-5 items-center justify-center rounded-full text-xs font-semibold ${isToday ? "bg-[#42145d] text-white" : "text-foreground"}`}
+              className={`inline-flex size-5 items-center justify-center rounded-full text-xs font-semibold ${isToday ? "bg-brand text-brand-foreground" : "text-foreground"}`}
             >
               {format(d, "dd")}
             </span>
-            {isToday && <span className="text-[10px] font-medium text-[#42145d]">Hoje</span>}
+            {isToday && <span className="text-[10px] font-medium text-brand">Hoje</span>}
           </button>
           {workspace.canCreate && (
             <Button
@@ -383,7 +383,7 @@ export function ClientCalendarPage({
           <Button
             variant="ghost"
             size="sm"
-            className="h-6 w-full justify-start rounded px-1 text-[10px] font-semibold text-[#42145d] hover:bg-[#b283f3]/15 dark:text-violet-200"
+            className="h-6 w-full justify-start rounded px-1 text-[10px] font-semibold text-brand hover:bg-brand-accent/15"
             aria-label={`Mostrar mais ${posts.length - limit} ${posts.length - limit === 1 ? "publicação" : "publicações"} de ${format(d, "dd/MM/yyyy")}`}
             onClick={() => setDayList(date)}
           >
@@ -506,7 +506,7 @@ export function ClientCalendarPage({
               variant={view === mode.value ? "secondary" : "ghost"}
               aria-pressed={view === mode.value}
               onClick={() => setView(mode.value)}
-              className={`h-7 rounded-md px-2 text-[11px] shadow-none ${view === mode.value ? "font-semibold text-[#42145d]" : "text-muted-foreground"}`}
+              className={`h-7 rounded-md px-2 text-[11px] shadow-none ${view === mode.value ? "font-semibold text-brand" : "text-muted-foreground"}`}
             >
               {mode.label}
             </Button>
@@ -607,7 +607,7 @@ export function ClientCalendarPage({
         </div>
       )}
       {dragging && (
-        <p role="status" className="text-xs text-[#42145d]">
+        <p role="status" className="text-xs text-brand">
           Solte em um dia ou nas setas para mover ao período anterior/seguinte. O horário será
           preservado.
         </p>

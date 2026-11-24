@@ -1012,7 +1012,8 @@ function Delta({ value, vs, upIsBad }: { value: number; vs?: string; upIsBad: bo
     <span
       className={cn(
         "inline-flex items-center gap-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-medium",
-        good ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-red-500/10 text-red-700 dark:text-red-300",
+        // Comparação não é alerta: vermelho e amarelo ficam só para vencido / a vencer.
+        good ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-muted text-muted-foreground",
       )}
       title={`${up ? "Aumento" : "Queda"} de ${Math.abs(rounded)}% em relação a ${vs}`}
     >

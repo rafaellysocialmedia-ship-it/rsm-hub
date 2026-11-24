@@ -19,7 +19,7 @@ export const POST_STATUS: {
 
   { value: "review", label: "Aprovação do cliente", tone: "bg-amber-500/10 text-amber-600 border-amber-500/30", dot: "bg-amber-500" },
   { value: "changes_requested" as PostStatus, label: "Ajuste solicitado", tone: "bg-red-500/10 text-red-600 border-red-500/40", dot: "bg-red-500" },
-  { value: "approved", label: "Aprovado", tone: "bg-violet-500/10 text-violet-700 border-violet-500/30", dot: "bg-violet-500" },
+  { value: "approved", label: "Aprovado", tone: "bg-brand-accent/10 text-brand-accent border-brand-accent/30", dot: "bg-brand-accent" },
   { value: "to_schedule" as PostStatus, label: "Pronto para publicar", tone: "bg-cyan-500/10 text-cyan-700 border-cyan-500/30", dot: "bg-cyan-500" },
   { value: "scheduled", label: "Agendado", tone: "bg-sky-500/10 text-sky-600 border-sky-500/30", dot: "bg-sky-500" },
   { value: "published", label: "Publicado", tone: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30", dot: "bg-emerald-500" },

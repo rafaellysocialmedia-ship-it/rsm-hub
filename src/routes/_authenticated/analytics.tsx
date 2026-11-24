@@ -233,7 +233,7 @@ function AnalyticsPage() {
           icon={MessageCircle}
           label="Comentários"
           value={totals.comments}
-          tone="text-violet-500"
+          tone="text-brand-accent"
         />
         <MetricCard
           hasData={totals.postsWithData > 0}

@@ -168,11 +168,11 @@ export function PostBalanceControlBar({ clientId, ref }: Props) {
       >
         {overPlan ? (
           <div className="flex h-full w-full">
-            <div className="h-full bg-[#69139b]" style={{ width: `${planShare}%` }} />
+            <div className="h-full bg-brand-accent" style={{ width: `${planShare}%` }} />
             <div className="h-full flex-1 bg-amber-500" title={`${extras} acima do plano`} />
           </div>
         ) : (
-          <div className="h-full rounded-full bg-[#69139b] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full rounded-full bg-brand-accent transition-[width] duration-300" style={{ width: `${progress}%` }} />
         )}
       </div>
       <details className="group mt-1.5 text-[11px] text-muted-foreground">

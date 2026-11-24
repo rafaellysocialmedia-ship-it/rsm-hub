@@ -57,7 +57,7 @@ export const STATUS_COLUMNS: { id: TaskStatus; label: string; tone: string }[] =
   { id: "todo", label: "A Fazer", tone: "bg-slate-500/15 text-slate-600 dark:text-slate-300" },
   { id: "production", label: "Produção", tone: "bg-blue-500/15 text-blue-600 dark:text-blue-300" },
   { id: "waiting_client", label: "Aguardando Cliente", tone: "bg-amber-500/15 text-amber-700 dark:text-amber-300" },
-  { id: "review", label: "Revisão", tone: "bg-purple-500/15 text-purple-600 dark:text-purple-300" },
+  { id: "review", label: "Revisão", tone: "bg-brand-accent/15 text-brand-accent" },
   { id: "done", label: "Concluído", tone: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" },
 ];
 

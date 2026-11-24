@@ -217,7 +217,7 @@ function WorkspaceTab() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Cor primária (hex)"><Input value={form.primary_color} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} placeholder="#7c3aed" /></Field>
+          <Field label="Cor primária (hex)"><Input value={form.primary_color} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} placeholder="#42145D" /></Field>
         </div>
         <div className="flex justify-end">
           <Button onClick={() => save.mutate()} disabled={save.isPending} className="gap-2">
