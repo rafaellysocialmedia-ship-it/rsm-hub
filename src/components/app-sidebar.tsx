@@ -52,7 +52,7 @@ const AREA_ICONS: Record<string, typeof LayoutDashboard> = {
   relatorios: BarChart3,
 };
 export function AppSidebar() {
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, loading: authLoading } = useAuth();
   const staff = hasRole("administrator") || hasRole("team");
   const { can, loading } = usePermissions();
   const location = useRouterState({ select: (s) => s.location });
@@ -196,7 +196,14 @@ export function AppSidebar() {
         <QuickActions />
       </SidebarHeader>
       <SidebarContent className="overflow-x-hidden">
-        {staff ? (
+        {authLoading ? (
+          // Enquanto o perfil carrega, mostra o menu em espera (nunca o menu errado).
+          <div role="status" aria-label="Carregando o menu" className="space-y-2 p-2">
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="h-9 animate-pulse rounded-lg bg-muted/70" />
+            ))}
+          </div>
+        ) : staff ? (
           <>
             {/* Favoritos: uma linha de atalhos acima das áreas. */}
             {!collapsed && (
