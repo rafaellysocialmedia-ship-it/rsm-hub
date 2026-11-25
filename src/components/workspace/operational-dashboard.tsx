@@ -403,7 +403,7 @@ export function OperationalDashboard({ name }: { name: string }) {
                   .map((c) => (
                   <li className="flex items-center justify-between gap-3 py-3" key={c.client_id}>
                     <Link
-                      className="text-sm font-medium hover:underline"
+                      className="min-w-0 text-sm font-medium hover:underline"
                       to="/clientes/$clientId"
                       params={{ clientId: c.client_id }}
                       search={{ tab: "overview" }}
@@ -422,7 +422,7 @@ export function OperationalDashboard({ name }: { name: string }) {
                       </span>
                     </Link>
                     <span
-                      className={`text-sm ${c.health === "critical" ? "text-red-700 dark:text-red-300" : c.health === "attention" ? "text-amber-800 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300"}`}
+                      className={`shrink-0 whitespace-nowrap text-right text-xs sm:text-sm ${c.health === "critical" ? "text-red-700 dark:text-red-300" : c.health === "attention" ? "text-amber-800 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300"}`}
                     >
                       {c.health === "critical"
                         ? "Precisa de ação"
