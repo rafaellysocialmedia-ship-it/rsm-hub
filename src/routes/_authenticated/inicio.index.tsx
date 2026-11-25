@@ -53,6 +53,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { statusMeta, type Client } from "@/lib/clients";
 import { cn } from "@/lib/utils";
 import { ChartSkeleton, ListSkeleton } from "@/components/skeletons";
+import { FLOW_ACTIVITY_LABELS } from "@/lib/posts";
 
 
 export const Route = createFileRoute("/_authenticated/inicio/")({
@@ -537,6 +538,7 @@ function StaffDashboard({ qc, name }: { qc: ReturnType<typeof useQueryClient>; n
 
 function actionLabel(a: string) {
   const map: Record<string, string> = {
+    ...FLOW_ACTIVITY_LABELS,
     commented: "Novo comentário",
     approval_approved: "Aprovação concedida",
     approval_rejected: "Publicação rejeitada",

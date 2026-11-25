@@ -43,8 +43,8 @@ export function FeedPreview({
           "status",
           status === "all"
             ? ["approved", "to_schedule", "scheduled", "published"]
-            : status === "approved"
-              ? ["approved", "to_schedule"]
+            : status === "scheduled"
+              ? ["approved", "to_schedule", "scheduled"]
               : [status as Post["status"]],
         )
         .order("scheduled_date", { ascending: false, nullsFirst: false })
@@ -120,7 +120,7 @@ export function FeedPreview({
           }}
         />
         <select
-          aria-label="Filtrar situação do feed"
+          aria-label="Filtrar etapa do feed"
           className="h-10 rounded-md border bg-background px-3 text-sm"
           value={status}
           onChange={(e) => {
@@ -128,9 +128,8 @@ export function FeedPreview({
             setLimit(30);
           }}
         >
-          <option value="all">Todas as situações</option>
-          <option value="approved">Aprovados</option>
-          <option value="scheduled">Programados</option>
+          <option value="all">Todas as etapas</option>
+          <option value="scheduled">Agendados</option>
           <option value="published">Publicados</option>
         </select>
         {month && (

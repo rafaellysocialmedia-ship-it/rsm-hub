@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { QueryState } from "@/components/workspace/account-panels";
 import { ReviewLinks } from "./review-links";
+import { useChangeReasons } from "@/components/posts/post-badges";
 export function invalidateReviews(qc: ReturnType<typeof useQueryClient>) {
   for (const key of [
     "portal-posts",
@@ -115,7 +116,8 @@ export function ReviewDialog({
     },
     onError: (e: Error) => toast.error(e.message),
   });
-  const actionable = !staff && !readOnly && ["review", "changes_requested"].includes(post.status);
+  const actionable = !staff && !readOnly && post.status === "review";
+  const reasons = useChangeReasons(post.status === "changes_requested");
   return (
     <Dialog
       open
@@ -155,6 +157,21 @@ export function ReviewDialog({
         </DialogHeader>
         <div className="min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1.65fr)_minmax(320px,1fr)] lg:overflow-hidden">
           <div className="min-w-0 space-y-5 p-4 lg:overflow-y-auto lg:p-6">
+            {post.status === "changes_requested" && (
+              <div role="note" className="rounded-lg border border-red-500/40 bg-red-500/5 p-3 text-sm">
+                <p className="font-medium text-red-800">
+                  {staff ? "Ajuste solicitado pelo cliente" : "Você pediu um ajuste"}
+                </p>
+                {reasons.data?.get(post.id) && (
+                  <p className="mt-1 whitespace-pre-line text-red-900/90">“{reasons.data.get(post.id)}”</p>
+                )}
+                {!staff && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    A equipe está ajustando. Você recebe um aviso quando a nova versão estiver pronta para aprovar.
+                  </p>
+                )}
+              </div>
+            )}
             <CreativeStage postId={post.id} />
             {["scheduled", "published"].includes(post.status) && (
               <p className="text-xs text-muted-foreground">

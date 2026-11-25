@@ -12,7 +12,8 @@ import { useAccountFiles, useAccountMeetings } from "@/hooks/use-account-workspa
 import { localDate, safeExternalUrl } from "@/lib/account-workspace";
 import { formatMoney } from "@/lib/client-master";
 import { formatBytes, LIBRARY_BUCKET } from "@/lib/library";
-import { postNetworks, statusMeta, POST_STATUS, type Post } from "@/lib/posts";
+import { postNetworks, statusMeta, POST_STATUS, matchesStageFilter, type Post } from "@/lib/posts";
+import { PostBadges, useChangeReasons } from "@/components/posts/post-badges";
 import type { Client } from "@/lib/clients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -139,11 +140,12 @@ export function AccountContents({
   const [detail, setDetail] = useState<Post | null>(null);
   const [editing, setEditing] = useState<Post | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const reasons = useChangeReasons();
   const posts = (query.data ?? []).filter(
     (p) =>
-      (!approvalOnly || ["review", "changes_requested"].includes(p.status)) &&
+      (!approvalOnly || p.status === "review") &&
       (!month || p.scheduled_date?.startsWith(month)) &&
-      (status === "all" || p.status === status) &&
+      matchesStageFilter(p.status, status) &&
       (contentFormat === "all" || p.format === contentFormat) &&
       (network === "all" || postNetworks(p).includes(network)) &&
       p.title.toLowerCase().includes(search.toLowerCase()),
@@ -179,12 +181,12 @@ export function AccountContents({
           </Button>
         )}
         <select
-          aria-label="Status do conteúdo"
+          aria-label="Etapa do conteúdo"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="h-10 max-w-full rounded-md border bg-background px-3 text-sm"
         >
-          <option value="all">Todos os status</option>
+          <option value="all">Todas as etapas</option>
           {POST_STATUS.map((s) => (
             <option key={s.value} value={s.value}>
               {s.label}
@@ -267,6 +269,7 @@ export function AccountContents({
                 <Badge variant="outline" className={`mt-2 ${statusMeta(p.status).tone}`}>
                   {p.status === "review" ? "Aguardando aprovação" : statusMeta(p.status).label}
                 </Badge>
+                <PostBadges post={p} reason={reasons.data?.get(p.id)} showReason className="mt-2" />
               </div>
             </button>
           ))}

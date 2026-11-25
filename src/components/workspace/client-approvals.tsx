@@ -15,7 +15,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { QueryState } from "./account-panels";
-import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { statusMeta, postNetworks, matchesStageFilter, type Post } from "@/lib/posts";
+import { PostBadges, useChangeReasons } from "@/components/posts/post-badges";
 import { toast } from "sonner";
 export function ClientPortal({
   defaultTab = "pending",
@@ -75,17 +76,20 @@ export function ClientPortal({
       return data;
     },
   });
+  const reasons = useChangeReasons();
   const list = (q.data ?? []).filter(
     (p) =>
       (!accountFilter || p.client_id === accountFilter) &&
       (filter === "all" ||
         (filter === "pending"
-          ? ["review", "changes_requested"].includes(p.status)
-          : p.status === filter)) &&
+          ? p.status === "review"
+          : filter === "changes_requested"
+            ? p.status === "changes_requested"
+            : matchesStageFilter(p.status, filter))) &&
       p.title.toLowerCase().includes(search.toLowerCase()),
   );
   const chosen = list.filter(
-    (p) => selected.includes(p.id) && ["review", "changes_requested"].includes(p.status),
+    (p) => selected.includes(p.id) && p.status === "review",
   );
   const batch = useMutation({
     mutationFn: async () => {
@@ -144,16 +148,16 @@ export function ClientPortal({
         />
         <select
           className="min-h-11 rounded-md border bg-card px-3"
-          aria-label="Filtrar status"
+          aria-label="Filtrar etapa"
           value={filter}
           onChange={(e) => {
             setFilter(e.target.value);
             setSelected([]);
           }}
         >
-          <option value="pending">Aguardando revisão</option>
+          <option value="pending">Aguardando aprovação</option>
           <option value="all">Todos os conteúdos</option>
-          <option value="approved">Aprovados</option>
+          <option value="changes_requested">Ajuste solicitado</option>
           <option value="scheduled">Agendados</option>
           <option value="published">Publicados</option>
         </select>
@@ -180,9 +184,12 @@ export function ClientPortal({
                       "Cliente"}
                   </p>
                 )}
-                <Badge className={`mt-3 ${statusMeta(p.status).tone}`} variant="outline">
-                  {statusMeta(p.status).label}
-                </Badge>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <Badge className={statusMeta(p.status).tone} variant="outline">
+                    {statusMeta(p.status).label}
+                  </Badge>
+                  <PostBadges post={p} reason={reasons.data?.get(p.id)} showReason />
+                </div>
                 <h3 className="mt-2 line-clamp-2 min-h-12 font-semibold">{p.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {postNetworks(p).join(" · ") || "Rede a definir"} ·{" "}
@@ -198,7 +205,7 @@ export function ClientPortal({
               </button>
               {!staff &&
                 permissions.data?.can_approve &&
-                ["review", "changes_requested"].includes(p.status) && (
+                p.status === "review" && (
                   <label className="flex min-h-11 items-center gap-2 border-t px-3 text-sm">
                     <input
                       type="checkbox"

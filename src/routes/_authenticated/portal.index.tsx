@@ -45,6 +45,8 @@ import { useAuth } from "@/hooks/use-auth";
 import {
   POST_STATUS,
   statusMeta,
+  stageOf,
+  statusForStage,
   postNetworks,
   type Post,
   type PostComment,
@@ -57,6 +59,7 @@ import type { Client as ClientData } from "@/lib/clients";
 import { PostCreativeThumb, PostCreativeGallery } from "@/components/posts/post-creative-viewer";
 import { GridSkeleton } from "@/components/skeletons";
 import { PostDetailSheet } from "@/components/posts/post-detail-sheet";
+import { PostBadges } from "@/components/posts/post-badges";
 
 type Approval = Database["public"]["Tables"]["post_approvals"]["Row"];
 type Decision = Database["public"]["Enums"]["approval_decision"];
@@ -361,6 +364,7 @@ function StaffApprovals() {
                     <Badge variant="outline" className={sMeta.tone}>
                       {sMeta.label}
                     </Badge>
+                    <PostBadges post={p} />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 pt-0">
@@ -383,10 +387,14 @@ function StaffApprovals() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Select
-                      value={p.status}
-                      onValueChange={(v) =>
-                        statusMutation.mutate({ postId: p.id, status: v as PostStatus })
-                      }
+                      value={stageOf(p.status).value}
+                      onValueChange={(v) => {
+                        if (stageOf(p.status).value === v) return;
+                        statusMutation.mutate({
+                          postId: p.id,
+                          status: statusForStage(v as PostStatus, p),
+                        });
+                      }}
                     >
                       <SelectTrigger className="h-8 flex-1 text-xs">
                         <SelectValue />

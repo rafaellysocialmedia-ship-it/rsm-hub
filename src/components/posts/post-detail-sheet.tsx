@@ -22,7 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { statusMeta, postNetworks, POST_STATUS, type Post, type PostComment } from "@/lib/posts";
+import { statusMeta, stageOf, postNetworks, FLOW_STAGES, FLOW_ACTIVITY_LABELS, type Post, type PostComment } from "@/lib/posts";
+import { PostBadges, useChangeReasons } from "@/components/posts/post-badges";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { cn } from "@/lib/utils";
 import { PostCreativeGallery } from "@/components/posts/post-creative-viewer";
@@ -38,6 +39,7 @@ type ActivityRow = {
 };
 
 const ACTION_LABEL: Record<string, string> = {
+  ...FLOW_ACTIVITY_LABELS,
   approval_approved: "Cliente aprovou",
   approval_rejected: "Cliente reprovou",
   approval_changes_requested: "Cliente solicitou ajustes",
@@ -51,8 +53,8 @@ const APPROVAL_META: Record<string, { label: string; tone: string; icon: typeof 
   changes_requested: { label: "Ajustes solicitados", tone: "bg-red-500/10 text-red-600 border-red-500/30", icon: MessageSquareWarning },
 };
 
-/** Ordered pipeline used by the status stepper. */
-const PIPELINE = ["idea", "production", "review", "approved", "scheduled", "published"] as const;
+/** Ordered pipeline used by the status stepper: as 6 etapas do fluxo. */
+const PIPELINE = FLOW_STAGES;
 
 function slidesOf(post: Post): string[] {
   const raw = (post as unknown as Extra).slides;
@@ -94,6 +96,7 @@ export function PostDetailSheet({
 }) {
   const { user, hasRole } = useAuth();
   const qc = useQueryClient();
+  const reasons = useChangeReasons(post?.status === "changes_requested");
   const isStaff = hasRole("administrator") || hasRole("team");
 
   const [tab, setTab] = useState("content");
@@ -236,7 +239,7 @@ export function PostDetailSheet({
   const isCarousel = fmt.includes("carrossel") || slides.length > 0;
   const isVideo = fmt.includes("reels") || fmt.includes("vídeo") || fmt.includes("video") || fmt.includes("story");
   const aMeta = approval ? APPROVAL_META[approval.decision] : null;
-  const currentStep = PIPELINE.indexOf(post.status as (typeof PIPELINE)[number]);
+  const currentStep = PIPELINE.findIndex((s) => s.key === stageOf(post.status).key);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -248,6 +251,7 @@ export function PostDetailSheet({
             {post.format && <Badge variant="secondary" className="text-[10px]">{post.format}</Badge>}
             {aMeta && <Badge variant="outline" className={cn("text-[10px]", aMeta.tone)}>{aMeta.label}</Badge>}
           </div>
+          <PostBadges post={post} reason={reasons.data?.get(post.id)} showReason />
           <SheetTitle className="pr-8 text-lg leading-snug">{post.title}</SheetTitle>
           <SheetDescription className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
             {clientName && <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{clientName}</span>}
@@ -263,11 +267,10 @@ export function PostDetailSheet({
 
           {/* Status stepper */}
           <div className="flex items-center gap-1 pt-1">
-            {PIPELINE.map((s, i) => {
-              const m = POST_STATUS.find((x) => x.value === s)!;
+            {PIPELINE.map((m, i) => {
               const done = currentStep >= 0 && i <= currentStep;
               return (
-                <div key={s} className="flex flex-1 flex-col gap-1" title={m.label}>
+                <div key={m.key} className="flex flex-1 flex-col gap-1" title={m.label}>
                   <span className={cn("h-1 rounded-full", done ? m.dot : "bg-muted")} />
                   <span className={cn("truncate text-[9px]", done ? "text-foreground" : "text-muted-foreground")}>{m.label}</span>
                 </div>

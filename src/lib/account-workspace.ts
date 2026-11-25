@@ -11,7 +11,10 @@ export function accountContentSummary(
   return {
     published: posts.filter((p) => p.status === "published" && p.scheduled_date?.startsWith(month))
       .length,
-    scheduled: posts.filter((p) => p.status === "scheduled" && p.scheduled_date?.startsWith(month))
+    // Etapa Agendado: aprovado, pronto ou agendado.
+    scheduled: posts.filter(
+      (p) => ["approved", "to_schedule", "scheduled"].includes(p.status) && p.scheduled_date?.startsWith(month),
+    )
       .length,
     pending: posts.filter((p) => p.status === "review").length,
     changes: posts.filter((p) => p.status === "changes_requested").length,

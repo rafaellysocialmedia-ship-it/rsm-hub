@@ -53,6 +53,8 @@ import {
   POST_STATUS,
   SOCIAL_NETWORKS,
   statusMeta,
+  stageOf,
+  statusForStage,
   type Post,
   type PostComment,
   type PostFile,
@@ -63,6 +65,9 @@ import type { Client } from "@/lib/clients";
 import { RichTextEditor } from "./rich-text-editor";
 import { PostCreativePreview, usePostCreatives } from "./post-creative-viewer";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { PostBadges, useChangeReasons } from "./post-badges";
+import { InternalReviewPanel } from "./internal-review-panel";
 import { sanitizeHtml } from "@/lib/sanitize";
 
 export type EditorController = {
@@ -121,10 +126,12 @@ export function PostEditorSheet({
 }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole("administrator");
   const [form, setForm] = useState<Partial<Post>>(EMPTY);
   const [recurrence, setRecurrence] = useState<RecurrenceRule>({ frequency: "none" });
   const isEdit = !!post;
+  const changeReasons = useChangeReasons(post?.status === "changes_requested");
   const permissions = usePermissions();
   const baseline = useRef<Partial<Post>>(post ?? EMPTY);
   const version = useRef(post?.updated_at ?? "");
@@ -290,8 +297,10 @@ export function PostEditorSheet({
   }, [open, focusedCommentId, comments]);
 
   // ---- Save
+  type SaveOptions = { status?: PostStatus; message?: string };
   const saveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (variables: SaveOptions | void) => {
+      const opts = (variables || {}) as SaveOptions;
       if (!form.title || form.title.trim().length === 0) throw new Error("Título obrigatório");
       const networks = ((form as { social_networks?: string[] }).social_networks ?? []).filter(
         Boolean,
@@ -325,7 +334,8 @@ export function PostEditorSheet({
         caption: form.caption ? sanitizeHtml(form.caption) : null,
         cta: form.cta || null,
         hashtags: form.hashtags || null,
-        status: (form.status ?? "idea") as PostStatus,
+        status: (opts?.status ?? form.status ?? "idea") as PostStatus,
+        in_recording: stageOf(opts?.status ?? form.status).key === "producao" && !!form.in_recording,
         recurrence: recurrence.frequency === "none" ? null : recurrence,
       };
       if (isEdit && post) {
@@ -370,8 +380,9 @@ export function PostEditorSheet({
         return data.id;
       }
     },
-    onSuccess: () => {
-      toast.success(isEdit ? "Post atualizado" : "Post criado");
+    onSuccess: (_id, variables) => {
+      const opts = (variables || {}) as SaveOptions;
+      toast.success(opts.message ?? (isEdit ? "Post atualizado" : "Post criado"));
       void refreshPostViews(qc);
       setLastSaved(true);
       if (!persistent) onOpenChange(false);
@@ -681,11 +692,18 @@ export function PostEditorSheet({
             />
             <div className="flex flex-wrap items-center gap-2">
               <Select
-                value={form.status ?? "idea"}
-                onValueChange={(v) => update("status", v as PostStatus)}
+                value={stageOf(form.status).value}
+                onValueChange={(v) => {
+                  if (stageOf(form.status).value === v) return;
+                  update("status", statusForStage(v as PostStatus, {
+                    status: (form.status ?? "idea") as PostStatus,
+                    scheduled_date: form.scheduled_date ?? null,
+                    scheduled_time: form.scheduled_time ?? null,
+                  }));
+                }}
               >
                 <SelectTrigger
-                  aria-label="Situação da publicação"
+                  aria-label="Etapa da publicação"
                   className="h-8 w-auto gap-1.5 border-0 bg-muted px-2 text-xs"
                 >
                   <span
@@ -697,14 +715,76 @@ export function PostEditorSheet({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {POST_STATUS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
+                  {POST_STATUS.map((s) => {
+                    // Equipe só chega à Aprovação do cliente pela Revisão interna.
+                    const locked =
+                      s.key === "aprovacao_cliente" &&
+                      !isAdmin &&
+                      stageOf(baseline.current.status).key !== "aprovacao_cliente";
+                    return (
+                      <SelectItem key={s.value} value={s.value} disabled={locked}>
+                        {s.label}
+                        {locked ? " · pela revisão interna" : ""}
+                        {s.outOfFlow ? " · fora do fluxo" : ""}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
+              <PostBadges
+                post={{
+                  status: (form.status ?? "idea") as PostStatus,
+                  scheduled_date: form.scheduled_date ?? null,
+                  scheduled_time: form.scheduled_time ?? null,
+                  in_recording: stageOf(form.status).key === "producao" && !!form.in_recording,
+                }}
+              />
+              {stageOf(form.status).key === "producao" && form.status !== "changes_requested" && (
+                <label className="ml-auto flex min-h-8 items-center gap-2 text-xs text-muted-foreground">
+                  <Switch
+                    checked={!!form.in_recording || form.status === "recording"}
+                    onCheckedChange={(v) => update("in_recording", v)}
+                    aria-label="Em gravação"
+                  />
+                  Em gravação
+                </label>
+              )}
             </div>
+            {form.status === "changes_requested" && (
+              <div role="note" className="rounded-md border border-red-500/40 bg-red-500/5 p-3 text-sm">
+                <p className="font-medium text-red-800">Ajuste solicitado pelo cliente</p>
+                <p className="mt-1 whitespace-pre-line text-red-900/90">
+                  {(post && changeReasons.data?.get(post.id)) || "O cliente não deixou um motivo por escrito."}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Faça o ajuste e envie para a revisão interna.
+                </p>
+              </div>
+            )}
+            {isEdit && post && baseline.current.status === "editing" && !readOnly && (
+              <InternalReviewPanel
+                postId={post.id}
+                expectedUpdatedAt={version.current}
+                dirty={dirty}
+                onDone={() => {
+                  void refreshPostViews(qc);
+                  setLastSaved(true);
+                  if (!persistent) onOpenChange(false);
+                  else
+                    void supabase
+                      .from("posts")
+                      .select("*")
+                      .eq("id", post.id)
+                      .single()
+                      .then(({ data }) => {
+                        if (!data) return;
+                        baseline.current = data;
+                        version.current = data.updated_at;
+                        setForm(data);
+                      });
+                }}
+              />
+            )}
           </div>
 
           <Separator />
@@ -1283,13 +1363,59 @@ export function PostEditorSheet({
         <Button variant="ghost" onClick={() => request(() => onOpenChange(false))}>
           Fechar
         </Button>
-        <Button
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || uploading || readOnly}
-        >
-          {saveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isEdit ? "Salvar" : "Criar"}
-        </Button>
+        {(() => {
+          // Botões conforme a etapa (Lote 6).
+          const stage = stageOf(form.status).key;
+          const busy = saveMutation.isPending || uploading || readOnly;
+          const draft = stage === "pauta" || stage === "producao";
+          return (
+            <>
+              <Button
+                variant={draft || stage === "agendado" ? "outline" : "default"}
+                onClick={() => saveMutation.mutate()}
+                disabled={busy}
+              >
+                {saveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {draft ? "Salvar rascunho" : isEdit ? "Salvar" : "Criar"}
+              </Button>
+              {draft && isAdmin && (
+                <Button
+                  variant="outline"
+                  title="Administrador pode pular a revisão interna; fica registrado na linha do tempo."
+                  onClick={() =>
+                    saveMutation.mutate({
+                      status: "review",
+                      message: "Enviado para aprovação do cliente (revisão interna pulada)",
+                    })
+                  }
+                  disabled={busy}
+                >
+                  Enviar para aprovação do cliente
+                </Button>
+              )}
+              {draft && (
+                <Button
+                  onClick={() =>
+                    saveMutation.mutate({ status: "editing", message: "Enviado para revisão interna" })
+                  }
+                  disabled={busy}
+                >
+                  Enviar para revisão interna
+                </Button>
+              )}
+              {stage === "agendado" && (
+                <Button
+                  onClick={() =>
+                    saveMutation.mutate({ status: "published", message: "Marcado como publicado" })
+                  }
+                  disabled={busy}
+                >
+                  Marcar como publicado
+                </Button>
+              )}
+            </>
+          );
+        })()}
       </div>
       {saveMutation.error && (
         <p role="alert" className="px-6 pb-3 text-sm text-destructive">

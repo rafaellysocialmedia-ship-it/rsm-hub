@@ -25,7 +25,8 @@ import { Button } from "@/components/ui/button";
 import { PostCreativeThumb } from "@/components/posts/post-creative-viewer";
 import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { QueryState } from "./account-panels";
-import { statusMeta, postNetworks, POST_STATUS, type Post } from "@/lib/posts";
+import { statusMeta, postNetworks, POST_STATUS, matchesStageFilter, type Post } from "@/lib/posts";
+import { PostBadges } from "@/components/posts/post-badges";
 export function ClientCalendarPage({
   clientId,
   defaultClientId,
@@ -134,7 +135,7 @@ export function ClientCalendarPage({
     (p) =>
       (providedPosts !== undefined || !channel || postNetworks(p).includes(channel)) &&
       (providedPosts !== undefined || !kind || p.format === kind) &&
-      (providedPosts !== undefined || !status || p.status === status) &&
+      (providedPosts !== undefined || !status || matchesStageFilter(p.status, status)) &&
       (providedPosts !== undefined || p.title.toLowerCase().includes(search.toLowerCase())) &&
       p.scheduled_date &&
       p.scheduled_date >= from &&
@@ -285,6 +286,7 @@ export function ClientCalendarPage({
               >
                 {statusMeta(p.status).label}
               </span>
+              <PostBadges post={p} size="xs" />
               {extraPostIds?.has(p.id) && (
                 <span
                   className="inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:text-amber-200"
@@ -587,7 +589,7 @@ export function ClientCalendarPage({
             filters={[
               {
                 key: "status",
-                label: "Status",
+                label: "Etapa",
                 value: status || "all",
                 empty: "all",
                 primary: true,

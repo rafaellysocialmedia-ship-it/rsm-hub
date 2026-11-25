@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostBadges } from "@/components/posts/post-badges";
 import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +64,7 @@ export function TimelineView({
                     <PostNetworkBadges networks={postNetworks(p)} className="mt-1" />
                   </div>
                   <Badge variant="outline" className={cn("text-[10px]", meta.tone)}>{meta.label}</Badge>
+                  <PostBadges post={p} />
                 </div>
               );
             })}

@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { POST_STATUS, SOCIAL_NETWORKS, type Post, type PostStatus } from "@/lib/posts";
+import { POST_STATUS, SOCIAL_NETWORKS, matchesStageFilter, type Post, type PostStatus } from "@/lib/posts";
 import type { Client } from "@/lib/clients";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -98,7 +98,9 @@ const VIEW_OPTIONS = [
 
 export function PostsPage({ section }: { section: PostsSection }) {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
+  // Equipe: o próximo passo é a Revisão interna. Administrador pode enviar direto ao cliente (fica registrado).
+  const bulkTarget: PostStatus = hasRole("administrator") ? "review" : "editing";
   const workspace = usePostWorkspace();
   // Filtros e visualização são preservados ao sair e voltar para a tela.
   const rawSearch = useSearch({ strict: false }) as { view?: ViewMode };
@@ -288,7 +290,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
         !owners.data?.tasks.some((t) => t.source_post_id === p.id && ownerFilter.split(",").includes(t.assignee_id ?? ""))
       )
         return false;
-      if (statusFilter !== "all" && !statusFilter.split(",").includes(p.status)) return false;
+      if (!matchesStageFilter(p.status, statusFilter)) return false;
       if (!matchesClients(clientFilter, p.client_id)) return false;
       if (networkFilter !== "all") {
         const nets = (p as { social_networks?: string[] | null }).social_networks ?? [];
@@ -331,7 +333,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["posts"], ctx.prev);
-      toast.error("Falha ao mover");
+      toast.error((_e as { message?: string } | null)?.message || "Falha ao mover");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }),
   });
@@ -340,18 +342,20 @@ export function PostsPage({ section }: { section: PostsSection }) {
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase
         .from("posts")
-        .update({ status: "review" as PostStatus })
+        .update({ status: bulkTarget })
         .in("id", ids);
       if (error) throw error;
     },
     onSuccess: (_d, ids) => {
+      const n = ids.length;
+      const plural = n === 1 ? "publicação enviada" : "publicações enviadas";
       toast.success(
-        `${ids.length} publicaç${ids.length === 1 ? "ão enviada" : "ões enviadas"} para revisão`,
+        `${n} ${plural} para ${bulkTarget === "review" ? "aprovação do cliente" : "revisão interna"}`,
       );
       clearSelection();
       qc.invalidateQueries({ queryKey: ["posts"] });
     },
-    onError: () => toast.error("Falha ao enviar para revisão"),
+    onError: (e: Error) => toast.error(e.message || "Falha ao enviar"),
   });
 
   const updateDate = useMutation({
@@ -369,7 +373,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["posts"], ctx.prev);
-      toast.error("Falha ao mover");
+      toast.error((_e as { message?: string } | null)?.message || "Falha ao mover");
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ["posts"] }),
   });
@@ -482,7 +486,7 @@ export function PostsPage({ section }: { section: PostsSection }) {
             },
             {
               key: "status",
-              label: "Status",
+              label: "Etapa",
               value: statusFilter,
               empty: "all",
               multiSelect: true,
@@ -575,7 +579,8 @@ export function PostsPage({ section }: { section: PostsSection }) {
               onClick={() => bulkReview.mutate(Array.from(selected))}
               disabled={bulkReview.isPending}
             >
-              <Send className="h-3 w-3" /> Enviar para revisão
+              <Send className="h-3 w-3" />{" "}
+              {bulkTarget === "review" ? "Enviar para aprovação do cliente" : "Enviar para revisão interna"}
             </Button>
             <Button
               size="sm"

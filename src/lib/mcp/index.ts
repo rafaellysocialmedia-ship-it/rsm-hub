@@ -13,7 +13,7 @@ export default defineMcp({
   title: "RSM",
   version: "0.1.0",
   instructions:
-    "Ferramentas do RSM (Social Media Hub): consulte clientes, publicações do calendário editorial e tarefas, crie publicações e tarefas e atualize o status de publicações. Todas as operações respeitam as permissões do usuário conectado.",
+    "Ferramentas do RSM (Social Media Hub): consulte clientes, publicações do calendário editorial e tarefas, crie publicações e tarefas e mude a etapa de publicações (Pauta, Produção, Revisão interna, Aprovação do cliente, Agendado, Publicado ou Arquivado). Todas as operações respeitam as permissões do usuário conectado.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",

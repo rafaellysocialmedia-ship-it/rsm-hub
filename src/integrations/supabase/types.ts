@@ -2749,6 +2749,7 @@ export type Database = {
           publication_confirmed_at: string | null
           publication_source: string | null
           extra_request_id: string | null
+          in_recording: boolean
           content_revision: number
           caption: string | null
           client_id: string | null
@@ -2780,6 +2781,7 @@ export type Database = {
           publication_confirmed_at?: string | null
           publication_source?: string | null
           extra_request_id?: string | null
+          in_recording?: boolean
           content_revision?: number
           caption?: string | null
           client_id?: string | null
@@ -2811,6 +2813,7 @@ export type Database = {
           publication_confirmed_at?: string | null
           publication_source?: string | null
           extra_request_id?: string | null
+          in_recording?: boolean
           content_revision?: number
           caption?: string | null
           client_id?: string | null
@@ -3508,6 +3511,9 @@ export type Database = {
       can_access_portal_post: {Args:{_post_id:string;_permission?:string};Returns:boolean};
       decide_my_account_posts: {Args:{_items:Json};Returns:number};
       create_approval_link: {Args:{_post_id:string;_days?:number};Returns:Json};
+      content_flow_settings: {Args:Record<PropertyKey,never>;Returns:Json};
+      approve_internal_review: {Args:{_post_id:string;_checklist:Json;_expected_updated_at?:string};Returns:Json};
+      return_to_production: {Args:{_post_id:string;_comment:string};Returns:Json};
       get_approval_link_post: {Args:{_token:string};Returns:Json};
       decide_approval_link: {Args:{_token:string;_expected_updated_at:string;_decision:Database["public"]["Enums"]["approval_decision"];_feedback?:string};Returns:Json};
       get_post_review_history: {Args:{_post_id:string};Returns:Json};

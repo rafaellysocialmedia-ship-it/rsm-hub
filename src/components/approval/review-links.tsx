@@ -72,7 +72,7 @@ export function ReviewLinks({ post }: { post: Post }) {
           ))}
         </select>
         <Button
-          disabled={create.isPending || !["review", "changes_requested"].includes(post.status)}
+          disabled={create.isPending || post.status !== "review"}
           onClick={() => create.mutate()}
         >
           Criar link

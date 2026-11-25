@@ -14,7 +14,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { POST_STATUS, type Post, type PostStatus } from "@/lib/posts";
+import { POST_STATUS, stageOf, statusForStage, type Post, type PostStatus } from "@/lib/posts";
 import { PostCard } from "../post-card";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -36,7 +36,7 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
   const grouped = useMemo(() => {
     const m = new Map<PostStatus, Post[]>();
     POST_STATUS.forEach((s) => m.set(s.value, []));
-    posts.forEach((p) => m.get(p.status)?.push(p));
+    posts.forEach((p) => m.get(stageOf(p.status).value)?.push(p));
     return m;
   }, [posts]);
 
@@ -57,9 +57,11 @@ export function KanbanView({ posts, clientMap, onOpen, onStatusChange, onAdd }: 
     const id = String(e.active.id);
     const over = e.over?.id ? String(e.over.id) : null;
     if (!over) return;
-    const newStatus = over as PostStatus;
+    const stageValue = over as PostStatus;
     const post = posts.find((p) => p.id === id);
-    if (post && post.status !== newStatus) onStatusChange(id, newStatus);
+    // Soltar na mesma etapa não muda nada (ex.: Ajuste solicitado continua em Produção).
+    if (!post || stageOf(post.status).value === stageValue) return;
+    onStatusChange(id, statusForStage(stageValue, post));
   }
 
   return (

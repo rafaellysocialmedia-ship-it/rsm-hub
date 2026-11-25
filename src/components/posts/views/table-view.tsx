@@ -3,6 +3,7 @@ import { ptBR } from "date-fns/locale";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { PostBadges } from "@/components/posts/post-badges";
 import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,10 @@ export function TableView({
                 <TableCell>{p.scheduled_date ? format(new Date(p.scheduled_date + "T00:00:00"), "dd MMM yy", { locale: ptBR }) : "—"}</TableCell>
                 <TableCell>{p.scheduled_time?.slice(0, 5) ?? "—"}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={cn("text-[10px]", meta.tone)}>{meta.label}</Badge>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <Badge variant="outline" className={cn("text-[10px]", meta.tone)}>{meta.label}</Badge>
+                    <PostBadges post={p} />
+                  </div>
                 </TableCell>
               </TableRow>
             );

@@ -3,7 +3,8 @@ import { ptBR } from "date-fns/locale";
 import { Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { statusMeta, stageOf, postNetworks, type Post } from "@/lib/posts";
+import { PostBadges, useChangeReasons } from "@/components/posts/post-badges";
 import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 
 type Props = {
@@ -16,7 +17,8 @@ type Props = {
 
 export function PostCard({ post, clientName, onClick, compact, dragging }: Props) {
   const meta = statusMeta(post.status);
-  const isRejected = post.status === ("rejected" as typeof post.status);
+  const isRejected = stageOf(post.status).key === "arquivado";
+  const reasons = useChangeReasons(post.status === "changes_requested");
   return (
     <div
       onClick={onClick}
@@ -34,6 +36,12 @@ export function PostCard({ post, clientName, onClick, compact, dragging }: Props
       {!compact && clientName && (
         <p className={cn("mt-1 text-xs text-muted-foreground", isRejected && "line-through")}>{clientName}</p>
       )}
+      <PostBadges
+        post={post}
+        reason={reasons.data?.get(post.id)}
+        showReason={!compact}
+        className="mt-1.5"
+      />
       <div className="mt-1.5 flex flex-wrap items-center gap-1">
         <PostNetworkBadges networks={postNetworks(post)} compact={compact} />
         {post.format && (

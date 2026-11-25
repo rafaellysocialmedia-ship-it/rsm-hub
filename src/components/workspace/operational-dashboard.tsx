@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFinanceAccess } from "@/hooks/use-finance";
 import { useRetention } from "@/hooks/use-retention";
 import { localDate } from "@/lib/account-workspace";
+import { needsScheduling } from "@/lib/posts";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -60,7 +61,7 @@ export function OperationalDashboard({ name }: { name: string }) {
       const results = await Promise.all([
         supabase
           .from("posts")
-          .select("id,client_id,title,status,scheduled_date")
+          .select("id,client_id,title,status,scheduled_date,scheduled_time")
           .in("client_id", ids),
         supabase.from("tasks").select("id,client_id,title,status,due_date").in("client_id", ids),
         supabase
@@ -102,7 +103,7 @@ export function OperationalDashboard({ name }: { name: string }) {
     "Aprovações atrasadas": (d?.posts ?? [])
       .filter(
         (p) =>
-          ["review", "changes_requested"].includes(p.status) &&
+          p.status === "review" &&
           p.scheduled_date &&
           p.scheduled_date < today,
       )
@@ -112,6 +113,16 @@ export function OperationalDashboard({ name }: { name: string }) {
         title: p.title,
         date: p.scheduled_date,
         tab: "approvals",
+      })),
+    // Aprovados sem data e hora: etapa Agendado com selo "Falta agendar".
+    "Falta agendar": (d?.posts ?? [])
+      .filter((p) => needsScheduling(p))
+      .map((p) => ({
+        id: p.id,
+        client: p.client_id!,
+        title: p.title,
+        date: p.scheduled_date,
+        tab: "calendar",
       })),
     "Materiais aguardados": (d?.requests ?? [])
       .filter((r) => r.kind === "material" && r.status === "waiting_client")
@@ -237,6 +248,7 @@ export function OperationalDashboard({ name }: { name: string }) {
             { title: "Cobranças vencidas", tone: "critical", cta: "Cobrar", to: "/financeiro/receber" },
             { title: "Tarefas vencidas", tone: "critical", cta: "Ver tarefas", to: "/tarefas", search: { de: "equipe", overdue: "1" } },
             { title: "Aprovações atrasadas", tone: "warning", cta: "Ver aprovações", to: "/conteudo/aprovacoes" },
+            { title: "Falta agendar", tone: "warning", cta: "Ver no quadro", to: "/conteudo/quadro" },
             { title: "Materiais aguardados", tone: "warning", cta: "Ver pedidos" },
           ] as const;
           const pending = ACTIONS.filter((a) => (groups[a.title]?.length ?? 0) > 0);
@@ -250,7 +262,9 @@ export function OperationalDashboard({ name }: { name: string }) {
                   ? "tarefas"
                   : a.title === "Aprovações atrasadas"
                     ? "aprovações"
-                    : "materiais",
+                    : a.title === "Falta agendar"
+                      ? "posts a agendar"
+                      : "materiais",
             ),
             ...(meetingsToday.length ? [] : ["reuniões de hoje"]),
           ];

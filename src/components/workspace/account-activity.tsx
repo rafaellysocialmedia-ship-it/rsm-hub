@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useFinanceAccess } from "@/hooks/use-finance";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QueryState } from "./account-panels";
+import { FLOW_ACTIVITY_LABELS } from "@/lib/posts";
 
 export function AccountActivity({ clientId }: { clientId: string }) {
   const finance = useFinanceAccess();
@@ -47,6 +48,7 @@ export function AccountActivity({ clientId }: { clientId: string }) {
       if (posts.error || meetings.error || payments.error || timeline.error || tasks.error)
         throw posts.error || meetings.error || payments.error || timeline.error || tasks.error;
       const labels: Record<string, string> = {
+        ...FLOW_ACTIVITY_LABELS,
         approval_approved: "Conteúdo aprovado",
         approval_changes_requested: "Alteração solicitada",
         approval_rejected: "Conteúdo rejeitado",

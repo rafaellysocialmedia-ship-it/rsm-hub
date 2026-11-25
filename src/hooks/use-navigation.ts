@@ -144,7 +144,7 @@ export function useNavigationCounts() {
         let request = supabase
           .from("portal_posts")
           .select("id", { count: "exact", head: true })
-          .in("status", ["review", "changes_requested"]);
+          .eq("status", "review");
         if (staff) request = request.in("client_id", ids);
         const r = await request;
         approvals = r.error || clients?.error ? null : (r.count ?? 0);

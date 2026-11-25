@@ -28,7 +28,8 @@ import { TaskDialog } from "@/components/tasks/task-dialog";
 import { MeetingDialog } from "@/components/meetings/meeting-dialog";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
 import type { Client } from "@/lib/clients";
-import type { Post } from "@/lib/posts";
+import { statusMeta, type Post } from "@/lib/posts";
+import { PostBadges } from "@/components/posts/post-badges";
 const QuickContext = createContext<{
   actions: string[][];
   search: () => void;
@@ -194,12 +195,22 @@ export function QuickActionsProvider({ children }: { children: ReactNode }) {
                           setPost(p);
                         }}
                       >
-                        <div>
-                          <p>{p.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Conteúdo ·{" "}
-                            {q.data.names.find((c) => c.id === p.client_id)?.name ?? "Interno"}
-                          </p>
+                        <div className="flex w-full items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate">{p.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Conteúdo ·{" "}
+                              {q.data.names.find((c) => c.id === p.client_id)?.name ?? "Interno"}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                            <span
+                              className={`inline-flex items-center whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${statusMeta(p.status).tone}`}
+                            >
+                              {statusMeta(p.status).label}
+                            </span>
+                            <PostBadges post={p} />
+                          </div>
                         </div>
                       </CommandItem>
                     ))}

@@ -26,7 +26,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { statusMeta, postNetworks, type Post } from "@/lib/posts";
+import { statusMeta, stageOf, postNetworks, type Post } from "@/lib/posts";
+import { PostBadges } from "@/components/posts/post-badges";
 import { PostNetworkBadges } from "@/components/posts/post-network-badges";
 import { CommemorativeDatesDialog } from "@/components/posts/commemorative-dates-dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -282,6 +283,7 @@ const DayCell = memo(function DayCell({
                     <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
                       {client && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-primary">{client}</span>}
                       <span className={cn("rounded border px-1.5 py-0.5", meta.tone)}>{meta.label}</span>
+                      <PostBadges post={p} />
                       {p.format && <span className="rounded bg-muted px-1.5 py-0.5">{p.format}</span>}
                       <PostNetworkBadges networks={postNetworks(p)} />
                     </div>
@@ -299,7 +301,7 @@ const DayCell = memo(function DayCell({
 const CalendarEvent = memo(function CalendarEvent({ post, clientMap, onOpen }: { post: Post; clientMap: Map<string, string>; onOpen: (p: Post) => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: post.id });
   const meta = statusMeta(post.status);
-  const isRejected = post.status === ("rejected" as typeof post.status);
+  const isRejected = stageOf(post.status).key === "arquivado";
   return (
     <div
       ref={setNodeRef}
@@ -321,6 +323,7 @@ const CalendarEvent = memo(function CalendarEvent({ post, clientMap, onOpen }: {
       <div className="flex items-center gap-1 truncate opacity-80">
         <PostNetworkBadges networks={postNetworks(post)} compact />
         {post.format && <span className="rounded bg-background/60 px-1 text-[9px] font-medium">{post.format}</span>}
+        <PostBadges post={post} size="xs" />
         {post.client_id && clientMap.get(post.client_id) && (
           <span className="truncate">{clientMap.get(post.client_id)}</span>
         )}
