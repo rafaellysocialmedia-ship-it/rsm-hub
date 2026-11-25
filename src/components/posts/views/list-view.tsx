@@ -43,7 +43,7 @@ export function ListView({
               {date ? (
                 <>
                   <span className="text-xl font-semibold tabular-nums text-brand">{format(date, "dd")}</span>
-                  <span className="text-sm font-medium capitalize">{format(date, "EEEE", { locale: ptBR })}</span>
+                  <span className="inline-block text-sm font-medium first-letter:uppercase">{format(date, "EEEE", { locale: ptBR })}</span>
                   <span className="text-xs text-muted-foreground">{format(date, "MMMM", { locale: ptBR })}</span>
                 </>
               ) : (

@@ -145,7 +145,7 @@ function TasksPage() {
         >
           {overdue ? "Mostrar todas" : "Somente vencidas"}
         </Button>
-        <div className="relative max-w-sm flex-1">
+        <div className="relative w-full min-w-0 sm:max-w-sm sm:flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Buscar tarefas..."
@@ -155,7 +155,7 @@ function TasksPage() {
           />
         </div>
         <Select value={clientFilter} onValueChange={setClientFilter}>
-          <SelectTrigger className="h-9 w-[180px]">
+          <SelectTrigger className="h-9 w-full sm:w-[180px]">
             <SelectValue placeholder="Cliente" />
           </SelectTrigger>
           <SelectContent>
@@ -168,11 +168,11 @@ function TasksPage() {
           </SelectContent>
         </Select>
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="h-9 w-[160px]">
+          <SelectTrigger className="h-9 w-full sm:w-[180px]">
             <SelectValue placeholder="Prioridade" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas prioridades</SelectItem>
+            <SelectItem value="all">Todas as prioridades</SelectItem>
             {(Object.keys(PRIORITY_META) as Array<keyof typeof PRIORITY_META>).map((p) => (
               <SelectItem key={p} value={p}>
                 {PRIORITY_META[p].label}
