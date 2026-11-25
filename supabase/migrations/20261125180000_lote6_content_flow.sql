@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS rsm_private.feature_flags (
 INSERT INTO rsm_private.feature_flags(key, enabled)
 VALUES ('internal_review_required', false)
 ON CONFLICT (key) DO NOTHING;
+ALTER TABLE rsm_private.feature_flags ENABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION rsm_private.flag(_key text) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
@@ -337,6 +338,7 @@ CREATE TABLE IF NOT EXISTS rsm_private.post_status_backup_lote6 (
   new_status public.post_status NOT NULL,
   migrated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE rsm_private.post_status_backup_lote6 ENABLE ROW LEVEL SECURITY;
 
 DO $$
 DECLARE r record;
